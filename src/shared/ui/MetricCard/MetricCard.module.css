@@ -1,0 +1,92 @@
+.card {
+  min-width: 0;
+  min-height: var(--salt-metric-card-min-height);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: var(--salt-metric-card-padding);
+  border: var(--salt-panel-border);
+  border-radius: var(--salt-panel-radius);
+  background: var(--salt-panel-background);
+  box-shadow: var(--salt-shadow-raised);
+  color: var(--salt-color-text);
+  text-align: left;
+}
+
+.compact {
+  min-height: var(--salt-metric-card-min-height-compact);
+  padding: var(--salt-metric-card-padding-compact);
+}
+
+.compact .detail {
+  min-height: calc(var(--salt-type-line-ui-secondary) * 2);
+}
+
+.flat {
+  box-shadow: none;
+}
+
+.interactive {
+  width: 100%;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    border-color var(--salt-motion-fast) var(--salt-ease-standard),
+    box-shadow var(--salt-motion-fast) var(--salt-ease-standard),
+    transform var(--salt-motion-fast) var(--salt-ease-standard);
+}
+
+.interactive:hover {
+  border-color: var(--salt-color-border);
+  transform: translateY(calc(var(--salt-border-width) * -1));
+}
+
+.interactive:focus-visible {
+  outline: var(--salt-focus-ring-width) solid var(--salt-color-focus);
+  outline-offset: var(--salt-focus-ring-offset);
+}
+
+.selected {
+  border-color: var(--salt-metric-card-selected-border);
+  box-shadow: inset 0 var(--salt-metric-card-selected-indicator) 0 var(--salt-color-focus), var(--salt-shadow-raised);
+}
+
+.flat.selected {
+  box-shadow: inset 0 var(--salt-metric-card-selected-indicator) 0 var(--salt-color-focus);
+}
+
+.label,
+.detail {
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.value {
+  margin-top: auto;
+  padding-top: var(--salt-space-5);
+  color: var(--salt-color-text-strong);
+  font-family: var(--salt-type-family-display);
+  font-size: var(--salt-metric-card-value-size);
+  font-weight: var(--salt-type-weight-display);
+  line-height: var(--salt-metric-card-value-line);
+}
+
+.detail {
+  margin-top: var(--salt-space-1);
+}
+
+.detailPositive { color: var(--salt-color-success-text); }
+.detailNegative { color: var(--salt-color-danger-text); }
+
+.accessory {
+  display: inline-flex;
+  align-items: center;
+  margin-top: var(--salt-space-3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .interactive {
+    transition: none;
+  }
+}

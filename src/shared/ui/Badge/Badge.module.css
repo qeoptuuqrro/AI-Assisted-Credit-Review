@@ -1,0 +1,29 @@
+.badge {
+  min-height: var(--salt-badge-height);
+  display: inline-flex;
+  align-items: center;
+  padding-inline: var(--salt-badge-padding);
+  border-radius: var(--salt-badge-radius);
+  font-size: var(--salt-badge-font-size);
+  line-height: var(--salt-badge-line-height);
+}
+
+.neutral {
+  background: var(--salt-badge-neutral-background);
+  color: var(--salt-badge-neutral-text);
+}
+
+.success {
+  background: var(--salt-badge-success-background);
+  color: var(--salt-badge-success-text);
+}
+
+.warning {
+  background: var(--salt-badge-warning-background);
+  color: var(--salt-badge-warning-text);
+}
+
+.danger {
+  background: var(--salt-badge-danger-background);
+  color: var(--salt-badge-danger-text);
+}

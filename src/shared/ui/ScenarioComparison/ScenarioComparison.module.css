@@ -1,0 +1,68 @@
+.header,
+.row {
+  display: grid;
+  grid-template-columns: var(--salt-scenario-columns);
+  align-items: center;
+  gap: var(--salt-scenario-column-gap);
+}
+
+.header {
+  min-height: var(--salt-space-10);
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-table-header-size);
+  line-height: var(--salt-type-table-header-line);
+}
+
+.row {
+  min-height: var(--salt-scenario-row-height);
+  border-top: var(--salt-border-subtle);
+  color: var(--salt-color-text-muted);
+  font-size: var(--salt-type-size-sm);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.row strong,
+.floor strong {
+  color: var(--salt-color-text-strong);
+  font-family: var(--salt-type-family-display);
+  font-size: var(--salt-type-size-lg);
+  font-weight: var(--salt-type-weight-display);
+}
+
+.label,
+.floor > span:first-child {
+  display: flex;
+  align-items: center;
+  gap: var(--salt-space-3);
+  color: var(--salt-color-text-strong);
+  font-size: var(--salt-type-size-ui-secondary);
+}
+
+.label svg { color: var(--salt-color-text-subtle); }
+.positive { color: var(--salt-color-success-text); }
+.negative { color: var(--salt-color-danger-text); }
+
+.floor {
+  min-height: var(--salt-space-12);
+  display: grid;
+  grid-template-columns: var(--salt-scenario-columns);
+  align-items: center;
+  gap: var(--salt-scenario-column-gap);
+  border-top: var(--salt-border-subtle);
+  border-radius: var(--salt-radius-md);
+  background: var(--salt-color-surface-subtle);
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-size-xs);
+}
+
+.floor strong { font-size: var(--salt-type-size-ui); }
+
+@media (max-width: 620px) {
+  .header { display: none; }
+  .row { grid-template-columns: minmax(0, 1fr) auto; gap: var(--salt-space-1) var(--salt-space-4); padding-block: var(--salt-space-3); }
+  .row > span:nth-child(3), .row > span:nth-child(4) { grid-column: 1; }
+  .row strong { grid-column: 2; grid-row: 1; }
+  .floor { grid-template-columns: minmax(0, 1fr) auto; gap: var(--salt-space-1) var(--salt-space-4); padding-block: var(--salt-space-3); }
+  .floor > span:nth-child(3), .floor > span:nth-child(4) { grid-column: 1; }
+  .floor strong { grid-column: 2; grid-row: 1; }
+}

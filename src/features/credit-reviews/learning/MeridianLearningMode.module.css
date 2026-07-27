@@ -1,0 +1,290 @@
+.toggle[aria-pressed="true"] {
+  background: var(--salt-color-indigo-100);
+  color: var(--salt-color-indigo-700);
+  box-shadow: inset 0 0 0 var(--salt-border-width) var(--salt-color-action-border-subtle);
+}
+
+.inlineToggle {
+  position: fixed;
+  top: var(--salt-space-3);
+  right: var(--salt-space-16);
+  z-index: var(--salt-z-overlay);
+}
+
+@media (max-width: 700px) {
+  .inlineToggle { top: var(--salt-space-2); right: var(--salt-space-3); }
+}
+
+/* The learning boundary is also used by queue and non-Meridian case routes.
+   Keep the affordance here so every route shares one inspection language. */
+.learningSurface[data-learning-mode="true"] [data-learning-target] {
+  position: relative;
+  outline: var(--salt-border-width) dashed color-mix(in srgb, var(--salt-color-focus) 34%, transparent);
+  outline-offset: var(--salt-space-1);
+  cursor: help;
+  transition: outline-color var(--salt-motion-fast) var(--salt-ease-standard), background-color var(--salt-motion-fast) var(--salt-ease-standard), box-shadow var(--salt-motion-fast) var(--salt-ease-standard);
+}
+
+.learningSurface[data-learning-mode="true"] [data-learning-target]::after {
+  position: absolute;
+  z-index: var(--salt-z-navigation);
+  top: var(--salt-space-2);
+  right: var(--salt-space-2);
+  max-width: calc(100% - var(--salt-space-4));
+  overflow: hidden;
+  padding: var(--salt-space-1) var(--salt-space-2);
+  border-radius: var(--salt-radius-full);
+  background: var(--salt-color-action);
+  color: var(--salt-color-on-action);
+  content: attr(data-learning-label);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(calc(var(--salt-space-1) * -1));
+  transition: opacity var(--salt-motion-fast) var(--salt-ease-standard), transform var(--salt-motion-fast) var(--salt-ease-standard);
+}
+
+.learningSurface[data-learning-mode="true"] [data-learning-target]:hover:not(:has([data-learning-target]:hover)),
+.learningSurface[data-learning-mode="true"] [data-learning-target]:focus-visible {
+  outline-color: var(--salt-color-focus);
+  background-color: var(--color-inspector-tint);
+  box-shadow: var(--salt-shadow-focus);
+}
+
+.learningSurface[data-learning-mode="true"] [data-learning-target]:hover:not(:has([data-learning-target]:hover))::after,
+.learningSurface[data-learning-mode="true"] [data-learning-target]:focus-visible::after {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.learningSurface[data-learning-mode="true"] [data-learning-target]:focus-visible {
+  outline-width: var(--salt-focus-ring-width);
+}
+
+.drawer {
+  --salt-drawer-width: 420px;
+  --salt-drawer-inset-top: calc(var(--salt-shell-banner-height) + var(--salt-shell-utility-height) + var(--salt-space-4));
+}
+
+.drawer h2 {
+  margin: var(--salt-space-1) 0 0;
+  color: var(--salt-color-text-strong);
+  font-family: var(--salt-type-family-display);
+  font-size: var(--salt-type-size-xl);
+  font-weight: var(--salt-type-weight-display);
+  line-height: var(--salt-type-line-section);
+}
+
+.drawerEyebrow,
+.sectionLabel {
+  display: block;
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
+  letter-spacing: var(--salt-type-tracking-label);
+  text-transform: uppercase;
+}
+
+.levelSwitch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--salt-space-1);
+  margin: 0 var(--salt-space-6) var(--salt-space-2);
+  padding: var(--salt-space-1);
+  border-radius: var(--salt-radius-md);
+  background: var(--salt-color-surface-subtle);
+}
+
+.levelSwitch button {
+  min-height: var(--salt-control-height-sm);
+  border: 0;
+  border-radius: var(--salt-radius-sm);
+  background: transparent;
+  color: var(--salt-color-text-muted);
+  font: inherit;
+  font-size: var(--salt-type-size-sm);
+  cursor: pointer;
+}
+
+.levelSwitch button[data-active="true"] {
+  background: var(--salt-color-surface);
+  color: var(--salt-color-text-strong);
+  box-shadow: var(--salt-product-object-shadow-subtle);
+}
+
+.levelSwitch button:focus-visible {
+  outline: var(--salt-focus-ring-width) solid var(--salt-color-focus);
+  outline-offset: var(--salt-focus-ring-offset);
+}
+
+.drawer section p {
+  margin: var(--salt-space-2) 0 0;
+  color: var(--salt-color-text);
+  font-size: var(--salt-type-size-sm);
+  line-height: var(--salt-type-line-ui);
+}
+
+.meaningSection {
+  border-top: 0;
+}
+
+.walkthroughCard {
+  display: grid;
+  gap: var(--salt-space-3);
+  margin-top: var(--salt-space-2);
+  padding: var(--salt-space-4);
+  border: var(--salt-border-width) solid var(--salt-color-action-border-subtle);
+  border-radius: var(--salt-radius-md);
+  background: var(--salt-color-indigo-100);
+}
+
+.walkthroughCard p {
+  margin-top: var(--salt-space-1);
+  color: var(--salt-color-text-strong);
+}
+
+.walkthroughCard button {
+  justify-self: start;
+}
+
+.drawer .lead {
+  color: var(--salt-color-text-strong);
+  font-size: var(--salt-type-size-ui-secondary);
+}
+
+.example {
+  display: grid;
+  grid-template-columns: var(--salt-icon-sm) minmax(0, 1fr);
+  gap: var(--salt-space-3);
+  margin-top: var(--salt-space-4);
+  padding: var(--salt-space-3) var(--salt-space-4);
+  border: var(--salt-border-width) solid var(--salt-color-action-border-subtle);
+  border-radius: var(--salt-radius-md);
+  background: var(--salt-color-indigo-100);
+  color: var(--salt-color-indigo-700);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.example svg {
+  margin-top: var(--salt-space-0-5);
+}
+
+.aiSteps {
+  display: grid;
+  gap: var(--salt-space-3);
+  margin: var(--salt-space-3) 0 0;
+  padding: 0;
+  counter-reset: learning-step;
+  list-style: none;
+}
+
+.aiSteps li {
+  display: grid;
+  grid-template-columns: var(--salt-space-6) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--salt-space-3);
+  color: var(--salt-color-text);
+  font-size: var(--salt-type-size-sm);
+  line-height: var(--salt-type-line-ui-secondary);
+  counter-increment: learning-step;
+}
+
+.aiSteps li::before {
+  width: var(--salt-space-6);
+  height: var(--salt-space-6);
+  display: grid;
+  place-items: center;
+  border-radius: var(--salt-radius-full);
+  background: var(--salt-color-surface-selected);
+  color: var(--salt-color-text-muted);
+  content: counter(learning-step);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-none);
+}
+
+.drawer blockquote {
+  margin: var(--salt-space-3) 0 0;
+  padding-left: var(--salt-space-4);
+  border-left: 2px solid var(--salt-color-action);
+  color: var(--salt-color-text-strong);
+  font-family: var(--salt-type-family-display);
+  font-size: var(--salt-type-size-ui-secondary);
+  line-height: var(--salt-type-line-ui);
+}
+
+.sourceTrail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--salt-space-2);
+  margin-top: var(--salt-space-3);
+}
+
+.sourceTrail span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--salt-space-1);
+  padding: var(--salt-space-1) var(--salt-space-2);
+  border-radius: var(--salt-radius-full);
+  background: var(--salt-color-surface-subtle);
+  color: var(--salt-color-text-muted);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.humanCheck {
+  display: grid;
+  grid-template-columns: var(--salt-icon-sm) minmax(0, 1fr);
+  gap: var(--salt-space-3);
+  margin-top: var(--salt-space-5);
+  padding-top: var(--salt-space-4);
+  border-top: var(--salt-border-subtle);
+  color: var(--salt-color-text-muted);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.humanCheck strong {
+  display: block;
+  margin-bottom: var(--salt-space-1);
+  color: var(--salt-color-text-strong);
+  font-weight: var(--salt-type-weight-medium);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--salt-space-4);
+}
+
+.footer > span {
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-size-xs);
+}
+
+.footer > div {
+  display: flex;
+  gap: var(--salt-space-2);
+}
+
+@media (max-width: 520px) {
+  .drawer {
+    --salt-drawer-inset-top: 0;
+  }
+
+  .levelSwitch {
+    margin-top: var(--salt-space-2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toggle,
+  .learningSurface[data-learning-mode="true"] [data-learning-target],
+  .learningSurface[data-learning-mode="true"] [data-learning-target]::after {
+    transition: none;
+  }
+}

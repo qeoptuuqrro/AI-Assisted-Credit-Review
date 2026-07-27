@@ -1,0 +1,76 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--salt-button-gap);
+  border: var(--salt-button-border-transparent);
+  border-radius: var(--salt-button-radius);
+  font-family: var(--salt-button-font-family);
+  font-size: var(--salt-button-font-size);
+  font-weight: var(--salt-button-font-weight);
+  line-height: var(--salt-button-line-height);
+  letter-spacing: var(--salt-button-tracking);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--salt-motion-fast) var(--salt-ease-standard), border-color var(--salt-motion-fast) var(--salt-ease-standard), transform var(--salt-motion-fast) var(--salt-ease-standard);
+}
+
+.button:active:not(:disabled) {
+  transform: translateY(var(--salt-motion-press-offset));
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: var(--salt-button-disabled-opacity);
+}
+
+.button > svg {
+  width: var(--salt-button-icon-size);
+  height: var(--salt-button-icon-size);
+  flex: 0 0 var(--salt-button-icon-size);
+}
+
+.sm {
+  min-height: var(--salt-button-height-sm);
+  padding-inline: var(--salt-button-padding-sm);
+}
+
+.md {
+  min-height: var(--salt-button-height-md);
+  padding-inline: var(--salt-button-padding-md);
+}
+
+.primary {
+  background: var(--salt-button-primary-background);
+  color: var(--salt-button-primary-text);
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--salt-button-primary-background-hover);
+}
+
+.secondary {
+  border: var(--salt-button-border-secondary);
+  background: var(--salt-button-secondary-background);
+  color: var(--salt-button-secondary-text);
+}
+
+.secondary:hover:not(:disabled),
+.soft:hover:not(:disabled),
+.quiet:hover:not(:disabled) {
+  background: var(--salt-button-secondary-background-hover);
+}
+
+.soft {
+  background: var(--salt-button-soft-background);
+  color: var(--salt-button-soft-text);
+}
+
+.soft:hover:not(:disabled) {
+  background: var(--salt-button-soft-background-hover);
+}
+
+.quiet {
+  background: var(--salt-button-quiet-background);
+  color: var(--salt-button-quiet-text);
+}

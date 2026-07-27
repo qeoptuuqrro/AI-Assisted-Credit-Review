@@ -1,0 +1,13 @@
+.panel {
+  border: var(--salt-panel-border);
+  border-radius: var(--salt-panel-radius);
+  background: var(--salt-panel-background);
+}
+
+.raised {
+  box-shadow: var(--salt-shadow-raised);
+}
+
+.flat {
+  box-shadow: none;
+}

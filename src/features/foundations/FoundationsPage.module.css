@@ -1,0 +1,107 @@
+.page {
+  width: min(100%, var(--salt-shell-content-max));
+  margin-inline: auto;
+  padding: var(--space-12);
+}
+
+.header {
+  margin-bottom: var(--space-10);
+}
+
+.header p {
+  margin: 0 0 var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.header h1 {
+  margin: 0;
+  color: var(--color-text-strong);
+  font-family: var(--font-display);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-regular);
+  letter-spacing: var(--tracking-display);
+}
+
+.header span {
+  display: block;
+  max-width: var(--content-measure-medium);
+  margin-top: var(--space-3);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-body);
+}
+
+.page section + section {
+  margin-top: var(--space-10);
+}
+
+.page h2 {
+  margin: 0 0 var(--space-4);
+  color: var(--color-text-strong);
+  font-family: var(--font-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+}
+
+.colorGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.colorCard {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+}
+
+.swatch {
+  height: var(--foundation-swatch-height);
+  border: var(--border-width) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.colorCard strong {
+  margin-top: var(--space-2);
+  color: var(--color-text-strong);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.colorCard code {
+  overflow: hidden;
+  color: var(--color-text-subtle);
+  font-size: var(--font-size-xs);
+  text-overflow: ellipsis;
+}
+
+.componentRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--panel-padding);
+}
+
+@media (max-width: 900px) {
+  .page {
+    padding: var(--space-8);
+  }
+
+  .colorGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .colorGrid {
+    grid-template-columns: 1fr;
+  }
+}

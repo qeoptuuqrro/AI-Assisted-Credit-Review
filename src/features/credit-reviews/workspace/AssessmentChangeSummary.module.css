@@ -1,0 +1,276 @@
+.summary {
+  min-width: 0;
+  display: grid;
+  gap: var(--salt-space-4);
+}
+
+.flowLedger {
+  display: grid;
+  border-block: var(--salt-border-subtle);
+}
+
+.flowLedgerRow {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: var(--salt-icon-tile-size-sm) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--salt-space-3);
+  padding: var(--salt-space-4) 0;
+  border-bottom: var(--salt-border-subtle);
+}
+
+.flowLedgerRow:last-child {
+  border-bottom: 0;
+}
+
+.flowLedgerCopy {
+  min-width: 0;
+  display: grid;
+  gap: var(--salt-space-1);
+}
+
+.flowLedgerLabel {
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
+  letter-spacing: var(--salt-type-tracking-label);
+  text-transform: uppercase;
+}
+
+.flowLedgerCopy > strong,
+.flowRiskValue {
+  color: var(--salt-color-text-strong);
+  font-size: var(--salt-type-size-md);
+  font-weight: var(--salt-type-weight-regular);
+  line-height: var(--salt-type-line-ui);
+}
+
+.flowLedgerCopy > p {
+  max-width: 480px;
+  margin: 0;
+  color: var(--salt-color-text-muted);
+  font-size: var(--salt-type-size-sm);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.flowRiskValue {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--salt-space-2);
+}
+
+.flowRiskValue > span[data-risk="material"] {
+  color: var(--salt-color-danger-text);
+}
+
+.flowRiskValue > span[data-risk="moderate"] {
+  color: var(--salt-color-warning-text);
+}
+
+.flowRiskValue > svg {
+  color: var(--salt-color-text-subtle);
+}
+
+.flowRiskValue > small {
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-size-sm);
+  font-weight: var(--salt-type-weight-regular);
+}
+
+.comparisonGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-block: var(--salt-border-subtle);
+}
+
+.comparisonGrid[data-has-risk="true"] {
+  grid-template-columns: minmax(0, .85fr) repeat(2, minmax(0, 1.15fr));
+}
+
+.comparisonItem {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: var(--salt-space-2);
+  padding: var(--salt-space-5) var(--salt-space-4);
+  border-right: var(--salt-border-subtle);
+}
+
+.comparisonItem:last-child {
+  border-right: 0;
+}
+
+.itemHeading {
+  display: flex;
+  align-items: center;
+  gap: var(--salt-space-2);
+}
+
+.itemHeading > span {
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.comparisonItem > strong {
+  color: var(--salt-color-text-strong);
+  font-size: var(--salt-type-size-ui-secondary);
+  font-weight: var(--salt-type-weight-regular);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.comparisonItem > p {
+  margin: 0;
+  color: var(--salt-color-text-muted);
+  font-size: var(--salt-type-size-sm);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.riskTransition {
+  min-height: var(--salt-space-10);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--salt-icon-sm) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--salt-space-2);
+}
+
+.riskTransition > span {
+  min-width: 0;
+  display: grid;
+  gap: var(--salt-space-0-5);
+}
+
+.riskTransition small {
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.riskTransition strong {
+  color: var(--salt-color-text-strong);
+  font-family: var(--salt-type-family-display);
+  font-size: var(--salt-type-size-lg);
+  font-weight: var(--salt-type-weight-display);
+  line-height: var(--salt-type-line-section);
+}
+
+.riskTransition strong[data-risk="material"] {
+  color: var(--salt-color-danger-text);
+}
+
+.riskTransition strong[data-risk="moderate"] {
+  color: var(--salt-color-warning-text);
+}
+
+.riskTransition > svg {
+  color: var(--salt-color-text-subtle);
+}
+
+.riskUnchanged {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* V2: the finding page needs the decision change to lead, rather than compete
+   with its supporting evidence. The focused reassessment flow retains V1's
+   compact ledger for quick review. */
+.summary[data-presentation="detail-v2"] .comparisonGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--salt-space-3);
+  border: 0;
+}
+
+.summary[data-presentation="detail-v2"] .comparisonItem {
+  min-height: 0;
+  padding: var(--salt-space-5);
+  border: var(--salt-border-subtle);
+  border-radius: var(--salt-radius-md);
+  background: var(--salt-color-surface);
+}
+
+.summary[data-presentation="detail-v2"] .comparisonItem:last-child {
+  border-right: var(--salt-border-subtle);
+}
+
+.summary[data-presentation="detail-v2"] .riskItem {
+  grid-column: 1 / -1;
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas:
+    "heading heading"
+    "transition description";
+  column-gap: var(--salt-space-6);
+  row-gap: var(--salt-space-4);
+  align-items: center;
+  background: var(--salt-color-surface-subtle);
+}
+
+.summary[data-presentation="detail-v2"] .riskItem .itemHeading {
+  grid-area: heading;
+}
+
+.summary[data-presentation="detail-v2"] .riskItem .riskTransition {
+  grid-area: transition;
+  min-height: 0;
+}
+
+.summary[data-presentation="detail-v2"] .riskItem .riskTransition > span {
+  padding: var(--salt-space-3);
+  border: var(--salt-border-subtle);
+  border-radius: var(--salt-radius-sm);
+  background: var(--salt-color-surface);
+}
+
+.summary[data-presentation="detail-v2"] .riskDescription {
+  grid-area: description;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  padding-left: var(--salt-space-5);
+  border-left: var(--salt-border-subtle);
+}
+
+@media (max-width: 760px) {
+  .comparisonGrid,
+  .comparisonGrid[data-has-risk="true"] {
+    grid-template-columns: 1fr;
+  }
+
+  .comparisonItem {
+    border-right: 0;
+    border-bottom: var(--salt-border-subtle);
+  }
+
+  .comparisonItem:last-child {
+    border-bottom: 0;
+  }
+
+  .summary[data-presentation="detail-v2"] .comparisonGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .summary[data-presentation="detail-v2"] .comparisonItem {
+    min-height: 0;
+    border: var(--salt-border-subtle);
+  }
+
+  .summary[data-presentation="detail-v2"] .comparisonItem:last-child {
+    border: var(--salt-border-subtle);
+  }
+
+  .summary[data-presentation="detail-v2"] .riskItem {
+    grid-column: auto;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "heading"
+      "transition"
+      "description";
+  }
+
+  .summary[data-presentation="detail-v2"] .riskDescription {
+    padding-top: var(--salt-space-4);
+    padding-left: 0;
+    border-top: var(--salt-border-subtle);
+    border-left: 0;
+  }
+}

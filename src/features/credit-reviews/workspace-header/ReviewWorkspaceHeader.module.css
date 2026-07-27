@@ -1,0 +1,9 @@
+.root {
+  min-width: 0;
+  display: grid;
+  gap: var(--salt-workspace-header-tabs-gap);
+}
+
+.root > * {
+  min-width: 0;
+}

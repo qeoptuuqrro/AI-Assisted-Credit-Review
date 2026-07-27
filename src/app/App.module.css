@@ -1,0 +1,8 @@
+.routeLoading {
+  padding: var(--salt-space-12);
+  color: var(--salt-color-text-muted);
+  font-family: var(--salt-type-family-text);
+  font-size: var(--salt-type-size-ui-secondary);
+  font-weight: var(--salt-type-weight-regular);
+  line-height: var(--salt-type-line-ui-secondary);
+}

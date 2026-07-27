@@ -1,0 +1,58 @@
+.field {
+  width: var(--salt-search-field-width);
+  min-height: var(--salt-search-field-height);
+  display: flex;
+  align-items: center;
+  gap: var(--salt-search-field-gap);
+  padding-inline: var(--salt-search-field-padding);
+  border: var(--salt-search-field-border);
+  border-radius: var(--salt-search-field-radius);
+  background: var(--salt-search-field-background);
+  color: var(--salt-search-field-placeholder);
+}
+
+.field:focus-within {
+  border-color: var(--salt-color-focus);
+  box-shadow: var(--salt-shadow-focus);
+}
+
+.field input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--salt-search-field-text);
+  font-family: var(--salt-type-action-family);
+  font-size: var(--salt-type-action-size);
+  font-weight: var(--salt-type-action-weight);
+  line-height: var(--salt-type-action-line);
+}
+
+.field input::placeholder {
+  color: var(--salt-search-field-placeholder);
+  opacity: 1;
+}
+
+.field button {
+  width: var(--salt-space-6);
+  height: var(--salt-space-6);
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--salt-color-text-muted);
+  cursor: pointer;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: var(--salt-border-width);
+  height: var(--salt-border-width);
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

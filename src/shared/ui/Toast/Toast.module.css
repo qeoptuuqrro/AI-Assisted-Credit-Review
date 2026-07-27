@@ -1,0 +1,77 @@
+.toast {
+  position: fixed;
+  z-index: var(--salt-toast-z-index);
+  left: calc(var(--salt-shell-sidebar-width) + ((100vw - var(--salt-shell-sidebar-width)) / 2));
+  bottom: var(--salt-toast-bottom);
+  width: min(var(--salt-toast-width), calc(100vw - (var(--salt-toast-inset) * 2)));
+  display: grid;
+  grid-template-columns: var(--salt-control-height-sm) minmax(0, 1fr) var(--salt-control-height-sm);
+  align-items: center;
+  gap: var(--salt-toast-gap);
+  padding: var(--salt-toast-padding);
+  border-radius: var(--salt-toast-radius);
+  background: var(--salt-toast-background);
+  box-shadow: var(--salt-toast-shadow);
+  color: var(--salt-toast-text);
+  transform: translateX(-50%);
+  animation: toastEnter var(--salt-motion-fast) var(--salt-ease-standard) both;
+}
+
+.icon,
+.toast button {
+  width: var(--salt-control-height-sm);
+  height: var(--salt-control-height-sm);
+  display: grid;
+  place-items: center;
+  border-radius: var(--salt-radius-full);
+}
+
+.icon {
+  background: var(--salt-toast-icon-background);
+}
+
+.copy {
+  min-width: 0;
+  display: grid;
+  gap: var(--salt-space-0-5);
+}
+
+.copy strong {
+  font-size: var(--salt-type-size-ui-secondary);
+  font-weight: var(--salt-type-weight-regular);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.copy > span {
+  color: var(--salt-toast-muted);
+  font-size: var(--salt-type-size-sm);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.toast button {
+  border: 0;
+  background: transparent;
+  color: var(--salt-toast-muted);
+  cursor: pointer;
+}
+
+.toast button:hover {
+  background: var(--salt-toast-control-hover-background);
+  color: var(--salt-toast-text);
+}
+
+.toast button:focus-visible {
+  outline: var(--salt-focus-ring-width) solid var(--salt-color-focus);
+  outline-offset: var(--salt-focus-ring-offset);
+}
+
+@keyframes toastEnter {
+  from { opacity: 0; transform: translate(-50%, var(--salt-space-2)); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@media (max-width: 620px) {
+  .toast {
+    left: 50%;
+  }
+}

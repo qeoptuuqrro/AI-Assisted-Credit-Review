@@ -1,0 +1,49 @@
+.logo {
+  position: relative;
+  width: var(--salt-company-logo-size-sm);
+  height: var(--salt-company-logo-size-sm);
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  overflow: hidden;
+  border: var(--salt-company-logo-border);
+  border-radius: var(--salt-company-logo-radius);
+  background: var(--salt-company-logo-fallback-background);
+  color: var(--salt-company-logo-fallback-color);
+  font-family: var(--salt-type-family-display);
+  font-size: var(--salt-company-logo-fallback-size-sm);
+  line-height: var(--salt-type-line-none);
+}
+
+.md {
+  width: var(--salt-company-logo-size-md);
+  height: var(--salt-company-logo-size-md);
+  font-size: var(--salt-company-logo-fallback-size-md);
+}
+
+.lg {
+  width: var(--salt-company-logo-size-lg);
+  height: var(--salt-company-logo-size-lg);
+  font-size: var(--salt-company-logo-fallback-size-lg);
+}
+
+.fallback {
+  display: block;
+}
+
+.logo img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--salt-company-logo-background);
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity var(--salt-motion-fast) var(--salt-ease-standard);
+}
+
+.logo img.loaded {
+  opacity: 1;
+}

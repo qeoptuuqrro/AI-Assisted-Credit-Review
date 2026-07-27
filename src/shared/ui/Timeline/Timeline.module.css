@@ -1,0 +1,107 @@
+.timeline {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.timeline li {
+  position: relative;
+}
+
+.timeline li:not(:last-child)::before {
+  position: absolute;
+  top: var(--salt-space-4);
+  bottom: calc(var(--salt-space-1) * -1);
+  left: calc((var(--salt-timeline-column-width) - var(--salt-timeline-rail-width)) / 2);
+  width: var(--salt-timeline-rail-width);
+  background: var(--salt-timeline-rail);
+  content: "";
+}
+
+.timeline li > button,
+.timeline li > div {
+  width: 100%;
+  display: grid;
+  grid-template-columns: var(--salt-timeline-column-width) minmax(0, 1fr);
+  gap: var(--salt-timeline-item-gap);
+  padding: 0 0 var(--salt-timeline-item-padding-bottom);
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.timeline li > button {
+  cursor: pointer;
+}
+
+.marker {
+  position: relative;
+  z-index: 1;
+  width: var(--salt-timeline-marker-size);
+  height: var(--salt-timeline-marker-size);
+  place-self: start center;
+  margin-top: var(--salt-space-2);
+  border-radius: var(--salt-radius-full);
+  background: var(--salt-timeline-marker);
+  box-shadow: 0 0 0 var(--salt-space-1) var(--salt-color-surface);
+}
+
+.ai { background: var(--salt-timeline-marker-ai); }
+.human { background: var(--salt-timeline-marker-human); }
+.warning { background: var(--salt-timeline-marker-warning); }
+
+.content {
+  min-width: 0;
+  display: grid;
+  gap: var(--salt-space-1);
+}
+
+.topline {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--salt-space-4);
+}
+
+.topline strong {
+  color: var(--salt-color-text-strong);
+  font-size: var(--salt-type-size-ui);
+  font-weight: var(--salt-type-weight-regular);
+  line-height: var(--salt-type-line-ui);
+}
+
+.topline > span,
+.description {
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-size-sm);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.description {
+  color: var(--salt-color-text-muted);
+}
+
+.details {
+  display: block;
+  margin-top: var(--salt-space-2);
+  padding: var(--salt-space-3) var(--salt-space-4);
+  border-left: var(--salt-space-0-5) solid var(--salt-color-border);
+  background: var(--salt-color-surface-subtle);
+  color: var(--salt-color-text-muted);
+  font-size: var(--salt-type-size-sm);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.timeline li > button:hover .topline strong {
+  color: var(--salt-color-focus);
+}
+
+@media (max-width: 520px) {
+  .topline {
+    display: grid;
+    gap: 0;
+  }
+}

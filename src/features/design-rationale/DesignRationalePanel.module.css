@@ -1,0 +1,87 @@
+.drawer {
+  --salt-drawer-inset-top: calc(var(--salt-shell-banner-height) + var(--salt-shell-utility-height) + var(--salt-space-4));
+}
+
+.drawer h2 {
+  margin: var(--salt-space-1) 0 0;
+  color: var(--salt-color-text-strong);
+  font-family: var(--salt-type-family-display);
+  font-size: var(--salt-type-size-xl);
+  font-weight: var(--salt-type-weight-display);
+  line-height: var(--salt-type-line-section);
+}
+
+.eyebrow,
+.sectionLabel {
+  display: block;
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
+  letter-spacing: var(--salt-type-tracking-label);
+  text-transform: uppercase;
+}
+
+.summarySection {
+  border-top: 0;
+}
+
+.drawer section p {
+  margin: var(--salt-space-2) 0 0;
+  color: var(--salt-color-text);
+  font-size: var(--salt-type-size-sm);
+  line-height: var(--salt-type-line-ui);
+}
+
+.drawer .summary {
+  color: var(--salt-color-text-strong);
+  font-size: var(--salt-type-size-ui-secondary);
+}
+
+.decisionList {
+  display: grid;
+  gap: var(--salt-space-4);
+  margin: var(--salt-space-4) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.decisionList li {
+  display: grid;
+  grid-template-columns: var(--salt-space-6) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--salt-space-3);
+  color: var(--salt-color-text-muted);
+  font-size: var(--salt-type-size-sm);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.decisionIcon {
+  width: var(--salt-space-6);
+  height: var(--salt-space-6);
+  display: grid;
+  place-items: center;
+  border-radius: var(--salt-radius-full);
+  background: var(--salt-color-success-surface);
+  color: var(--salt-color-success-text);
+}
+
+.decisionList strong {
+  display: block;
+  margin-bottom: var(--salt-space-1);
+  color: var(--salt-color-text-strong);
+  font-weight: var(--salt-type-weight-medium);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: var(--salt-space-2);
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-size-xs);
+}
+
+@media (max-width: 520px) {
+  .drawer {
+    --salt-drawer-inset-top: 0;
+  }
+}

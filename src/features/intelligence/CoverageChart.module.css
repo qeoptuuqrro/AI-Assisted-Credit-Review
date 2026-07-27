@@ -1,0 +1,169 @@
+.figure {
+  margin: 0;
+  padding: var(--salt-space-5);
+  border: var(--salt-border-default);
+  border-radius: var(--salt-intelligence-chart-radius);
+  background: var(--salt-intelligence-chart-background);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--salt-space-5);
+}
+
+.header h3,
+.header p {
+  margin: 0;
+}
+
+.header h3 {
+  color: var(--salt-color-text-strong);
+  font-size: var(--salt-type-size-ui);
+  font-weight: var(--salt-type-weight-regular);
+  line-height: var(--salt-type-line-ui);
+}
+
+.header p {
+  margin-top: var(--salt-space-1);
+  color: var(--salt-color-text-muted);
+  font-size: var(--salt-type-size-sm);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--salt-space-2) var(--salt-space-3);
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--salt-space-1);
+  color: var(--salt-color-text-muted);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
+  white-space: nowrap;
+}
+
+.legendMark {
+  width: var(--salt-space-2);
+  height: var(--salt-space-2);
+  border-radius: var(--salt-radius-xs);
+  background: currentColor;
+}
+
+.actual { color: var(--salt-intelligence-chart-actual); }
+.base { color: var(--salt-intelligence-chart-base); }
+.downside { color: var(--salt-intelligence-chart-downside); }
+.covenant { color: var(--salt-intelligence-chart-covenant); }
+
+.plotWrap {
+  height: var(--salt-intelligence-chart-height);
+  margin-top: var(--salt-space-4);
+}
+
+.chart {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.gridLine {
+  stroke: var(--salt-intelligence-chart-grid);
+  stroke-width: var(--salt-border-width);
+  stroke-dasharray: 2 6;
+}
+
+.axisLabel,
+.quarterLabel {
+  fill: var(--salt-color-text-subtle);
+  font-family: var(--salt-type-family-text);
+  font-size: var(--salt-type-size-xs);
+}
+
+.seriesLine {
+  fill: none;
+  stroke-width: var(--salt-intelligence-chart-line-width);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.actualLine { stroke: var(--salt-intelligence-chart-actual); }
+.baseLine { stroke: var(--salt-intelligence-chart-base); }
+.downsideLine { stroke: var(--salt-intelligence-chart-downside); }
+
+.covenantLine {
+  stroke: var(--salt-intelligence-chart-covenant);
+  stroke-width: var(--salt-border-width);
+  stroke-dasharray: 6 5;
+}
+
+.selectedGuide {
+  stroke: var(--salt-color-border);
+  stroke-width: var(--salt-border-width);
+}
+
+.point {
+  stroke-width: var(--salt-intelligence-chart-line-width);
+  cursor: pointer;
+  transition: r var(--salt-motion-fast) var(--salt-ease-standard);
+}
+
+.point:hover,
+.point:focus-visible {
+  r: 7;
+  outline: none;
+}
+
+.basePoint {
+  fill: var(--salt-color-paper-0);
+  stroke: var(--salt-intelligence-chart-base);
+}
+
+.downsidePoint {
+  fill: var(--salt-color-paper-0);
+  stroke: var(--salt-intelligence-chart-downside);
+}
+
+.readout {
+  min-height: var(--salt-control-height-lg);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--salt-space-2) var(--salt-space-4);
+  padding-top: var(--salt-space-3);
+  border-top: var(--salt-border-subtle);
+  color: var(--salt-color-text-muted);
+  font-size: var(--salt-type-size-sm);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.readout strong {
+  color: var(--salt-color-text-strong);
+  font-weight: var(--salt-type-weight-regular);
+}
+
+.below { color: var(--salt-color-danger-text); }
+.above { color: var(--salt-color-success-text); }
+
+@media (max-width: 640px) {
+  .figure {
+    padding: var(--salt-space-4);
+  }
+
+  .header {
+    display: grid;
+  }
+
+  .legend {
+    justify-content: flex-start;
+  }
+
+  .plotWrap {
+    height: var(--salt-intelligence-mobile-chart-height);
+  }
+}

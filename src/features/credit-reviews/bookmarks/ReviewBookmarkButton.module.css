@@ -1,0 +1,34 @@
+.button {
+  width: var(--salt-control-height-sm);
+  height: var(--salt-control-height-sm);
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0;
+  border: var(--salt-border-default);
+  border-radius: var(--salt-radius-full);
+  background: var(--salt-color-surface);
+  color: var(--salt-color-text-muted);
+  cursor: pointer;
+  transition: background-color var(--salt-motion-fast) var(--salt-ease-standard), color var(--salt-motion-fast) var(--salt-ease-standard), transform var(--salt-motion-fast) var(--salt-ease-standard);
+}
+
+.button:hover {
+  background: var(--salt-color-surface-hover);
+  color: var(--salt-color-text-strong);
+}
+
+.button:active {
+  transform: translateY(var(--salt-motion-press-offset));
+}
+
+.button:focus-visible {
+  outline: var(--salt-focus-ring-width) solid var(--salt-color-focus);
+  outline-offset: var(--salt-focus-ring-offset);
+}
+
+.button[aria-pressed="true"] {
+  border-color: transparent;
+  background: var(--salt-color-indigo-100);
+  color: var(--salt-color-focus);
+}

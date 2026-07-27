@@ -1,0 +1,99 @@
+.steps {
+  width: var(--salt-workflow-steps-width);
+}
+
+.steps ol {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.steps li {
+  min-width: 0;
+}
+
+.steps button {
+  width: 100%;
+  min-height: var(--salt-workflow-step-min-height);
+  display: grid;
+  align-content: center;
+  gap: var(--salt-space-0-5);
+  padding: var(--salt-space-2) var(--salt-space-2) var(--salt-space-2) var(--salt-workflow-step-padding-inline);
+  border: 0;
+  border-left: var(--salt-workflow-step-rail-width) solid var(--salt-workflow-step-rail);
+  border-radius: 0 var(--salt-radius-sm) var(--salt-radius-sm) 0;
+  background: transparent;
+  color: var(--salt-workflow-step-text);
+  font-family: var(--salt-type-family-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.steps button:hover {
+  background: var(--salt-workflow-step-hover);
+  color: var(--salt-workflow-step-text-active);
+}
+
+.steps button:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: 0;
+  box-shadow: var(--salt-shadow-focus);
+}
+
+.steps button:disabled {
+  cursor: default;
+}
+
+.steps button > span {
+  font-size: var(--salt-workflow-step-label-size);
+  font-weight: var(--salt-type-weight-regular);
+  line-height: var(--salt-workflow-step-label-line);
+}
+
+.steps button > small {
+  overflow: hidden;
+  color: var(--salt-workflow-step-description);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.steps .complete button {
+  color: var(--salt-workflow-step-text-complete);
+}
+
+.steps .active button {
+  border-left-color: var(--salt-workflow-step-indicator);
+  color: var(--salt-workflow-step-text-active);
+}
+
+@media (max-width: 860px) {
+  .steps {
+    width: 100%;
+  }
+
+  .steps ol {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .steps button {
+    min-height: var(--salt-control-height-lg);
+    padding: var(--salt-space-2);
+    border-left: 0;
+    border-bottom: var(--salt-workflow-step-rail-width) solid var(--salt-workflow-step-rail);
+    border-radius: var(--salt-radius-sm) var(--salt-radius-sm) 0 0;
+  }
+
+  .steps .active button {
+    border-bottom-color: var(--salt-workflow-step-indicator);
+  }
+}
+
+@media (max-width: 520px) {
+  .steps button > small {
+    display: none;
+  }
+}

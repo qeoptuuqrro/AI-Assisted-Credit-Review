@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Peak Rock Capital circular mark</title>
+  <desc id="desc">A circular abstract mountain and river mark in teal, blue, gold, and white.</desc>
+  <defs>
+    <clipPath id="clip">
+      <circle cx="256" cy="256" r="256"/>
+    </clipPath>
+    <radialGradient id="sky" cx="31%" cy="22%" r="85%">
+      <stop offset="0" stop-color="#7BE0D6"/>
+      <stop offset="0.42" stop-color="#177B9D"/>
+      <stop offset="1" stop-color="#17325F"/>
+    </radialGradient>
+    <linearGradient id="ridge" x1="114" y1="167" x2="422" y2="420" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="0.54" stop-color="#DCEEF2"/>
+      <stop offset="1" stop-color="#92C4D2"/>
+    </linearGradient>
+    <linearGradient id="warm" x1="98" y1="336" x2="434" y2="336" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F4C95D"/>
+      <stop offset="0.48" stop-color="#E88E55"/>
+      <stop offset="1" stop-color="#B7475D"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#092C3B" flood-opacity="0.28"/>
+    </filter>
+  </defs>
+  <g clip-path="url(#clip)">
+    <rect width="512" height="512" fill="url(#sky)"/>
+    <circle cx="382" cy="118" r="78" fill="#F7D66F" opacity="0.92"/>
+    <path d="M0 345C55 312 105 300 151 311c42 10 68 43 111 51 53 11 88-26 138-17 40 7 74 35 112 76v91H0Z" fill="url(#warm)" opacity="0.93"/>
+    <path d="M47 385c56-46 92-109 136-168l63 76 78-126 142 218Z" fill="#0F435E" opacity="0.78"/>
+    <path d="M78 388 184 215l63 76 78-126 121 223Z" fill="url(#ridge)" filter="url(#softShadow)"/>
+    <path d="M184 215 248 291l-43-2-27 42-31-61Z" fill="#17325F" opacity="0.55"/>
+    <path d="M325 165 446 388l-75-72-53 20-37-78Z" fill="#0D3654" opacity="0.35"/>
+    <path d="M72 402c58-12 94-7 133 17 41 25 82 35 139 13 40-15 70-16 101-6v86H72Z" fill="#F8FAFC" opacity="0.18"/>
+    <path d="M86 430c78-31 122 5 180 16 67 13 101-23 160-2" fill="none" stroke="#FFFFFF" stroke-width="20" stroke-linecap="round" opacity="0.8"/>
+    <path d="M100 455c63-21 105-2 151 11 66 19 112-3 170-14" fill="none" stroke="#AEE5E0" stroke-width="13" stroke-linecap="round" opacity="0.88"/>
+  </g>
+</svg>

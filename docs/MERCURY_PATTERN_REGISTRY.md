@@ -1,0 +1,502 @@
+# Mercury Pattern Registry
+
+This registry is the shared memory for Mercury parity work. It turns live audits, local screenshots, reusable component decisions, and open gaps into one checked contract so future page work does not drift.
+
+Source of truth: `https://demo.mercury.com/dashboard` and public demo subroutes.
+
+Local canonical root: `http://127.0.0.1:5173/`.
+
+Component-level source map: `docs/MERCURY_COMPONENT_ATLAS.md`. Use the atlas to choose the Mercury pattern, anatomy, tokens, interaction states, canonical component target, and forbidden drift before implementing IdeaGen features.
+
+## Route Matrix
+
+| Route | Reference | Local | Status | Primary component targets |
+| --- | --- | --- | --- | --- |
+| Home | `https://demo.mercury.com/dashboard` | `#mercury/home`, alias `#dashboard` | Proving lane | `Tooltip`, `SegmentedControl`, `Popover`, `Drawer`, `Table` |
+| Lending Overview | `https://demo.mercury.com/dashboard` plus account-page bookmarks | `/`, `/overview`; V1 preserved at `/?design=workspace-overview-v1-balanced-modules` | React product lane | Salt `Panel`, `StatusPill`, `CompanyLogo`, `Icon`; interactive portfolio-flow chart, next-action workload queue, flat activity ledger, persistent sidebar bookmarks |
+| Scenario 1 | `https://demo.mercury.com/cards` plus `https://demo.mercury.com/dashboard` | `#scenario-1`, alias `#ideagen/scenario-1` | Mercury-copied IdeaGen lane | Outlook-style coverage email source artifact, `Drawer`, `StatusPill`, `Toast`, Home signal panel |
+| Peak Rock Workspace | `https://demo.mercury.com/transactions`, `https://demo.mercury.com/cards`, and `https://demo.mercury.com/insights/overview` | `#ideagen/peak-rock-workspace`, alias `#peak-rock-workspace` | Mercury-copied IdeaGen lane | Table ledger variant, selected bulk bar, source drawers, package/audit tabs, transformation rail |
+| Insights | `https://demo.mercury.com/insights/overview` | `#mercury/insights`, alias `#insights/overview` | Proving lane | `DiagramCard`, `DataLegend`, `SegmentedControl`, date-range scrubber pattern |
+| Transactions | `https://demo.mercury.com/transactions` | `#mercury/transactions` | Proving lane | Table ledger variant, `InlineCellEditor`, `BulkActionBar`, `Drawer`, `Toast` |
+| Ideabooks | `https://demo.mercury.com/transactions` | `#ideabooks`, alias `#ideagen/ideabooks` | Mercury-copied IdeaGen lane | Table ledger variant, `InlineCellEditor`, `BulkActionBar`, `Drawer`, `Popover`, `Toast` |
+| Curated Ideas | `https://demo.mercury.com/cards` | `#curated-ideas`, alias `#ideagen/curated-ideas` | Mercury-copied IdeaGen lane | Cards recommendation surface, `Tabs`, `FilterPopover`, Table ledger variant, `CardGlyph`, `Drawer`, `StatusPill`, `Toast` |
+| Company Screener | `https://demo.mercury.com/transactions` | `#ideagen/screener` | Mercury-copied IdeaGen lane | Table ledger variant, `InlineCellEditor`, `BulkActionBar`, `Drawer`, `Popover`, `Toast` |
+| Invoicing | `https://demo.mercury.com/invoicing` | `#mercury/invoicing` | Proving lane | `MetricCard`, Table ledger variant, `Toolbar`, `Drawer`, `StatusPill` |
+| Reimbursements | `https://demo.mercury.com/expenses/all-expenses` | Design Tools option `/reimbursements?design=product-reference-v1-reimbursements`; legacy reference `#mercury/reimbursements` | React reference lane | Salt `Tabs`, `Button`, `FilterChip`, `StatusPill`, `Drawer`, `Popover`, `Toast`; feature-owned compact ledger and submit dialog |
+| Payments | `https://demo.mercury.com/payments` | `#mercury/payments` | Proving lane | `Toolbar`, `Tabs`, Table ledger variant, `Popover`, `Toast` |
+| Cards | `https://demo.mercury.com/cards` | `#mercury/cards` | Proving lane | `Tabs`, `Surface`, Table ledger variant, `Drawer`, `StatusPill`, `FilterPopover` |
+| Bill Pay | `https://demo.mercury.com/bill-pay` | `#mercury/bill-pay` | Needs deeper local artifact pass | `Tabs`, Table ledger variant, `BulkActionBar`, `Drawer` |
+| Accounts | `https://demo.mercury.com/accounts` | `#mercury/accounts` | Needs deeper local artifact pass | Table ledger variant, `Drawer`, `KeyValueGrid` |
+| Tasks | `https://demo.mercury.com/tasks` | `#mercury/tasks` | Needs deeper local artifact pass | `Tabs`, Table ledger variant, `StatusPill`, `EmptyState` |
+| Analytics | `https://demo.mercury.com/insights/overview` | `#analytics` | Mercury-copied IdeaGen lane | `DiagramCard`, `DataLegend`, `Popover`, `Tabs`, date-range scrubber pattern, action panel |
+| IdeaGen | Mercury dashboard, transactions, invoicing, and drawer patterns | `#home`, aliases `#ideagen`, `#ideagen/home` | React product lane | `MetricCard`, `Table`, `Drawer`, `Modal`, `Popover`, `Tabs`, `BulkActionBar`, `Toast` |
+| Intelligence | `https://demo.mercury.com/command` plus Insights chart framing | `/intelligence` | React product lane | `Popover`, `Button`, `StatusPill`, `Toast`, feature-owned coverage chart |
+| Data Extraction | Mercury create-card, tasks, transactions, invoicing, and drawer patterns | `#signals`, aliases `#ideagen/data-extraction`, `#data-extraction` | React product lane | `PageHeader`, `Surface`, `Tabs`, `Toolbar`, `Table`, `InlineCellEditor`, `Popover`, `Drawer`, `Toast` |
+| Credit Reviews | Mercury Reimbursements, expense draft/edit, `send-money/pay/recipient-match`, Treasury Activity and portfolio edit, `invoicing/create-invoice`, Accounting, Insights, Taxes documents, Invoicing timeline, and Payments approvals | `/credit-reviews`, `/credit-reviews/meridian-foods/*` including immersive `/recommendation/draft` and `/senior-decision/review`, `/credit-reviews/northstar-health/*`, `/credit-reviews/:case-slug/*` | React product lane | Salt `Tabs`, `WorkflowSteps`, `SectionHeader`, `KeyValueGrid`, `ActivityLedger`, `Timeline`, `DocumentRow`, `DocumentViewer`, `Notice`, `Drawer`, `Toast`, `StatusPill`, flat `Panel` |
+
+Bookmark contract: saved review slugs are feature-owned persistent state. `AppShell` renders the Mercury sidebar/mobile access patterns, while each `ObjectHeader` receives a `ReviewBookmarkButton` through its `utilityAction` slot. The bookmark icon is visually subordinate to the case's one primary workflow action. Reordering and removal update the same stored slug list.
+
+Company identity contract: active React surfaces use Salt `CompanyLogo` with the existing `companyLogoDomains` API mapping whenever a named credit-review company owns the identity slot. Focused workflows, document artifacts, summary objects, queues, bookmarks, and case headers must all reuse that mapping. Page-owned company initials and guessed or invented logo sources are drift; BCGX product marks and human avatars remain intentionally separate.
+
+## Promotion Pipeline
+
+`Mercury live audit -> parity contract -> token/component extraction -> React component -> page migration -> visual regression gate -> retire legacy route`
+
+- Mercury live audit captures exact route behavior, including hover, selected, focus-visible, drawer, popover, toast, loading, empty, mobile, and reduced-motion states.
+- Parity contract lives in this registry and in page-specific audit docs. Do not start a migrated route without a route contract here.
+- Token/component extraction promotes repeated behavior into the canonical lane that consumes it: `src/design-system/tokens.css` and `src/shared/ui` for the active React product; `src/styles/tokens.css` only for preserved legacy proving routes.
+- React route migration consumes canonical components before page-local UI is allowed.
+- Visual regression gate uses `npm run check:visual` to require route contracts and QA artifacts before `npm run validate` can pass.
+- Legacy route retirement happens only after the React route matches the contract and the iframe shell has no remaining unique behavior.
+
+## Token Governance
+
+- `src/design-system/tokens.css` is the single source of truth for the active React product. New reusable primitives, semantic roles, component contracts, geometry, motion, and chart colors use the public `--salt-*` API there.
+- `src/styles/tokens.css` is a legacy compatibility source imported only by `legacy-runtime/shared/styles/tokens.css`. New React code must never import it or consume its `--mercury-*` route-compatibility API.
+- Mercury audits move from `legacy-runtime` evidence into Salt tokens and `src/shared/ui` when a repeated product contract is proven. Legacy proving routes retain their own compatibility layer until they are retired.
+- Feature CSS may consume shared component tokens and may own unique content-artifact geometry, but it must not mint a private palette, type scale, radius system, shadow system, or reusable control family.
+- Use `design-system-ignore: reason` only for rare non-rendered or external values, never to bypass Mercury parity work.
+- `npm run check:design-system` enforces token definition, raw color/type/radius/shadow rules, shared-component gallery coverage, contract coverage, and the legacy-token import boundary.
+
+### Mercury Typography Contract
+
+Live source: `https://demo.mercury.com/dashboard`, audited at 1280px desktop on May 27, 2026. Full audit: `docs/MERCURY_TYPOGRAPHY_AUDIT.md`.
+
+- Font families: `Arcadia Text` for body, navigation, buttons, controls, tables, labels, badges, and chart text; `Arcadia Display` for primary page titles and large display money. `--ds-font-sans` and `--ds-font-brand` must resolve to the Mercury text stack, not Inter, Georgia, or page-local stacks.
+- Body/nav/table body: `Arcadia Text`, `16px / 16px / 360`, normal tracking.
+- Native small button wrapper: `Arcadia Text`, `13.3333px / normal / 360`, normal tracking.
+- Default UI/action labels: `Arcadia Text`, `15px / 24px / 400`, normal tracking.
+- Secondary UI labels: `Arcadia Text`, `14px / 20px / 400`, normal tracking.
+- Metadata/table outer headers: `Arcadia Text`, `13px / 20px / 400`, `0.1px` tracking.
+- Counts/badges: `Arcadia Text`, `12px / 20px / 480`, `0.2px` tracking.
+- Sortable table header buttons: `Arcadia Text`, `12px / normal / 400`, normal tracking.
+- Page title: `Arcadia Display`, `28px / 36px / 380`, normal tracking.
+- Large display money: `Arcadia Display`, `28px / 36px / 380`, `-0.84px` tracking; cents use `20.44px`.
+- Medium money: `Arcadia Text`, `19px / 28px / 400`, `-0.57px` tracking.
+- Small money: `Arcadia Text`, `15px / 24px / 400`, `-0.45px` tracking.
+- Bookmark money: `Arcadia Text`, `13px / 20px / 400`, `-0.39px` tracking.
+- Chart axis labels: `Arcadia Text`, `12px / 24px / 360`, normal tracking.
+- Avatar initials: `Arcadia Text`, `10px / 24px / 480`, normal tracking.
+- Shared React components, platform chrome, shared Mercury legacy CSS, every active `legacy-runtime/features/**/styles.css` route stylesheet, and `legacy-runtime/frameCleanup.js` iframe overrides must consume semantic `--mercury-type-*`, primitive `--mercury-type-scale-*`, or route-owned `--mercury-insights-*` tokens. Generic text aliases such as `--ds-font-size-*`, `--ds-line-height-*`, raw type literals, and rogue weights such as `520`, `650`, `700`, or `760` are blocked by `npm run check:design`.
+
+## Visual QA Gate
+
+`npm run check:visual` enforces this registry. A route contract must include:
+
+- `Reference:` the Mercury source URL or nearest source pattern.
+- `Local:` the hash route or alias.
+- `Layout:` max-width/full-width logic and rail behavior.
+- `Components:` canonical components to consume or promote.
+- `Interactions:` required hover/click/open/success/loading/empty/focus/mobile behavior.
+- `Visual QA:` screenshot or snapshot artifacts that prove the route and key interactions.
+- `Open gaps:` explicit remaining work; "none" is allowed only after browser review.
+
+Required browser artifacts must live under `output/playwright/`. If those artifacts are cleaned, regenerate them before handoff.
+
+## Component Promotion Queue
+
+- Table ledger variant: flat Mercury ledger rows, compact header rhythm, 50px row density, selectable/hover states, and no nested-card table chrome.
+- InlineCellEditor: compact Category/GL-style table cell control with label, value, empty value, split clear action, hover, focus-visible, and open state.
+- BulkActionBar: hidden-on-empty reimbursements mode and persistent `0 selected` transactions mode should share the same canonical component.
+- DiagramCard: chart panels should absorb Insights and Transactions chart framing, legends, and reduced-motion expectations.
+- SegmentedControl: graph/table toggles and compact mode switches should share the Mercury segmented geometry.
+- Drawer: entity drawers should share header hierarchy, body scroll containment, footer actions, icon actions, and entrance motion.
+
+## Route Contracts
+
+### Lending Overview
+
+Reference: `https://demo.mercury.com/dashboard`, re-audited July 27, 2026 with the guide collapsed so both primary dashboard modules, quick-action rhythm, panel elevation, chart behavior, and lower-card transition were visible.
+
+Local: `http://127.0.0.1:5182/` and `/overview`. Design Tools owns this as the distinct `Workspace overview` screen family so it is not conflated with the Meridian case Overview family. V1 `Balanced status dashboard` remains addressable at `/?design=workspace-overview-v1-balanced-modules`; V2 `Portfolio command view` is current; V3 `Trend flow chart` remains a candidate at `/?design=workspace-overview-v3-trend-flow-chart`; V4 `Momentum + mix` is the quieter candidate at `/?design=workspace-overview-v4-momentum-mix`.
+
+Layout: retain the centered 968px Salt rail, compact welcome/action opening, 40px top-level rhythm, and flat Review activity ledger. V2 uses a 3:2 primary grid because the six-period portfolio plot needs more reading width than the three-row analyst queue. Below 760px the modules stack; at 390px chart labels, action rows, tabs, and ledger cells must recompose without horizontal page overflow.
+
+Components: shared Salt `Panel`, `CompanyLogo`, `StatusPill`, `Tabs`, and `Icon`; page-owned stacked workflow chart, V3 inspected area/attention chart, and next-action queue. Company rows must use `companyLogoDomains`; this route may not create initials, guessed asset paths, or new logo sources. Both chart directions use existing warning/indigo semantic roles and the panel contract rather than a separate dashboard color or card system.
+
+Interactions: the first quick action is the primary queue entry while judgment and evidence actions deep-link to their filtered queue states. Hover, focus, and click on a portfolio week update the total, week comparison, and status breakdown in place; pointer exit returns to the current week. V4 keeps one momentum line in the center and updates a compact selected-week mix strip instead of plotting attention on the total-review scale. Workload and activity rows route to the selected review, activity tabs change the visible queue, and every preview notice returns to current without changing review workflow state.
+
+Visual QA: current V2 was checked at 1280 × 900 and 390 × 844; preserved V1 was checked at 1280 × 900. Chart inspection, tab switching, V1 return, Design Tools exposure, company-logo loading, text fit, fonts, console state, and document/body overflow passed. Fresh artifact paths are recorded in `docs/MERCURY_HOME_AUDIT.md`.
+
+Open gaps: portfolio history is currently deterministic demo data. Replace it with the lending portfolio service while keeping the chart contract and accessible week-level labels stable.
+
+### Credit Reviews and Meridian Credit Review
+
+Reference: `https://demo.mercury.com/cards`, `https://demo.mercury.com/payments/approvals`, `https://demo.mercury.com/accounts/credit`, `https://demo.mercury.com/settings/documents/statements?accountIds=party-treasury-id-0`, `https://demo.mercury.com/tools/nda`, `https://demo.mercury.com/send-money/transfer`, `https://demo.mercury.com/send-money/pay/start`, `https://demo.mercury.com/send-money/pay/recipient-match`, `https://demo.mercury.com/accounts/treasury/party-treasury-id-0`, `https://demo.mercury.com/accounts/treasury/party-treasury-id-0/portfolio/edit`, `https://demo.mercury.com/invoicing/create-invoice`, `https://demo.mercury.com/expenses/draft/expense-draft_37?mode=edit`, `https://demo.mercury.com/accounts#auto-transfers`, `https://demo.mercury.com/taxes/1099/filing/2026`, `https://demo.mercury.com/settings/vault`, `https://demo.mercury.com/settings/account-security`, `https://demo.mercury.com/settings/company-profile`, `https://demo.mercury.com/settings/referrals`, and every visible Settings destination audited July 26, 2026. Payments approval was rechecked for its stable queue, compact right drawer, requester attribution, approval count, and role-specific Review/Approve/Decline actions.
+
+Local: `http://127.0.0.1:5182/credit-reviews`, with archived drawer V1 at `?design=credit-review-queue-v1-overlay-drawer` and archived drawer V2 at `?design=credit-review-queue-v2-responsive-rail`; `http://127.0.0.1:5182/credit-reviews/meridian-foods` with routed Findings, Financials, Sources, Activity, and analyst Recommendation states; `/credit-reviews/meridian-foods/recommendation/draft` for immersive analyst authorship; `/credit-reviews/meridian-foods/senior-decision/review` for immersive senior judgment; and `http://127.0.0.1:5182/credit-reviews/northstar-health` with routed Overview, Findings, Financials, Sources, Activity, and Recommendation states.
+
+V2 spacing refinement: the responsive drawer rail uses equal 16px top and bottom insets so the panel clears both the tab rule and the viewport edge while preserving its internal height calculation and sticky behavior.
+
+Layout: the queue and ordinary Meridian, Northstar, and standard case states use one centered 968px content frame inside the same fluid outer canvas. Credit Review Drawer V3 retains V2's 544px priority queue, 32px gap, and 392px sticky rail; below the sustainable lane it falls back to an overlay, then a full-screen mobile panel. Its content now leads with mapped company identity and request hierarchy, uses one neutral review outcome, and shows a flat icon-led finding ledger with separately labeled risk and workflow status. Meridian rows and the footer task count project from persisted analyst state. Northstar shows the missing 2027 forecast as an evidence prerequisite—not a finding—and changes to a verified zero-findings result with 1.29x coverage, the 1.20x floor, and +0.09x headroom. V1 and V2 remain preserved with their original content. Case headers use a 44px company mark centered across the title and metadata, with a shared 12px back-navigation-to-identity gap, 32px tab-to-content offset, and 20px section-heading-to-workspace gap so stacked spacing does not accumulate differently by tab. Section headings open directly into their content without a leading divider; rules begin at column-to-row or repeated-row boundaries. Overview V4 uses an Accounts/Insights composition: a compact credit-account summary sits beside one fixed-charge coverage chart with actual, base, downside, and covenant series. A flat Accounting-style review ledger follows; fake product objects, redundant fact strips, generic icon grids, and row-level mini charts are absent from the current direction. Findings uses one feature-owned Mercury selected-ledger/master-detail composition across Meridian and standard cases. The left ledger always uses a 32px `IconTile`, concise scan summary, separately labeled risk severity, and workflow status; the right preview keeps evidence, policy context, and the one accountable analyst action together. Focused investigations remain 968px routes and lead with a finding-specific concentration, margin, or leverage artifact. Meridian V2 reassessment temporarily replaces the shell with an Evidence → Review → Result task. The Review action enters an explicit automated-analysis processing state before the result appears; the Result step explains the calculation in plain language and uses a feature-owned, vertical change ledger for risk assessment, what changed, and what stayed the same. A retained risk is displayed once as `Moderate · Unchanged`, while a changed band shows the directional pair. This avoids a cramped three-column mini-dashboard in the focused reading column. The same risk transition, changed evidence, and unchanged conclusion persist in the wider finding-page comparison so the reassessment does not silently replace its own history. Financials uses one Credit/Treasury-style chart split followed by an open scenario-and-driver workspace. Sources first opens a searchable, filterable ledger inside the standard case frame. Selecting a source switches to the bounded full-screen evidence workflow with review content on the left and a credible document on the right. Its source-browser search shares the same inner content column as the heading and source rows rather than stretching across the full workflow pane; narrow screens retain a full-available-width field inside the standard page gutter. Northstar V3 retains V2's stable six-section case geometry and replaces the isolated Findings row with a structured prerequisite/zero-results object. Before verification it reports `0` open findings, names the 2027 forecast as a requirement, and keeps analysis paused; after verification it reports `0 open` with the 1.29x result, 1.20x floor, and +0.09x headroom. Neither state fabricates a finding. Northstar's request-document task uses the Create Invoice split-screen composition: analyst workflow and aligned footer on the left, realistic live borrower-request or received-forecast artifact on the right. Activity uses one connected event timeline across Meridian, Northstar, and standard reviews; the V2 flat ledger and V1 chronology remain available through Design Tools, while low-volume cases omit filters. Recommendation is always addressable but explicitly gated until required evidence and analyst review are complete. V4 preserves the bounded focused lifecycle. V5/current moves a ready analyst into `/recommendation/draft`, removes surrounding chrome while retaining a bounded 968px reading canvas, and returns submission to a durable Recommendation record. That record is the explicit entry/resume point for Senior decision V4/current at `/senior-decision/review`. V4 keeps the immersive lifecycle but reorganizes the 1120px canvas as one decision command center: facility amount and purpose establish the financial protagonist, one analyst-recommendation object owns rationale and attribution, findings remain a flat outcome ledger, supporting record and AI context are progressive disclosure, and a compact 340px composer owns the only final action. At constrained widths the composer follows the analyst recommendation before the supporting ledger. Senior V1–V3 remain preserved in Design Tools.
+
+Components: shared Salt `Tabs`, `SectionHeader`, `ObjectHeader`, `KeyValueGrid`, `MetricCard`, `IconTile`, `ScenarioComparison`, `DesignVariantNotice`, `ActivityLedger`, `Timeline`, `Notice`, `Toast`, `DocumentRow`, `FileDropzone`, `StatusPill`, `Button`, `FilterChip`, `SearchField`, and `Panel`; feature-owned `CreditFindingsWorkspace` composes those primitives for credit-domain finding groups, selection, risk/status metadata, previews, prerequisites, and zero-results states. The Overview account view and coverage chart, real document/source artifacts, financial chart, evidence dossier, change record, focused source workflow, Meridian challenge workflow, Northstar borrower-request and received-forecast previews, and recommendation form remain feature-owned. Focused-workflow pane, rail, content, header, footer, row, stage, and paper dimensions are Salt contracts. A single credit-review presentation map owns finding, evidence-category, and activity-event glyph semantics across Meridian, Northstar, standard-company workspaces, and preview drawers; route components do not maintain duplicate icon tables. `ActivityLedger` supports the current connected timeline layout and the preserved flat V2 comparison; `Timeline` remains the preserved Activity V1 comparison. `Drawer`, `DocumentViewer`, and `WorkflowSteps` remain valid shared components but are intentionally not used for the selected focused-source direction.
+
+V5 lifecycle refinement: Recommendation remains the ordinary case-shell home for readiness, start/resume, submitted analyst recommendation, and final senior decision. `/recommendation/draft` and `/senior-decision/review` alone remove the global banner, sidebar, utility bar, case header, tabs, and Design Tools launcher. Both keep bounded reading measures, explicit `Exit and save`, Meridian/facility identity, and a visible session-save state. Analyst decision, amount, rationale, protections, and exact section persist separately from the senior decision, rationale, and final conditions. Submission navigation waits for the corresponding guarded reducer transition, clears only that draft, and returns to the durable Recommendation record.
+
+Interactions: queue rows retain the compact case preview. My Reviews and All Reviews use the same single-line company cell. Facility type remains available through the Request column, structured filters, and preview drawer instead of repeating beneath every company name. Both scopes keep a subtle rule beneath their ledger column labels because it separates schema from row data; group and section titles remain borderless. The preview drawer provides one task-focused primary action (`Review 3 findings`) to the Findings overview and keyboard-accessible finding rows that deep-link to the selected focused finding; reviewed source rows retain their document-preview behavior. The drawer does not add a competing `Open overview` action. Credit-review language uses findings rather than issues. Meridian and Northstar tabs update durable URLs; Arrow Left/Right/Home/End move controlled tabs. Tab counts are semantically stable: Findings shows open findings while Sources shows the supplied corpus; source attention remains inside the Sources workflow. Routine verification status stays local to the affected analysis and requirement rather than duplicating beneath the company metadata. Meridian `Continue review` opens the first unresolved task. Northstar Findings suppresses the case-header CTA so the prerequisite/zero-results object owns exactly one `Resolve source` or `Review financials` action; Sources owns Upload and Request. Both evidence paths converge on the same `FileDropzone`-backed state, and `Ready for review` never implies verification. The entire 2027 Operating Forecast row is a state-aware trigger that reopens the matched request or evidence surface. A missing source is a verification requirement, not a Finding; Northstar Findings remains at zero until verified evidence produces a conclusion requiring judgment. Design Tools preserves Northstar V1 and V2 and returns to current V3 without changing workflow state; V1/V2 design queries persist across their routed tabs. Selecting a finding updates the right-hand preview in place; `View n sources` opens cited evidence with finding origin preserved, and `Review finding` remains the only primary action into the stable-width focused route. Standard Finding V1 preserves the Split/Cards/Queue layout lab behind a design query; V2/current removes the production layout control and uses the same risk/status selected-ledger contract as Meridian. Finding actions use analyst language: Agree with assessment or Add context or evidence. Reassessment acquisition is requirement-aware: a document supplied after the locked assessment package is automatically matched to the affected finding, its supplier and received date stay explicit, and the primary action opens directly to analyst provenance and material-term review without requiring another upload. Verification authorizes only the scoped AI reassessment; human judgment remains a separate accountable action. `Choose evidence` appears when a matching case source already exists, `Add new evidence` appears when a newer source must be uploaded, and `Add required evidence` identifies a verification blocker. Upload remains the fallback for a genuinely different or replacement document, and its provenance must replace—not inherit—the matched source's metadata. Optional management context never substitutes for the required file. Meridian links the Customer A renewal, scopes reassessment to the affected conclusion, shows Material → Moderate plus explicit Changed/Unchanged reasoning, and still requires analyst acceptance. After judgment, Accept preserves the current AI conclusion, Revise requires a new analyst-owned risk and conclusion, and Escalate remains a warning-state outcome for senior attention rather than becoming a generic completed state. Every current outcome propagates through the case overview, findings ledger, recommendation handoff, and senior decision brief. A recommendation may proceed when all findings are resolved or explicitly escalated; new evidence supersedes the current judgment and reopens only the affected finding for verification. Design Tools preserves the long inline dossier as AI Assessment V1, the Meridian Activity timeline as Activity V1, and returns to their current focused/ledger directions without changing the canonical routes. Northstar progresses Needs verification → Requested or uploaded → Ready for review → Verified → Analysis ready; an accepted file matches the open requirement and explicit verification updates downside coverage to 1.29x. Sources opens the requirement ledger first and keeps intake actions local. Meridian Sources opens the document ledger first; state filters and search refine it. Selecting a Meridian row persists `?source=<id>` and opens focused review; Close returns to the ledger, while `fromFinding=<id>` returns to the originating finding. In-place source browsing, Previous/Next, verification, and discrepancy states remain available and update Overview readiness, finding evidence labels, Toasts, and Activity. Flagging blocks completion. The leverage finding routes to the unresolved debt schedule until it is reviewed. Financial metric selectors update the chart and the leverage/coverage views expose their proposed covenant thresholds.
+
+CTA and status refinement: queue rows and preview headers use count-free semantic StatusPills; aggregation counts remain on group headings, tabs, and task-specific CTAs. Meridian retains one case-level `Continue review` action on Overview, Financials, Sources, and Activity. Findings suppresses that action only while unresolved findings remain so the selected preview's `Review finding` action owns the immediate task; after every finding judgment is recorded, the same case header restores `Draft recommendation` on Findings and the other eligible tabs. V5 changes that label to `Resume recommendation` after the analyst draft exists, and changes `Senior review` to `Resume senior review` after senior work exists. Recommendation submission and senior completion return to the durable Recommendation record; supporting Findings, Sources, and Activity links intentionally leave the focused task without discarding its draft. Northstar progresses through one role-specific action at a time: `Resolve source verification` → `Review updated analysis` → `Complete analysis review` → `Prepare recommendation` → `Submit for senior review` → `Open senior review`. Northstar and standard cases retain the compact Drawer approval pattern. Approve, approve with conditions, return, and decline remain senior-owned; return preserves the senior rationale and reopens the recommendation for revision. `Final approval conditions` means covenants and reporting requirements written into the recorded approval—not upload prerequisites or AI suggestions—and appears only for conditional approval. Return and decline require a human rationale; AI cannot submit any outcome. Standard-case Recommendation routes now expose the same prerequisite checklist and explicit next action instead of generic buttons that jump to another tab. Completed states remove the CTA rather than displaying a disabled primary button. Button sizing, typography, radius, and responsive behavior continue to come from the shared Salt Button and ObjectHeader contracts.
+
+Return-loop synchronization refinement: Return to analyst is a durable revision request, not a completed case. Meridian and Northstar project it into analyst attention and the senior `Waiting on analyst` stage. Meridian preserves recommendation and decision histories, opens a prefilled analyst draft, and reports `Revision in progress` in the case header, main queue, and bookmarks. A feature-owned same-tab workflow-state event keeps those projections current immediately after reducer writes; route navigation is no longer required to refresh the shell.
+
+Recommendation and senior-decision design history: Analyst Recommendation V1 `Credit memo handoff` is archived; V2 `Guided recommendation`, V3 `Review-led handoff`, and V4 `Focused recommendation lifecycle` remain candidates; V5 `Full-screen recommendation` is current. V5 keeps V2's progressive authoring and V4's durable-record lifecycle, adds explicit immersive routing and typed resume state, and does not stretch the form beyond the 968px reading canvas. Senior decision remains a separate Screen: V1 `Dense decision brief` and V3 `Full-screen senior review` are archived, V2 `Focused decision layer` remains a candidate, and V4 `Decision command center` is current. V4 preserves V3's exit, autosave, resume, supporting-link, and durable-completion contracts while replacing the generic page/card hierarchy with one financial protagonist, one analyst brief, one flat outcome ledger, and one accountable composer. Design Tools exposes all nine directions and `Meridian · Senior decision ready` as a reproducible State. Fresh URLs combine the relevant `preset` with `design`; applying a preset removes only `preset`, preserves `design`, and suppresses prerequisite redirects until replacement state is active.
+
+Finding detail visual refinement: the focused reassessment keeps the flat Mercury ledger structure. Risk values use the existing Salt danger/warning roles, while evidence rows use the shared document icon; source format remains available in the accessible label rather than as repeated visible `PDF`/`XLSX` tiles. A recorded judgment produces exactly one concise Notice that confirms the meaningful durable change; the page does not add a second `Assessment updated` Notice. Header StatusPill, assessment-change record, and recorded analyst judgment then provide the durable hierarchy. Its inert sticky footer is removed after completion. The three supporting inputs are available through a compact, closed-by-default `Assessment basis` disclosure rather than competing with the decision summary; its rows retain semantic provenance glyphs and StatusPills when expanded. Comparison icons use the shared 32px `IconTile` with the standard 18px `sm` glyph; the former 10px glyph was visually under-scaled.
+
+Reassessment design history: V1 `Inline dossier`, V2 `Focused change review`, and V4 `Breathable analyst judgment` are archived; V3 `Insight-led assessment brief` remains a candidate; V5 `Attributable analysis` is current. V3 keeps the initial and updated AI states in one insight-led reading hierarchy. V4 widened the analyst authoring measure from 552px to 640px and established the vertical ownership sequence: quiet read-only system baseline, explicit analyst handoff, two-position radio toggle with visible dots and option descriptions, then the analyst conclusion. V5 keeps that geometry and accountability contract while removing repetitive AI branding from primary headings, alerts, previews, and CTAs. The visible workflow now reads Evidence → scoped analysis → analyst judgment; model attribution remains explicit in supporting context and the audit trail. The analyst selection controls what carries into Recommendation, uses text plus semantic risk color, exposes hover and focus-visible states, and reports retained/changed state without a second risk strip. The judgment pane owns scrolling above a stable footer; at narrow widths the baseline metadata and selector recompose without horizontal page overflow. All five directions remain URL-addressable through Design Tools, V5 uses the reproducible `meridian-reassessment-ready` preset, and removing a historical design query returns to V5.
+
+Reassessment processing refinement: verification and automated analysis remain one explicit handoff but two distinct responsibilities. V5's primary action says `Verify & run reassessment`; the processing surface identifies `Automated analysis` once, then describes the work rather than marketing the mechanism. The state persists long enough to show verified evidence, affected-metric recomputation, and changed/unchanged comparison progressing in sequence; unrelated findings and the final human credit decision remain explicitly out of scope. Reduced-motion users receive the same state progression without the rotating indicator.
+
+Visual QA: browser-verified at 1280px desktop, 1000px intermediate, and 390px mobile on July 26, 2026. The July 26 V4 pass reverified the 968px Overview and Sources-index canvases, no 1280px overflow, priority navigation, financial/history links, list-first routing, state filters, search, selected-source focus, close-to-list, and finding-origin return. Meridian V2 Context/Review/Result, Material-to-Moderate acceptance, V1 preservation, and return to current were reverified. Northstar Document/Recipient/Review, sent, received, processing, 1.29x ready, 1280px split screen, and 390px single-pane flow were verified with no horizontal overflow. Northstar workspace V2's five durable routes were checked at desktop width; Overview, Findings, and Sources were rechecked at 390 × 844 with document width equal to the viewport, an internally scrolling tab rail, and recomposed ledgers. Its archived two-tab V1 retains its design query through Activity and returns cleanly to the current workspace. Artifacts live under `output/playwright/northstar-workspace-v2/`. Activity V1/V2 were compared at 1280 × 900, the shared V2 ledger and single-line filter rail were checked at 390px, the Northstar Activity URL and complete four-event record were verified, and the request workspace retained exact 390px document width plus body scroll locking. Activity artifacts live under `output/playwright/credit-review-activity/`. Existing constrained/mobile focused-source behavior remains intact. The July 26 whole-product matrix also captured all 79 active routed states at 1280 × 900, 1000 × 900, and 390 × 844 under `output/playwright/full-matrix-{desktop,laptop,mobile}/`; every route loaded Arcadia Text and Display, remained viewport-width, exposed no failed images, and produced no runtime or console failures. A fresh-server interaction smoke then reverified Credit Reviews drawers, exact focus return, standard-case source dialogs, Reimbursements filters/bulk/dialog states, Intelligence context and chart answers, Design System modes, and the senior-decision handoff. On July 27, Recommendation V4 was browser-verified at 1280 × 900 and 390 × 844 across the incomplete prerequisite gate, focused guided draft, closed/open context rail, analyst submission, submitted read-only record, and transition to the separate senior layer. The 390px record remained exactly viewport width with no horizontal overflow, and the preview notice no longer obscures the company identity.
+
+Reassessment V4 visual QA: browser-verified on July 27, 2026 at 1280 × 900 and 390 × 844. The Revise path, retained and changed risk states, full-pane internal scrolling, stable footer, visible radio-dot toggle, descriptive choice text, and mobile recomposition passed. At 390px, `innerWidth`, document scroll width, and body scroll width were all exactly 390px; browser console errors and warnings were empty. Artifacts live under `output/playwright/reassessment-v4/`.
+
+Reassessment V5 visual QA: browser-verified on July 27, 2026 at 1280 × 900, 1440 × 1177, and 390 × 844. The default finding, matched-renewal review, scoped preview, automated-analysis processing state, result, and analyst Revise surface all use attributable product language while V4 retains its original AI-explicit copy behind the historical design query. `Continue to judgment` now opens the analyst judgment surface directly instead of closing back to the finding. Desktop and mobile document/body widths equal their viewports with no horizontal overflow. Artifacts live under `output/playwright/reassessment-v5/`.
+
+Findings V2/V3 visual QA: browser-verified on July 27, 2026 at 1280 × 900 and 390 × 844. Meridian, Brightline, and multi-finding Westfield use the same grouped selected-ledger geometry, 32px icon tiles, explicit risk/status metadata, and URL-backed selection. Marking a standard finding reviewed moves it from Open to Addressed and reduces the tab's open count. Northstar prerequisite and verified zero-findings states expose exactly one contextual action; the archived V2 query persists while navigating to Sources. Standard Findings V1 retains its layout switcher and non-current notice. Meridian, standard, and Northstar mobile document/body widths remained exactly 390px with no horizontal page overflow. Artifacts live under `output/playwright/credit-review-findings-v2/`.
+
+Credit Review Drawer V3 visual QA: browser-verified on July 27, 2026 at 1280 × 900 and 390 × 844. Meridian's persisted finding states, Northstar's prerequisite and verified zero-finding outcomes, Brightline's standard finding row, the archived V2 content, source expansion, finding deep-link, Escape focus return, absent pointer-origin outline, and document/body width all passed. Mobile document and body widths remained exactly 390px. Artifacts live under `output/playwright/credit-review-drawer-v3/`.
+
+Recommendation return-loop visual QA: browser-verified on July 27, 2026 at 1280 × 900 and 390 × 844. Senior return validation, durable revision-request record, preserved rationale and prior recommendation, prefilled analyst reopen, live shell/queue projection, senior `Waiting on analyst` stage, and mobile document/body widths passed. Artifacts live under `output/playwright/credit-review-return-loop/`.
+
+V5/V3 visual QA: browser-verified on July 27, 2026 at the default desktop viewport and 390 × 844. Analyst start, full-screen entry, exact-section exit/resume, guarded submission, durable recommendation, senior entry, senior note exit/resume, final decision, and durable final record all passed. Both immersive routes removed global and case chrome. Desktop retained 968px/1120px reading measures; mobile document width and body scroll width remained exactly 390px, with the analyst step rail scrolling internally and the senior composer recomposing after the submitted recommendation summary. Console warnings and errors were empty.
+
+Open gaps: prototype state is intentionally session-backed; connect review progression, borrower delivery/receipt, activity, source linking, recommendation submission, production document rendering, page/zoom controls, field-level correction, and discrepancy assignment to lending workflow services when available. V5/V3 production persistence additionally requires cross-device drafts, optimistic concurrency, permission checks, immutable record identifiers, and reviewer notifications. Persist the new V5/V3 screenshots under `output/playwright/credit-review-recommendation/` in the next full visual-matrix refresh.
+
+### Design Tools Navigator
+
+Reference: Mercury compact utility drawers and collection/detail navigation patterns, including Reimbursements and Payments approvals; local V1 evidence from the preserved stacked Design Tools accordion.
+
+Local: every React product route through the fixed Design Tools launcher. V1 is addressable at `/credit-reviews?design=design-tools-v1-stacked-accordion`; V2 is current at `/credit-reviews?design=design-tools-v2-navigator`.
+
+Layout: V2 uses one fixed-height 432px utility panel with a stable header, mode rail, collection search, single contained body scroller, and compact footer. Screens, States, and References are separate jobs rather than vertically stacked sections. Selecting a screen replaces the collection with its version detail; it never expands a long nested accordion. At mobile widths the launcher remains available and the panel becomes a bounded sheet above product navigation. V1 preserves the original stacked layout, while max-content grid rows and contained scrolling keep all expanded items reachable.
+
+Components: shared Salt `Tabs`, `SearchField`, `Button`, and `Icon`; feature-owned route grouping, workflow preset actions, version-detail composition, link-copy feedback, and legacy/current mode switch. Geometry and motion consume `--salt-design-tools-*` plus public spacing, radius, focus, surface, border, and motion tokens.
+
+Interactions: mode tabs support Arrow Left/Right/Home/End. Search filters the active collection by screen, version, hypothesis, case, or workflow moment. Screen and reference rows drill into saved versions in place; Back returns to the collection. Selecting a version or workflow state closes the panel and navigates to the live route. Copy link produces a durable URL for the focused current/showing direction. Escape and outside click close the panel and the launcher remains the focus-return target. The body owns scrolling and uses contained overscroll, so headers and actions do not disappear with long inventories.
+
+Visual QA: `output/playwright/design-tools-navigator/design-tools-v2-screens-desktop.png`, `design-tools-v2-states-desktop.png`, `design-tools-v2-versions-desktop.png`, `design-tools-v1-scroll-desktop.png`, and `design-tools-v2-mobile.png`.
+
+Open gaps: side-by-side visual comparison and pinned/recent directions remain candidate additions after the navigator proves stable; they should not increase the default panel height.
+
+### Home
+
+Reference: `https://demo.mercury.com/dashboard`.
+
+Local: `http://127.0.0.1:5173/#mercury/home`, alias `#dashboard`.
+
+Layout: centered 968px dashboard rail inside the 199px Mercury sidebar, first row uses two 472px cards with a 24px column gap, top-level dashboard rows use a 40px stack gap, the compact Credit Card/Bill Pay/Invoicing pattern uses a nested three-column module row with 24px internal gaps, 306.66px desktop columns, and 232px fixed card height, money-movement cards start 14px below their section heading and use 463px desktop card height, fixed guide panel, full-height app shell.
+
+Components: `Tooltip`, `SegmentedControl`, `Popover`, `Drawer`, `Table`, future table ledger variant for transaction rows.
+
+Interactions: quick action drawer, graph/table toggle, balance chart hover updates the card value/date/delta with one guide line and point marker, date menu, card menu, tooltip, guide panel tabs, Scenario 1 guide entry to the dedicated coverage email route, delayed Home signal reveal after Scenario 1 intake, sorted transaction header, Peak Rock relationship signal review staged through the Mercury drawer/task pattern, Peak Rock coverage feedback launched as a Home notification/deep link into the Ideabooks workflow, expandable full workplan, agent-run row reveal motion, Insights-style screen funnel with signed movement cues, wide curated-ideas review workspace, curated idea approval actions, reduced motion.
+
+Visual QA: `output/playwright/home-audit/mercury-dashboard-clean.png`, `output/playwright/home-audit/local-home-platform-final.png`, `output/playwright/home-audit/local-home-interactions-pass.png`, `output/playwright/home-audit/ideagen-home-chart-mercury-parity-20260526.png`, `output/playwright/home-audit/ideagen-home-chart-hover-mid-1241-20260527.png`, `output/playwright/home-audit/ideagen-home-chart-hover-right-1241-20260527.png`, `output/playwright/home-audit/ideagen-home-chart-hover-mobile-390-20260527.png`, `output/playwright/home-audit/local-mercury-home-chart-hover-mid-1241-20260527.png`, `output/playwright/home-audit/mercury-dashboard-chart-hover-reference-1241-20260527.png`, `output/playwright/home-audit/ideagen-home-compact-cards-mercury-parity-20260526.png`, `output/playwright/home-audit/ideagen-home-three-card-row-mercury-parity-20260528.png`, `output/playwright/home-audit/ideagen-home-three-card-row-aligned-20260528.png`, `output/playwright/home-audit/ideagen-home-three-card-grid-context-20260528.png`, `output/playwright/home-audit/ideagen-home-equal-row-heights-20260526.png`, `output/playwright/home-audit/ideagen-home-current-card-height-20260527.png`, `output/playwright/home-audit/local-home-spacing-parity-20260527.png`, `output/playwright/home-audit/ideagen-home-movement-bars-mercury-parity-20260527.png`, `output/playwright/home-audit/ideagen-home-balance-axis-typography-20260527.png`, `output/playwright/home-audit/ideagen-home-balance-table-padding-20260527.png`, `output/playwright/sidebar-audit/mercury-dashboard-sidebar-row-final-20260527.png`, `output/playwright/sidebar-audit/local-home-sidebar-row-final-20260527.png`, `output/playwright/sidebar-audit/local-ideagen-sidebar-mercury-parity-20260528.png`, `output/playwright/sidebar-audit/local-ideagen-workspace-menu-mercury-parity-20260528.png`.
+
+Peak Rock AI workflow Visual QA: `output/playwright/home-audit/ideagen-home-ai-flow-signal-review-drawer-1280-20260528.png`, `output/playwright/home-audit/ideagen-home-ai-flow-workplan-1280-20260528.png`, `output/playwright/home-audit/ideagen-home-ai-flow-sponsor-context-1280-20260528.png`, `output/playwright/home-audit/ideagen-home-ai-flow-company-screen-1280-20260528.png`, `output/playwright/home-audit/ideagen-home-ai-flow-candidates-1280-20260528.png`, `output/playwright/home-audit/ideagen-home-ai-flow-source-drawer-1280-20260528.png`, `output/playwright/home-audit/ideagen-home-ai-flow-ideabook-package-1280-20260528.png`, `output/playwright/home-audit/ideagen-home-ai-flow-audit-tab-1280-20260528.png`, `output/playwright/home-audit/ideagen-home-ai-flow-ready-for-coverage-1280-20260528.png`.
+
+Refined Peak Rock workflow Visual QA: `output/playwright/home-audit/ideagen-home-ai-flow-top-signal-review-expanded-1280-20260528.png`, `output/playwright/home-audit/ideagen-home-ai-flow-agent-running-1280-20260528.png`, `output/playwright/home-audit/ideagen-home-ai-flow-screen-funnel-actions-1280-20260528.png`, `output/playwright/home-audit/ideagen-home-screen-funnel-visual-cues-v3-1544x1150-20260529.png`, `output/playwright/home-audit/ideagen-home-screen-footer-two-actions-1544x1150-20260529.png`, `output/playwright/home-audit/ideagen-home-screen-footer-menu-1544x1150-20260529.png`, `output/playwright/home-audit/ideagen-home-signal-footer-overflow-right-1544x1150-20260529.png`, `output/playwright/home-audit/ideagen-home-signal-footer-overflow-menu-right-1544x1150-20260529.png`, `output/playwright/home-audit/ideagen-home-candidates-natural-list-v2-1544x1150-20260529.png`, `output/playwright/home-audit/ideagen-home-candidates-evidence-rich-scrolled-1544x1150-20260529.png`, `output/playwright/home-audit/ideagen-home-candidates-action-menu-1544x1150-20260529.png`, `output/playwright/home-audit/ideagen-home-peak-rock-circle-mark-drawer-20260529.png`, `output/playwright/home-audit/ideagen-home-peak-rock-color-circle-logo-1544x1150-20260529.png`, `output/playwright/home-audit/ideagen-home-workplan-live-running-1544x1150-20260529.png`, `output/playwright/home-audit/ideagen-home-workplan-live-complete-1544x1150-20260529.png`.
+Screen funnel chart polish QA: `output/playwright/home-audit/ideagen-home-screen-funnel-mercury-soft-chart-final-1544x1150-20260529.png`.
+Screen funnel ladder rail polish QA: `output/playwright/home-audit/ideagen-home-screen-funnel-ladder-mercury-rails-clicked-1544x1150-20260529.png`.
+Candidate company logo QA: `output/playwright/home-audit/ideagen-home-candidates-company-logos-1544x1150-20260529.png`.
+Candidate fit cell polish QA: `output/playwright/home-audit/ideagen-home-candidates-fit-mercury-polish-1544x1150-20260529.png`.
+Candidate footer overflow QA: `output/playwright/home-audit/ideagen-home-candidates-footer-two-actions-overflow-1117x776-20260529.png`, `output/playwright/home-audit/ideagen-home-candidates-footer-overflow-menu-1117x776-20260529.png`.
+Workflow progress drawer spacing QA: `output/playwright/home-audit/ideagen-home-workflow-progress-padding-1544x1150-20260529.png`.
+Home demo banner hidden QA: `output/playwright/home-audit/ideagen-home-demo-banner-hidden-clean-817x776-20260529.png`.
+
+Wide Peak Rock review workspace Visual QA: `output/playwright/home-audit/ideagen-home-ai-flow-wide-review-workspace-1280-20260528.png`.
+
+Scenario 1 email handoff Visual QA: `output/playwright/scenario-one-audit/local-scenario-one-email-1280.png`, `output/playwright/scenario-one-audit/local-scenario-one-source-drawer-1280.png`, `output/playwright/scenario-one-audit/local-scenario-one-home-processing-1280.png`, `output/playwright/scenario-one-audit/local-scenario-one-home-signal-1280.png`.
+
+Peak Rock coverage feedback handoff Visual QA: `output/playwright/ideabooks-transactions-audit/local-ideabooks-feedback-workflow-1280-20260528.png`, `output/playwright/ideabooks-transactions-audit/local-ideabooks-feedback-drawer-1280-20260528.png`, `output/playwright/ideabooks-transactions-audit/local-ideabooks-feedback-memory-1280-20260528.png`, `output/playwright/ideabooks-transactions-audit/local-ideabooks-feedback-candidates-1280-20260528.png`.
+
+Open gaps: keep Home as the source for compact card, tooltip, quick action, guide panel, and dashboard rail tokens during React migration.
+
+### Scenario 1
+
+Reference: `https://demo.mercury.com/cards` for the source-artifact intake page and `https://demo.mercury.com/dashboard` for the Home signal reveal.
+
+Local: `http://127.0.0.1:5173/#scenario-1`, alias `#ideagen/scenario-1`.
+
+Layout: copied Mercury Cards route translating only the content into a coverage-email intake step. The route uses the Mercury demo banner, 199px IdeaGen sidebar, sticky utility bar, centered 968px Cards rail, page heading, and one realistic Outlook-style mail-client source artifact inside the Mercury surface. It intentionally does not show criteria grids, source tables, package cards, or artifact cards before capture. It hands off to `#home`, where a dashboard intake-processing cue appears at the top of the Book of Work command center before the signal slowly reveals.
+
+Components: copied Mercury shell geometry, contained mail-client source artifact, mail command bar, mail message list, reading pane, `mp-status`, `mp-detail-drawer`, command dialog, utility menus, Home `dashboard-signal-panel`, and toast. The mail-client chrome is source evidence content, not a second IdeaGen shell.
+
+Interactions: Home guide Scenario 1 entry, realistic mail source artifact hover/click actions, email source drawer, source-used row open represented by the selected email/Open source controls, Next handoff to Home, longer staged processing overlay with animated progress, live Agent running cue, source-to-criteria-to-signal activity lane, sequential intake rows, Home intake-processing cue, delayed signal reveal, signal panel animation, Review signal drawer, command search, utility menus, Escape close, toast feedback, reduced-motion handling.
+
+Visual QA: `output/playwright/scenario-one-audit/local-scenario-one-email-1280.png`, `output/playwright/scenario-one-audit/local-scenario-one-source-drawer-1280.png`, `output/playwright/scenario-one-audit/local-scenario-one-handoff-longer-animation-20260529.png`, `output/playwright/scenario-one-audit/local-scenario-one-handoff-ai-running-cue-20260529.png`, `output/playwright/scenario-one-audit/local-scenario-one-home-processing-1280.png`, `output/playwright/scenario-one-audit/local-scenario-one-home-signal-1280.png`.
+
+Open gaps: keep this as a scenario/source-artifact route until the React migration promotes the mail source artifact, detail drawer, toast, and Home signal handoff into canonical components.
+
+### Peak Rock Workspace
+
+Reference: `https://demo.mercury.com/transactions` for dense ledgers, selected bulk actions, data views, and row-origin drawers; `https://demo.mercury.com/cards` for selected company detail panels; `https://demo.mercury.com/insights/overview` for grouped evidence/source and audit traces.
+
+Local: `http://127.0.0.1:5173/#ideagen/peak-rock-workspace`, alias `#peak-rock-workspace`.
+
+Layout: copied Mercury workspace shell with demo banner, 199px IdeaGen sidebar, sticky utility bar, full-width workstream page, compact summary strip, persistent transformation rail, underline tabs for Candidates/Sources/Package/Audit, dense candidate ledger, selected candidate detail panel, selected bulk bar, and right source/candidate/excluded-company drawers. This is the optional deep-review page launched from the Scenario 1 drawer when the drawer would be too tight for later-stage review.
+
+Components: copied Mercury Transactions shell geometry, table ledger variant, data views popover, filter toolbar, row selection, `mp-table`, `mp-status`, `mp-transaction-bulk`, `mp-transaction-drawer`, Cards-style selected detail panel, source evidence table, package checklist cards, audit trace, command dialog, utility menus, and toast.
+
+Interactions: Open Workspace from the Scenario 1 drawer, Back to Home, candidate row selection, candidate-specific drawer, clickable source artifacts, source drawer, View excluded companies drawer, Data Views popover, keyword/status filters, selected bulk action bar, Approve selected toast, Package tab approval, Audit tab trace, command search, utility menus, row hover, Escape close, and reduced motion.
+
+Visual QA: `output/playwright/peak-rock-workspace-audit/local-peak-rock-workspace-candidates-1280-20260528.png`, `output/playwright/peak-rock-workspace-audit/local-peak-rock-workspace-source-drawer-1280-20260528.png`, `output/playwright/peak-rock-workspace-audit/local-peak-rock-workspace-package-1280-20260528.png`, `output/playwright/peak-rock-workspace-audit/local-peak-rock-workspace-audit-1280-20260528.png`, `output/playwright/peak-rock-workspace-audit/local-peak-rock-workspace-candidates-wide-1768-20260528.png`, `output/playwright/peak-rock-workspace-audit/local-peak-rock-workspace-circle-mark-20260529.png`, `output/playwright/peak-rock-workspace-audit/local-peak-rock-workspace-company-logos-ledger-1544x1150-20260529.png`.
+
+Open gaps: keep this as a legacy reference workspace until the React migration promotes the ledger, bulk bar, source drawer, package checklist, and audit trace into canonical components.
+
+### Insights
+
+Reference: `https://demo.mercury.com/insights/overview`.
+
+Local: `http://127.0.0.1:5173/#mercury/insights`, alias `#insights/overview`.
+
+Layout: full-width Mercury dashboard route with constrained chart/metrics content, timeline/date controls above the primary chart, responsive chart panels.
+
+Components: `DiagramCard`, `DataLegend`, `SegmentedControl`, chart tokens, date-range scrubber promotion target.
+
+Interactions: date-range scrubber, range drag, chart update, generated trend notes, hover states, reduced motion, animated range fill.
+
+Visual QA: `output/playwright/local-verify/reference-insights-loaded.png`, `output/playwright/local-verify/insights-final-overview.png`, `output/playwright/local-verify/local-insights-range-dragged-final.png`.
+
+Open gaps: promote the scrubber into a React component before building another route with draggable date filtering.
+
+### Transactions
+
+Reference: `https://demo.mercury.com/transactions`.
+
+Local: `http://127.0.0.1:5173/#mercury/transactions`.
+
+Layout: flat ledger route, toolbar above expanded graph strip or collapsed chart summary, with a selected-state bulk editor below table context. Route-specific audit: `docs/MERCURY_TRANSACTIONS_AUDIT.md`.
+
+Components: Table ledger variant, `InlineCellEditor`, `BulkActionBar`, `Drawer`, `Popover`, `Toast`, `Checkbox`, `SegmentedControl`.
+
+Interactions: loading skeleton, Match receipts CTA, chart expand/collapse, row drawer, category editor, GL editor, success toast, data views popover, keyword popover, selected row, selected-state bulk menu, coachmark dismiss, mobile table behavior.
+
+Visual QA: `output/playwright/live-audit/transactions-1280.png`, `output/playwright/live-audit/transactions-live-expanded-20260525.png`, `output/playwright/live-audit/transactions-live-row-drawer-20260525.png`, `output/playwright/live-audit/transactions-live-combo-success-20260525.png`, `output/playwright/live-audit/transactions-live-collapsed-20260526.png`, `output/playwright/live-audit/transactions-live-expanded-20260526.png`, `output/playwright/local-audit/transactions-local-direct-collapsed-20260526.png`, `output/playwright/local-audit/transactions-local-data-views-20260526.png`, `output/playwright/local-audit/transactions-local-row-drawer-20260526.png`, `output/playwright/local-audit/transactions-local-one-selected-20260526.png`.
+
+Open gaps: migrate the ledger table, cell editors, and chart strip into React after the shared component variants are consumed in a first route.
+
+### Ideabooks
+
+Reference: `https://demo.mercury.com/transactions`.
+
+Local: `http://127.0.0.1:5173/#ideabooks`, alias `#ideagen/ideabooks`.
+
+Layout: copied Mercury Transactions route translating only the content into IdeaGen investor ideobooks. The route uses the Mercury demo banner, 199px sidebar, sticky utility bar, Transactions page heading, compact filter toolbar, expanded graph strip by default with collapsed summary available, flat horizontal ledger, sticky table header, selected-state bottom bulk editor, and right transaction drawer. Scenario 2 coverage feedback enters from Home but lives here as a Transactions/Tasks-style workflow above the ledger, using underline tabs, summary cards, lifecycle tables, and a right transaction drawer for source confirmation. Analytics lives in the main IdeaGen nav immediately after Screens, not in Bookmarks.
+
+Components: copied Mercury Transactions shell geometry, data views popover, filter builder, filter chips, graph summary, expanded graph strip, flat ledger table, row checkbox, `mp-party` investor cell, `mp-avatar` investor mark, `mp-cell-editor` deal-stage/status editors, `mp-transaction-bulk`, `mp-transaction-drawer`, utility menus, command dialog, and toast. No page-owned React ideobook primitives.
+
+Interactions: graph expand/collapse, row drawer, Peak Rock feedback row highlight, Review feedback CTA, Home handoff auto-open, feedback confirmation drawer, workflow stage tabs, lifecycle updates, memory approval, refresh-screen follow-up, replacement candidate preparation, deal stage editor, status editor, success toast, data views popover, keyword/status/updated-date filters, sort/group/settings popovers, selected row, selected-state bulk editor, command search, utility menus, row hover, and reduced motion inherited from the Mercury Transactions CSS.
+
+Visual QA: `output/playwright/ideabooks-transactions-audit/local-ideabooks-1280.png`, `output/playwright/ideabooks-transactions-audit/local-ideabooks-drawer.png`, `output/playwright/ideabooks-transactions-audit/local-ideabooks-data-view.png`, `output/playwright/ideabooks-transactions-audit/local-ideabooks-status-editor.png`, `output/playwright/ideabooks-transactions-audit/local-ideabooks-selected-bulk.png`, `output/playwright/ideabooks-transactions-audit/local-ideabooks-chart-mercury-geometry-20260527.png`, `output/playwright/ideabooks-transactions-audit/local-ideabooks-status-editor-visible-20260527.png`, `output/playwright/ideabooks-transactions-audit/local-ideabooks-status-editor-success-20260527.png`, `output/playwright/ideabooks-transactions-audit/local-ideabooks-feedback-workflow-1280-20260528.png`, `output/playwright/ideabooks-transactions-audit/local-ideabooks-feedback-drawer-1280-20260528.png`, `output/playwright/ideabooks-transactions-audit/local-ideabooks-feedback-memory-1280-20260528.png`, `output/playwright/ideabooks-transactions-audit/local-ideabooks-feedback-candidates-1280-20260528.png`.
+
+Open gaps: keep `#ideabooks` on the copied Mercury Transactions route until the React ledger table, inline editor, bulk bar, and transaction drawer contracts are promoted into canonical `src/components`.
+
+### Curated Ideas
+
+Reference: `https://demo.mercury.com/cards`.
+
+Local: `http://127.0.0.1:5173/#curated-ideas`, alias `#ideagen/curated-ideas`.
+
+Layout: copied Mercury Cards route translating only the content into IdeaGen curated idea review. The route uses the Mercury demo banner, 199px IdeaGen sidebar, sticky utility bar, centered 968px Cards rail, page heading without subtitle, recommendation artifact panel above underline tabs, Cards filter toolbar/popover, flat ledger table, Cards-style selected idea detail panel, source artifact table, subscription promo package cards, right detail drawers, and toast feedback.
+
+Components: copied Mercury Cards shell geometry, `mp-recommendation`, `mp-line-tabs`, `mp-filter-toolbar`, `mp-card-filter-popover`, flat `mp-table`, `mp-status`, `mp-card-cell`, `mp-card-detail-panel`, `mp-subscription-promos`, `mp-detail-drawer`, `mp-transaction-drawer`, utility menus, command dialog, and toast. No page-owned React curated-ideas primitives.
+
+Interactions: Curated Ideas sidebar route, Home CTA handoff, workflow stage transition, Review/Approved/Needs support/Sources/Package tab switch, filter popover, selected row detail panel, idea drawer, source artifact drawer, clickable source used artifacts, package drawer and CTA, approval/support/remove actions, command search, utility menus, toast feedback, row reveal motion, stage hover/active motion, and reduced-motion handling.
+
+Visual QA: `output/playwright/curated-ideas-audit/local-curated-ideas-1280.png`, `output/playwright/curated-ideas-audit/local-curated-ideas-source-drawer-1280.png`, `output/playwright/curated-ideas-audit/local-curated-ideas-package-1280.png`.
+
+Open gaps: keep `#curated-ideas` on the copied Mercury Cards route until the React ledger table, card glyph, recommendation surface, filter popover, entity panel, drawer, and toast contracts are promoted into canonical `src/components`.
+
+### Company Screener
+
+Reference: `https://demo.mercury.com/transactions`.
+
+Local: `http://127.0.0.1:5173/#ideagen/screener`.
+
+Layout: copied Mercury Transactions route translating only the content into IdeaGen company screening. The route uses the Mercury demo banner, 199px sidebar with the shared `--mercury-nav-item-gap` row rhythm, sticky utility bar, Transactions page heading, compact filter toolbar, expanded graph strip by default with collapsed summary available, flat horizontal ledger, sticky table header, selected-state bottom bulk editor, right transaction drawer, command palette, utility menus, and toast feedback.
+
+Components: copied Mercury Transactions shell geometry, data views popover, filter builder, filter chips, graph summary, expanded graph strip, flat ledger table, row checkbox, `mp-party` company cell, `mp-avatar` company mark, `mp-cell-editor` review/source status editors, `mp-transaction-bulk`, `mp-transaction-drawer`, utility menus, command dialog, and toast. No page-owned React screener primitives.
+
+Interactions: graph expand/collapse, row drawer, review status editor, source status editor, success toast, data views popover, keyword/status/updated-date filters, sort/group/settings popovers, selected row, visible-row select all, selected-state bulk editor, command search, utility menus, row hover, keyboard Escape close, and reduced motion inherited from the Mercury Transactions CSS.
+
+Visual QA: `output/playwright/ideagen-home/ideagen-screener-1280.png`, `output/playwright/ideagen-home/ideagen-screener-table-mercury-components.png`, `output/playwright/ideagen-home/ideagen-screener-filters-popover.png`, `output/playwright/ideagen-home/ideagen-screener-cell-review.png`, `output/playwright/ideagen-home/ideagen-screener-selected-bulk.png`, `output/playwright/ideagen-home/ideagen-screener-drawer-toast.png`, `output/playwright/ideagen-home/ideagen-screener-sidebar-rhythm-20260527.png`, `output/playwright/screener-audit/screener-direct-1768-after-20260527.png`, `output/playwright/screener-audit/screener-editor-down-20260527.png`, `output/playwright/screener-audit/screener-editor-up-20260527.png`, `output/playwright/screener-audit/screener-status-pill-editors-closed-20260527.png`, `output/playwright/screener-audit/screener-status-pill-no-arrows-20260527.png`, `output/playwright/typography-audit/local-screener-typography-after-20260527.png`.
+
+Open gaps: keep `#ideagen/screener` on the copied Mercury Transactions route until the React ledger table, inline editor, bulk bar, popover, toast, and transaction drawer contracts are promoted into canonical `src/components`; do not reintroduce the deleted custom React screener shell, tags, table, drawer, modal, or AI visual language.
+
+### Invoicing
+
+Reference: `https://demo.mercury.com/invoicing`.
+
+Local: `http://127.0.0.1:5173/#mercury/invoicing`.
+
+Layout: constrained finance route with KPI cards as the only top summary surface, compact controls, flat invoice table, right drawer that does not shift table rhythm.
+
+Components: `MetricCard`, Table ledger variant, `Toolbar`, `Tabs`, `Drawer`, `StatusPill`, `Button`, `Popover`.
+
+Interactions: KPI cards, invoice drawer, customer filter, table density, status filter, type filter, hover rows, drawer footer actions.
+
+Visual QA: `output/playwright/full-audit/demo-invoicing-route.png`, `output/playwright/full-audit/local-invoicing-final.png`, `output/playwright/live-audit/invoicing-detail-1280.png`.
+
+Open gaps: align reimbursement and invoicing tables through the shared ledger variant before adding more page-specific finance CSS.
+
+### Reimbursements
+
+Reference: `https://demo.mercury.com/expenses/all-expenses`, including `expenseId=expense3`, `expenseId=expense9`, and `expenseId=expense10`. Detailed audit: `docs/MERCURY_REIMBURSEMENTS_DRAWER_AUDIT.md`.
+
+Local design options: V1 overlay at `http://127.0.0.1:5182/reimbursements?design=product-reference-v1-reimbursements`; V2 responsive rail at `http://127.0.0.1:5182/reimbursements?design=product-reference-v2-responsive-drawer`. The route is intentionally absent from product navigation. Preserved legacy reference: `legacy-routes/reimbursements.html`.
+
+Layout: constrained finance ledger route, count tab rail, compact filter toolbar, and selectable table. V1 preserves the 392px fixed overlay. V2 uses Mercury's measured 968px in-layout contract: 544px condensed ledger, 32px gutter, and 392px rail; Category, Receipt, and Policy leave the condensed ledger. The visible panel is sticky, is capped to the remaining viewport height, and scrolls its body internally. Below the sustainable desktop width, V2 falls back to the overlay rather than creating page-level horizontal overflow.
+
+Components: Salt `Tabs`, `Button`, `FilterChip`, `StatusPill`, `Drawer`, `Popover`, and `Toast`; feature-owned compact ledger, row selection bar, and submit-expense dialog.
+
+Interactions: count tabs, All/Pending Review and category filters, row selection and bulk actions, row detail drawer, CSV export, settings disclosure, submit-expense dialog, empty state, keyboard row activation, desktop and mobile behavior. V2 preserves selected-row continuity, uses Mercury's 400ms transform/opacity travel after a 100ms delay, retains Salt Escape/focus return, contains overflow in the body, and omits a redundant company icon because Mercury's reimbursement header uses title + status + close.
+
+Visual QA: `output/playwright/full-audit/demo-reimbursements-route.png`, `output/playwright/full-audit/local-reimbursements-final.png`, `output/playwright/live-audit/reimbursements-detail-1280.png`, `output/playwright/parity/local-reimbursements-mobile-after.png`, `output/playwright/reimbursements-drawer-v2/mercury-expense{3,9,10}-1280x720.png`, and `output/playwright/reimbursements-drawer-v2/local-v2-{desktop,intermediate,mobile}-open-*.png`.
+
+Open gaps: keep the compact ledger and bulk bar feature-owned until a second React finance workflow proves a stable shared API; the submit dialog should be promoted only when another creation workflow reuses the same contract. V2 has passed local desktop, intermediate, mobile, overflow, motion, and keyboard QA, but remains a candidate until an explicit product decision promotes it over V1.
+
+### Payments
+
+Reference: `https://demo.mercury.com/payments`.
+
+Local: `http://127.0.0.1:5173/#mercury/payments`.
+
+Layout: full finance route with title-level action cluster, sidebar-owned Bill Pay subroutes, underline tab rail, flat ledger table.
+
+Components: `Toolbar`, `Tabs`, Table ledger variant, `Popover`, `Toast`, `Button`, `SearchField`.
+
+Interactions: Feedback badge, Send money, Upload bill, status popover, recipient flow, forwarding email pill, Inbox/Needs Approval/Scheduled/Paid tabs.
+
+Visual QA: `output/playwright/full-audit/demo-payments-route.png`, `output/playwright/full-audit/local-payments-final.png`, `output/playwright/full-audit/local-payments-status-popover.png`.
+
+Open gaps: move payment route/tab/chip geometry into canonical navigation and toolbar variants during React migration.
+
+### Cards
+
+Reference: `https://demo.mercury.com/cards`.
+
+Local: `http://127.0.0.1:5173/#mercury/cards`.
+
+Layout: centered 968px finance route without page subtitle, recommendation panel above underline tabs, flat grouped card table, and in-table card detail panel. Route-specific audit: `docs/MERCURY_CARDS_AUDIT.md`.
+
+Components: `Tabs`, `Surface`, Table ledger variant, `Drawer`, `StatusPill`, `Button`, `Popover`, `FilterPopover`, `CardGlyph`, `PromoCard`.
+
+Interactions: Create card full-screen flow, recommendation panel, policy toggle, card drawer, Subscriptions tab, card hover, receipt preview, soft filter action, card-filter popover, selected-row caret, subscription row actions.
+
+Visual QA: `output/playwright/cards-audit/demo-cards-start.png`, `output/playwright/cards-audit/demo-cards-row-drawer.png`, `output/playwright/cards-audit/demo-cards-filter-open.png`, `output/playwright/cards-audit/demo-cards-subscriptions.png`, `output/playwright/cards-audit/local-cards-main-final.png`, `output/playwright/cards-audit/local-cards-row-hover-final.png`, `output/playwright/cards-audit/local-cards-drawer-final.png`, `output/playwright/cards-audit/local-cards-filter-final.png`, `output/playwright/cards-audit/local-cards-subscriptions-final.png`, `output/playwright/cards-audit/local-cards-create-final.png`, `output/playwright/sidebar-audit/local-mercury-cards-sidebar-subnav-20260528.png`.
+
+Open gaps: recommendation panel, card-cell glyph pattern, and create-card flow should stay page-owned until reused by another workflow, then promote with contracts from `docs/MERCURY_CARDS_AUDIT.md`.
+
+### Bill Pay
+
+Reference: `https://demo.mercury.com/bill-pay`.
+
+Local: `http://127.0.0.1:5173/#mercury/bill-pay`, alias `#bill-pay`.
+
+Layout: finance ledger route with Bill Pay sidebar group and tabbed bill status sections.
+
+Components: `Tabs`, Table ledger variant, `BulkActionBar`, `Drawer`, `StatusPill`, `Toolbar`.
+
+Interactions: Bill Pay, Inbox, Needs Approval, Scheduled, Paid, upload bill, approval rows, empty state.
+
+Visual QA: `output/playwright/local-verify/reference-bill-pay.png`.
+
+Open gaps: capture local hover, drawer, and selected-row artifacts before React migration starts.
+
+### Accounts
+
+Reference: `https://demo.mercury.com/accounts`.
+
+Local: `http://127.0.0.1:5173/#mercury/accounts`.
+
+Layout: finance route with account/balance summary and ledger-style account rows.
+
+Components: Table ledger variant, `Drawer`, `KeyValueGrid`, `StatusPill`, `Button`.
+
+Interactions: linked account, account drawer, balance, routing, table, hover rows, transfer actions.
+
+Visual QA: `output/playwright/local-verify/reference-accounts.png`, `output/playwright/local-verify/local-accounts-linked.png`.
+
+Open gaps: capture drawer, transfer, and mobile artifacts before promoting account detail patterns.
+
+### Tasks
+
+Reference: `https://demo.mercury.com/tasks`.
+
+Local: `http://127.0.0.1:5173/#mercury/tasks`.
+
+Layout: dense task ledger with filters, approval/review states, and empty/completed states.
+
+Components: `Tabs`, Table ledger variant, `StatusPill`, `EmptyState`, `Toolbar`.
+
+Interactions: completed, approval, row state, filter, empty, hover rows, status transitions.
+
+Visual QA: `output/playwright/local-verify/local-tasks-completed.png`.
+
+Open gaps: capture the reference route and drawer/popover states before React migration.
+
+### Analytics
+
+Reference: `https://demo.mercury.com/insights/overview`.
+
+Local: `http://127.0.0.1:5173/#analytics`.
+
+Layout: copied Mercury Insights route translating only the content into IdeaGen/TD analytics. The route uses the Mercury demo banner, 199px sidebar with the shared `--mercury-nav-item-gap` row rhythm, sticky utility bar, compact page heading, segmented insight tabs, date tools above a draggable timeline scrubber, one full-width Mercury metric row, one full-width dotted chart, generated notes below the chart, two-column breakdown panels, command palette, and Mercury action panel. Scenario 3 keeps Workflow Health inside `#analytics` as a fourth segmented tab, borrowing Invoicing KPI summary density, Tasks/1099 task rows, and Credit Card chart/ledger rhythm without adding a new route.
+
+Components: copied Mercury Insights shell geometry, demo banner, Mercury sidebar, utility bar, command palette, role/profile/updates menus, segmented view tabs, date buttons, date-range scrubber, full-width Mercury metric row, full-width dotted chart panel, Mercury metric labels, generated trend notes, breakdown cards, Workflow Health bottleneck summary cards, commercial banker response monitor table, feedback/data-quality tables, lifecycle-stage rows, toast, and Mercury action panel. No page-owned React analytics primitives.
+
+Interactions: date-range scrubber, range drag, chart update, scrubber animation, date menu, More menu, Overview/Sponsors/Velocity tab switch, Workflow Health tab switch, period action, generated trend notes, generated note feedback/copy actions, breakdown row click, Workflow Health bottleneck filter, workflow task/recommendation action, duplicate outreach action, lifecycle-stage click, command search, role/profile/updates menus, New work action panel, toast feedback, and reduced motion.
+
+Visual QA: `output/playwright/analytics-insights-audit/mercury-insights-overview-1280.png`, `output/playwright/analytics-insights-audit/mercury-insights-overview-lower-1280.png`, `output/playwright/analytics-insights-audit/local-analytics-1280.png`, `output/playwright/analytics-insights-audit/local-analytics-lower-1280.png`, `output/playwright/analytics-insights-audit/local-analytics-range-changed.png`, `output/playwright/analytics-insights-audit/local-analytics-sponsor-tab.png`, `output/playwright/analytics-insights-audit/local-analytics-action-panel.png`, `output/playwright/analytics-insights-audit/local-analytics-wide-range-changed.png`, `output/playwright/analytics-insights-audit/local-analytics-sidebar-rhythm-20260527.png`, `output/playwright/analytics-insights-audit/local-analytics-mercury-chart-parity-908-20260527.png`, `output/playwright/analytics-insights-audit/local-analytics-mercury-chart-parity-1241-20260527.png`, `output/playwright/analytics-insights-audit/local-analytics-workflow-health-1280-20260528.png`, `output/playwright/analytics-insights-audit/local-analytics-workflow-health-lower-1280-20260528.png`, `output/playwright/analytics-insights-audit/local-analytics-workflow-health-table-1280-20260528.png`, `output/playwright/analytics-insights-audit/local-analytics-workflow-health-mobile-390-20260528.png`, `output/playwright/analytics-insights-audit/local-analytics-workflow-health-mobile-lower-390-20260528.png`, `output/playwright/sidebar-audit/local-analytics-sidebar-shared-908-20260527.png`.
+
+Open gaps: keep `#analytics` on the copied Mercury Insights route until a React migration can consume canonical Insights primitives; do not reintroduce the deleted custom React analytics shell, filter system, chart system, or KPI/card language.
+
+### Data Extraction
+
+Reference: `https://demo.mercury.com/issue-card?preFilledFields=%7B%22includeMerchantLock%22%3A%22true%22%2C%22cardRealm%22%3A%22virtual%22%7D`, with supporting patterns from `https://demo.mercury.com/tasks`, `https://demo.mercury.com/transactions`, `https://demo.mercury.com/invoicing`, and `https://demo.mercury.com/cards`.
+
+Local: `http://127.0.0.1:5173/#signals`, aliases `#ideagen/data-extraction` and `#data-extraction`.
+
+Layout: platform-owned full-bleed Mercury workspace shell with left navigation, route-owned scroll rail, Mercury PageHeader, flat transaction-style summary strip, underline status tabs, left extraction-files pane, right document-evidence pane based on the Mercury create-card form/preview flow, fixed Mercury drawer, and nonblocking toast feedback.
+
+Components: `PageHeader`, `Surface`, `SectionHeader`, `Tabs`, `Toolbar`, `SearchField`, `Button`, Table ledger variant, `InlineCellEditor`, `Popover`, `OptionList`, `Drawer`, `DrawerSection`, `DrawerDetailList`, `DrawerPillRow`, `DrawerText`, `KeyValueGrid`, `Timeline`, `ProgressBar`, `StatusPill`, `StatusDot`, `Toast`, and `EmptyState`.
+
+Interactions: Mercury left navigation, upload agreement, Run extraction, status tabs, search/filter, ledger row drawer, inline review status popover, status update toast, confirm field, source request, empty state, desktop left-files/right-docs layout, mobile stacked layout, hover/focus states through canonical components, and reduced motion inherited from drawer/toast component contracts.
+
+Visual QA: `output/playwright/data-extraction/mercury-issue-card-reference-1280-latest.png`, `output/playwright/data-extraction/data-extraction-react-1280.png`, `output/playwright/data-extraction/data-extraction-drawer.png`, `output/playwright/data-extraction/data-extraction-mobile.png`, `output/playwright/data-extraction/data-extraction-status-popover.png`.
+
+Open gaps: promote a low-domain Mercury radio-card/form-row primitive only after another React route needs the same create-card pattern; keep extraction-specific field semantics page-owned.
+
+### IdeaGen
+
+Reference: Mercury translation from dashboard, invoicing, transactions, and drawer patterns.
+
+Local: `http://127.0.0.1:5173/#home`, aliases `#ideagen` and `#ideagen/home`, plus `http://127.0.0.1:5173/#ideagen/screener`.
+
+Layout: `#home` is a copied Mercury dashboard route using the Mercury demo banner, 199px left nav, utility bar, dashboard rail, card grid, guide panel, action panel, movement cards, and transaction-table structure with IdeaGen content. Company Screener remains a first-class route entry and opens as its own copied Mercury Transactions route for ledger density, tools, inline editors, selected-state bulk actions, and right drawer review. The compact three-card module row now includes a Workflow Health preview that links into `#analytics` Scenario 3.
+
+Components: copied Mercury dashboard shell for `#home`; copied Mercury Transactions shell, toolbar, graph strip, table, popover, bulk editor, drawer, and toast for `#ideagen/screener`; Coverage readiness, Workflow Health, and Ideabooks translate the live Mercury Credit Card, Bill Pay, and Invoicing compact card trio exactly, preserving the three-column module row, meter, compact rows, card menus, footer CTAs, and 232px row height; AI flow dashboard signal composed from the existing guide panel, Book of Work ledger, status pills, identity marks, and investor drawer rather than a duplicate dashboard; one-line Book of Work work/investor cells with same-size circular work icons, Mercury status pills, and real-logo investor identity artifacts; rich investor detail drawer composed from Mercury drawer, status pill, tab, fact-grid, compact table, timeline, source-list, footer-action, and toast patterns.
+
+Interactions: Mercury translation, Book of Work, copied Mercury dashboard route, Company Screener route entry, guide opens the company screener, `AI Flow 1: Peak Rock signal` activates a deterministic dashboard signal state, `AI Flow 2: Coverage feedback` activates only from the guide item and hands off to the Ideabooks workflow for feedback review, lifecycle updates, memory approval, follow-up workplan, and replacement candidates, search command dialog, guide panel, dashboard card menus, Decisions carousel preserves scroll position, decision detail drawer, AI/source updates menu, Workflow Health preview route link, Action items review drawer, graph/table toggle, balance chart hover updates value/date/delta and renders the Mercury guide/dot marker, movement month controls, work-row drawer, rich investor detail drawer, investor drawer tabs, portfolio table, source evidence toast, keyboard-open work rows, visible-row selection, bulk actions, screener data views, filter popovers, inline status editors, drawer review actions, and success/running/warning toasts.
+
+Visual QA: `output/playwright/ideagen-home/ideagen-mercury-home-1280.png`, `output/playwright/ideagen-home/ideagen-home-mobile-390.png`, `output/playwright/ideagen-home/ideagen-book-of-work-mercury-components.png`, `output/playwright/ideagen-home/ideagen-book-of-work-one-line-artifacts-clean.png`, `output/playwright/ideagen-home/ideagen-book-of-work-mobile-one-line.png`, `output/playwright/home-audit/ideagen-home-chart-hover-mid-1241-20260527.png`, `output/playwright/home-audit/ideagen-home-chart-hover-right-1241-20260527.png`, `output/playwright/home-audit/ideagen-home-chart-hover-mobile-390-20260527.png`, `output/playwright/home-audit/ideagen-home-compact-cards-refined-1280-20260528.png`, `output/playwright/home-audit/ideagen-home-compact-cards-refined-908-20260528.png`, `output/playwright/home-audit/ideagen-home-three-card-row-mercury-parity-20260528.png`, `output/playwright/home-audit/ideagen-home-three-card-row-aligned-20260528.png`, `output/playwright/home-audit/ideagen-home-three-card-grid-context-20260528.png`, `output/playwright/home-audit/ideagen-home-workflow-health-preview-1280-20260528.png`, `output/playwright/home-audit/ideagen-home-investor-logos-visible-20260527.png`, `output/playwright/home-audit/ideagen-home-peak-rock-logo-book-of-work-visible-1280-20260528.png`, `output/playwright/home-audit/ideagen-home-ai-flow-signal-dashboard-1280-20260528.png`, `output/playwright/home-audit/ideagen-home-ai-flow-signal-dashboard-mobile-390-20260528.png`, `output/playwright/home-audit/ideagen-home-ai-flow-signal-drawer-1280-20260528.png`, `output/playwright/home-audit/ideagen-home-ai-flow-signal-drawer-mobile-390-20260528.png`, `output/playwright/ideabooks-transactions-audit/local-ideabooks-feedback-workflow-1280-20260528.png`, `output/playwright/ideabooks-transactions-audit/local-ideabooks-feedback-drawer-1280-20260528.png`, `output/playwright/ideabooks-transactions-audit/local-ideabooks-feedback-memory-1280-20260528.png`, `output/playwright/ideabooks-transactions-audit/local-ideabooks-feedback-candidates-1280-20260528.png`, `output/playwright/home-audit/ideagen-home-status-pills-20260527.png`, `output/playwright/home-audit/ideagen-home-decision-card-rich-visible-908-20260527.png`, `output/playwright/home-audit/ideagen-home-decision-drawer-rich-visible-908-20260527.png`, `output/playwright/home-audit/ideagen-home-action-ideabook-rich-1241-20260527.png`, `output/playwright/home-audit/ideagen-home-action-ideabook-rich-908-20260527.png`, `output/playwright/home-audit/ideagen-home-action-ideabook-rich-390-20260527.png`, `output/playwright/home-audit/ideagen-home-ai-updates-menu-908-20260527.png`, `output/playwright/home-audit/ideagen-home-action-items-drawer-908-20260527.png`, `output/playwright/ideagen-home/ideagen-investor-drawer-overview.png`, `output/playwright/ideagen-home/ideagen-investor-drawer-portfolio.png`, `output/playwright/ideagen-home/ideagen-investor-drawer-mobile.png`, `output/playwright/ideagen-home/ideagen-screener-1280.png`, `output/playwright/ideagen-home/ideagen-screener-table-mercury-components.png`, `output/playwright/ideagen-home/ideagen-screener-mobile.png`, `output/playwright/ideagen-home/ideagen-screener-filters-popover.png`, `output/playwright/ideagen-home/ideagen-screener-cell-review.png`, `output/playwright/ideagen-home/ideagen-screener-drawer.png`, `output/playwright/ideagen-home/ideagen-screener-drawer-toast.png`, `output/playwright/ideagen-home/ideagen-screener-hover.png`.
+
+Open gaps: keep tightening the home route toward literal Mercury dashboard behavior; do not reintroduce page-invented lifecycle, decision-rail, workspace, stat-pill, or AI-dashboard sections. Split the remaining large home CSS module into page-owned component CSS modules before the next IdeaGen page expands, and promote any missing Mercury primitive into `src/components` before page-specific styling.
+
+### Intelligence
+
+Reference: `https://demo.mercury.com/command`, with completed visualization framing informed by `https://demo.mercury.com/insights/overview`. Detailed audit: `docs/MERCURY_COMMAND_AUDIT.md`.
+
+Local: `http://127.0.0.1:5182/intelligence`.
+
+Layout: existing Salt/Mercury application shell with Intelligence added to the canonical left navigation; centered empty state; 660px active conversation rail; right-aligned user message; unboxed assistant answer; compact conversation header; sticky bottom composer; one-column mobile recomposition above the existing bottom navigation.
+
+Components: shared Salt `Button`, `Icon`, promoted `Popover`, `StatusPill`, and `Toast`; feature-owned context data, high-level work trace, source disclosure, answer composition, and fixed-charge coverage chart.
+
+Interactions: click or type `@`; filter, keyboard-navigate, select, and remove review/finding/source/portfolio context; use two example prompts; send with Enter; observe or stop the high-level work cycle; disclose completed work; inspect sources; copy and rate answers; ask the chart follow-up; hover or focus chart points; route to the owning finding/financial workflow; reset the conversation; respect reduced motion. Shared case facts stay aligned with Credit Reviews: Northstar is a $15M revolving line, the Customer A renewal was executed Jul 18, 2026 and extends through Mar 2030, and Intelligence cites the same concentration and revenue-and-margin sources as the case workspace.
+
+Visual QA: `output/playwright/intelligence/intelligence-empty-desktop.jpg`, `output/playwright/intelligence/intelligence-context-picker-desktop.jpg`, `output/playwright/intelligence/intelligence-chart-answer-desktop.jpg`, and `output/playwright/intelligence/intelligence-empty-mobile.jpg`.
+
+Open gaps: deterministic responses remain the intended prototype seam; backend retrieval, permission enforcement, audit logging, and retention policy are required before connecting a production LM.

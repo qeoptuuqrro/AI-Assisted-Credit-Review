@@ -1,0 +1,70 @@
+@font-face {
+  font-family: "Arcadia Text";
+  src: url("/webfonts/ArcadiaText-Variable.woff2") format("woff2");
+  font-weight: 360 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Arcadia Display";
+  src: url("/webfonts/ArcadiaDisplay-Variable.woff2") format("woff2");
+  font-weight: 380 500;
+  font-display: swap;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: var(--viewport-min-width);
+  background: var(--color-canvas);
+  font-family: var(--font-text);
+  color: var(--color-text);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-width: var(--viewport-min-width);
+  min-height: 100dvh;
+  margin: 0;
+  background: var(--color-canvas);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: var(--salt-focus-ring-width) solid var(--color-focus);
+  outline-offset: var(--salt-focus-ring-offset);
+}
+
+/* Escape can return focus after a mouse-origin interaction. Keep that focus
+   managed, but do not surface a keyboard ring until the user navigates with Tab. */
+html[data-input-modality="pointer"] :focus-visible {
+  outline: 0 !important;
+  outline-offset: 0 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

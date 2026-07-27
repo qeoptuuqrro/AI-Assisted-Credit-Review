@@ -1,0 +1,39 @@
+.cell {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--salt-data-cell-gap);
+}
+
+.start {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.end {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.primary,
+.secondary {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.primary {
+  color: var(--salt-data-cell-primary-color);
+  font-size: var(--salt-data-cell-primary-size);
+  font-weight: var(--salt-data-cell-primary-weight);
+  line-height: var(--salt-data-cell-primary-line);
+}
+
+.secondary {
+  color: var(--salt-data-cell-secondary-color);
+  font-size: var(--salt-data-cell-secondary-size);
+  font-weight: var(--salt-data-cell-secondary-weight);
+  line-height: var(--salt-data-cell-secondary-line);
+}

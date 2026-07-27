@@ -1,0 +1,25 @@
+.popover {
+  z-index: var(--salt-popover-z-index);
+  width: min(var(--salt-popover-width), calc(100vw - (var(--salt-space-4) * 2)));
+  max-height: var(--salt-popover-max-height);
+  padding: var(--salt-popover-padding);
+  overflow: auto;
+  border: var(--salt-popover-border);
+  border-radius: var(--salt-popover-radius);
+  background: var(--salt-popover-background);
+  box-shadow: var(--salt-popover-shadow);
+  color: var(--salt-popover-text);
+  animation: popoverEnter var(--salt-motion-fast) var(--salt-ease-standard) both;
+}
+
+@keyframes popoverEnter {
+  from {
+    opacity: 0;
+    transform: translateY(var(--salt-popover-enter-offset));
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -1,0 +1,232 @@
+.root {
+  min-width: 0;
+}
+
+.columnHeader {
+  min-height: var(--salt-activity-ledger-header-height);
+  display: grid;
+  grid-template-columns: var(--salt-activity-ledger-icon-size) minmax(0, 1fr) var(--salt-activity-ledger-time-width) var(--salt-activity-ledger-disclosure-size);
+  align-items: center;
+  gap: var(--salt-activity-ledger-gap);
+  padding-inline: var(--salt-activity-ledger-padding-inline);
+  border-bottom: var(--salt-border-subtle);
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-table-header-size);
+  line-height: var(--salt-type-table-header-line);
+}
+
+.columnHeader span:first-child {
+  grid-column: 2;
+}
+
+.columnHeader span:last-child {
+  grid-column: 3;
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list li {
+  border-bottom: var(--salt-border-subtle);
+}
+
+.row {
+  width: 100%;
+  min-height: var(--salt-activity-ledger-row-min-height);
+  display: grid;
+  grid-template-columns: var(--salt-activity-ledger-icon-size) minmax(0, 1fr) var(--salt-activity-ledger-time-width) var(--salt-activity-ledger-disclosure-size);
+  align-items: center;
+  gap: var(--salt-activity-ledger-gap);
+  box-sizing: border-box;
+  padding: var(--salt-activity-ledger-padding-block) var(--salt-activity-ledger-padding-inline);
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+button.row {
+  cursor: pointer;
+  transition: background var(--salt-motion-fast) var(--salt-ease-standard);
+}
+
+button.row:hover {
+  background: var(--salt-color-surface-subtle);
+}
+
+button.row:focus-visible {
+  position: relative;
+  z-index: var(--salt-z-base);
+  outline: var(--salt-focus-ring-width) solid var(--salt-color-focus);
+  outline-offset: calc(var(--salt-focus-ring-offset) * -1);
+}
+
+.copy {
+  min-width: 0;
+  display: grid;
+  gap: var(--salt-space-1);
+}
+
+.copy strong {
+  overflow: hidden;
+  color: var(--salt-color-text-strong);
+  font-size: var(--salt-type-size-ui-secondary);
+  font-weight: var(--salt-type-weight-regular);
+  line-height: var(--salt-type-line-ui-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.copy small,
+.row time {
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row time {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.disclosure {
+  color: var(--salt-color-text-subtle);
+  transition: transform var(--salt-motion-fast) var(--salt-ease-standard);
+}
+
+.disclosure[data-expanded="true"] {
+  transform: rotate(180deg);
+}
+
+.details {
+  padding: 0 calc(var(--salt-activity-ledger-padding-inline) + var(--salt-activity-ledger-disclosure-size)) var(--salt-space-4) calc(var(--salt-activity-ledger-padding-inline) + var(--salt-activity-ledger-icon-size) + var(--salt-activity-ledger-gap));
+  color: var(--salt-color-text-muted);
+  font-size: var(--salt-type-size-sm);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+/* Connected chronology variant. It intentionally reuses the ledger's event
+   model, glyphs, disclosure, and responsive behavior instead of introducing
+   a second activity primitive. */
+.root[data-layout="timeline"] .columnHeader {
+  display: none;
+}
+
+.root[data-layout="timeline"] .list {
+  display: grid;
+  gap: 0;
+}
+
+.root[data-layout="timeline"] .list li {
+  position: relative;
+  border-bottom: 0;
+}
+
+.root[data-layout="timeline"] .list li:not(:last-child)::before {
+  position: absolute;
+  top: calc(var(--salt-activity-ledger-padding-block) + var(--salt-activity-ledger-icon-size));
+  bottom: calc(var(--salt-activity-ledger-padding-block) * -1);
+  left: calc(var(--salt-activity-ledger-padding-inline) + (var(--salt-activity-ledger-icon-size) / 2) - (var(--salt-activity-timeline-rail-width) / 2));
+  width: var(--salt-activity-timeline-rail-width);
+  background: var(--salt-activity-timeline-rail);
+  content: "";
+  pointer-events: none;
+}
+
+.root[data-layout="timeline"] .row {
+  position: relative;
+  z-index: var(--salt-z-base);
+  grid-template-columns: var(--salt-activity-ledger-icon-size) minmax(0, 1fr) var(--salt-activity-ledger-disclosure-size);
+  align-items: start;
+  padding-block: var(--salt-activity-ledger-padding-block);
+  border-radius: var(--salt-radius-md);
+}
+
+.root[data-layout="timeline"] .icon {
+  position: relative;
+  z-index: calc(var(--salt-z-base) + 1);
+}
+
+.root[data-layout="timeline"] .copy strong {
+  white-space: normal;
+}
+
+.root[data-layout="timeline"] .copy small {
+  white-space: normal;
+}
+
+.root[data-layout="timeline"] .row time {
+  grid-column: 2;
+  grid-row: 2;
+  padding-top: var(--salt-space-1);
+  text-align: left;
+}
+
+.root[data-layout="timeline"] .disclosure {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  margin-top: var(--salt-space-1);
+}
+
+.root[data-layout="timeline"] .details {
+  position: relative;
+  z-index: var(--salt-z-base);
+  margin-left: calc(var(--salt-activity-ledger-icon-size) + var(--salt-activity-ledger-gap));
+  padding: 0 var(--salt-activity-ledger-padding-inline) var(--salt-space-4) 0;
+}
+
+@media (max-width: 620px) {
+  .root[data-layout="timeline"] .row {
+    grid-template-columns: var(--salt-activity-ledger-icon-size) minmax(0, 1fr) var(--salt-activity-ledger-disclosure-size);
+  }
+
+  .root[data-layout="timeline"] .row time {
+    grid-column: 2;
+  }
+
+  .root[data-layout="timeline"] .details {
+    margin-left: calc(var(--salt-activity-ledger-icon-size) + var(--salt-activity-ledger-gap));
+    padding-right: var(--salt-activity-ledger-padding-inline);
+  }
+}
+
+@media (max-width: 620px) {
+  .columnHeader {
+    display: none;
+  }
+
+  .row {
+    grid-template-columns: var(--salt-activity-ledger-icon-size) minmax(0, 1fr) var(--salt-activity-ledger-disclosure-size);
+  }
+
+  .row time {
+    grid-column: 2;
+    text-align: left;
+  }
+
+  .disclosure {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+  }
+
+  .details {
+    padding-right: var(--salt-activity-ledger-padding-inline);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button.row,
+  .disclosure {
+    transition: none;
+  }
+}

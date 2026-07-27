@@ -1,0 +1,46 @@
+.chip {
+  min-height: var(--salt-filter-chip-height);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--salt-filter-chip-gap);
+  padding: 0 var(--salt-filter-chip-padding);
+  border: var(--salt-filter-chip-border);
+  border-radius: var(--salt-filter-chip-radius);
+  background: var(--salt-filter-chip-background);
+  color: var(--salt-filter-chip-text);
+  font-family: var(--salt-filter-chip-font-family);
+  font-size: var(--salt-filter-chip-font-size);
+  font-weight: var(--salt-filter-chip-font-weight);
+  line-height: var(--salt-filter-chip-line-height);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--salt-motion-fast) var(--salt-ease-standard), border-color var(--salt-motion-fast) var(--salt-ease-standard);
+}
+
+.chip:hover {
+  background: var(--salt-filter-chip-background-hover);
+}
+
+.chip:focus-visible {
+  outline: var(--salt-focus-ring-width) solid var(--salt-color-focus);
+  outline-offset: var(--salt-focus-ring-offset);
+}
+
+.selected {
+  border-color: transparent;
+  background: var(--salt-filter-chip-background-selected);
+}
+
+.count {
+  min-width: var(--salt-space-5);
+  min-height: var(--salt-space-5);
+  display: inline-grid;
+  place-items: center;
+  padding-inline: var(--salt-filter-chip-count-padding);
+  border-radius: var(--salt-filter-chip-count-radius);
+  background: var(--salt-color-surface-selected);
+  color: var(--salt-color-text-muted);
+  font-size: var(--salt-filter-chip-count-size);
+  line-height: var(--salt-filter-chip-count-line);
+}
