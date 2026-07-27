@@ -29,13 +29,16 @@ function renderDrawer(
 }
 
 describe("CreditReviewDrawer outcome preview", () => {
-  it("uses one AI review brief and native finding buttons", () => {
+  it("uses a flat review focus with native finding buttons", () => {
     renderDrawer();
 
     expect(screen.getByRole("heading", { name: "Meridian Foods" })).toBeTruthy();
-    expect(screen.getByText("AI review brief")).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "Analyst review required" })).toBeTruthy();
-    expect(screen.getAllByRole("button", { name: /Open .* finding/ })).toHaveLength(3);
+    expect(screen.getByRole("heading", { name: "Review focus" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Customer concentration" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Declining margins" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Increasing leverage" })).toBeTruthy();
+    expect(screen.queryByText("AI review brief")).toBeNull();
+    expect(screen.queryByText("Next step")).toBeNull();
     expect(screen.queryByText("Initial assessment")).toBeNull();
     expect(screen.queryByText(/AI paused/i)).toBeNull();
   });
@@ -53,7 +56,7 @@ describe("CreditReviewDrawer outcome preview", () => {
 
     renderDrawer(meridian, { meridianState: state });
 
-    expect(screen.getByRole("heading", { name: "Analyst review required" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Review focus" })).toBeTruthy();
     expect(screen.getByText("Accepted by analyst")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Review findings" })).toBeTruthy();
   });
@@ -61,11 +64,13 @@ describe("CreditReviewDrawer outcome preview", () => {
   it("presents Northstar's missing forecast as an evidence prerequisite, not a finding", () => {
     renderDrawer(northstar, { status: { label: "Needs verification", tone: "danger" } });
 
-    expect(screen.getByRole("heading", { name: "Evidence required" })).toBeTruthy();
-    expect(screen.getByText(/Request or upload the 2027 forecast/)).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Review focus" })).toBeTruthy();
+    expect(screen.getByText("2027 operating forecast")).toBeTruthy();
+    expect(screen.getByText(/downside analysis is paused/)).toBeTruthy();
+    expect(screen.getByLabelText("Evidence review status")).toBeTruthy();
     expect(screen.queryByLabelText("Finding review status")).toBeNull();
     expect(screen.queryByLabelText("Key findings")).toBeNull();
-    expect(screen.queryByText("Analysis awaiting evidence")).toBeNull();
+    expect(screen.queryByRole("button", { name: /2027 operating forecast/ })).toBeNull();
   });
 
   it("shows the verified Northstar zero-finding outcome", () => {
@@ -73,8 +78,9 @@ describe("CreditReviewDrawer outcome preview", () => {
       status: { label: "Analysis updated", tone: "info" },
     });
 
-    expect(screen.getByRole("heading", { name: "Analysis complete" })).toBeTruthy();
-    expect(screen.getByText(/Confirm the updated coverage result/)).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Review focus" })).toBeTruthy();
+    expect(screen.getByText("Coverage update")).toBeTruthy();
+    expect(screen.getByText(/1.29x downside FCCR vs 1.20x policy floor/)).toBeTruthy();
     expect(screen.queryByText("2027 operating forecast", { exact: true })).toBeNull();
   });
 

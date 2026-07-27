@@ -73,10 +73,19 @@ const meridianFindings: DrawerFinding[] = [
 const northstarRequirement: DrawerFinding = {
   id: "northstar-operating-forecast",
   title: "2027 operating forecast",
-  description: "The latest approved forecast ends in December 2026, so downside repayment capacity cannot be completed.",
+  description: "Ends Dec 2026; downside analysis is paused.",
   risk: "Moderate",
   status: "Missing",
   tone: "danger",
+};
+
+const northstarCoverageUpdate: DrawerFinding = {
+  id: "northstar-coverage-update",
+  title: "Coverage update",
+  description: "1.29x downside FCCR vs 1.20x policy floor.",
+  risk: "Low",
+  status: "Analysis updated",
+  tone: "info",
 };
 
 const stateFinding: Record<CreditReview["aiReviewState"], DrawerFinding> = {
@@ -146,7 +155,7 @@ export function CreditReviewDrawer({
   const findings: DrawerFinding[] = review.company === "Meridian Foods"
     ? meridianState ? drawerFindingsForMeridian(meridianState) : meridianFindings
     : review.company === "Northstar Health"
-      ? [northstarRequirement]
+      ? [review.aiReviewState === "needs-verification" ? northstarRequirement : northstarCoverageUpdate]
       : review.details?.findings ?? [stateFinding[review.aiReviewState]];
   const sources = review.details?.sources ?? reviewSources;
   const verificationCount = review.details?.findings.filter((finding) => finding.tone === "danger").length ?? 1;
@@ -158,40 +167,10 @@ export function CreditReviewDrawer({
   const openFindingCount = findings.filter((finding) => !finding.addressed).length;
   const primaryActionLabel = review.company === "Meridian Foods"
     ? openFindingCount > 0 ? "Review findings" : "View recommendation"
-    : primaryActionByState[review.aiReviewState];
-  const northstarNeedsEvidence = review.company === "Northstar Health" && review.aiReviewState === "needs-verification";
-  const reviewBriefTitle = review.company === "Northstar Health"
-    ? northstarNeedsEvidence ? "Evidence required" : "Analysis complete"
-    : review.company === "Meridian Foods"
-      ? openFindingCount > 0 ? "Analyst review required" : "Ready for decision"
-      : review.aiReviewState === "needs-verification"
-        ? "Evidence verification required"
-        : review.aiReviewState === "needs-judgment"
-          ? "Analyst judgment required"
-          : review.aiReviewState === "analysis-ready"
-            ? "Analysis ready for review"
-            : review.aiReviewState === "analysis-updated"
-              ? "Updated analysis ready"
-              : "Ready for decision";
-  const outcomeSummary = review.company === "Northstar Health"
-    ? northstarNeedsEvidence
-      ? "The approved forecast ends in December 2026. Downside repayment capacity cannot be completed until the 2027 operating forecast is verified."
-      : "The verified 2027 forecast supports 1.29x downside fixed-charge coverage against a 1.20x policy floor."
-    : review.details?.assessment ?? summaryByState[review.aiReviewState];
-  const nextStep = review.company === "Northstar Health"
-    ? northstarNeedsEvidence
-      ? "Request or upload the 2027 forecast, then verify it to resume analysis."
-      : "Confirm the updated coverage result, then prepare the recommendation."
-    : openFindingCount > 0
-      ? "Review the flagged evidence and record analyst judgment before moving to decision."
-      : "Open the recommendation and prepare it for senior credit review.";
-  const reviewBriefTone = review.aiReviewState === "needs-verification"
-    ? "danger"
-    : review.aiReviewState === "needs-judgment"
-      ? "warning"
-      : review.aiReviewState === "review-complete"
-        ? "success"
-        : "info";
+    : review.aiReviewState === "needs-judgment" && openFindingCount === 1
+      ? "Review finding"
+      : primaryActionByState[review.aiReviewState];
+  const showRequestDescription = request.description.toLowerCase() !== review.facilityType.toLowerCase();
 
   useEffect(() => {
     setShowAllSources(false);
@@ -227,7 +206,7 @@ export function CreditReviewDrawer({
         <DrawerBody>
           <DrawerSection className={styles.requestSection} aria-label="Request summary">
             <strong className={styles.amount}>{request.amount}</strong>
-            <span className={styles.requestName}>{request.description}</span>
+            {showRequestDescription && <span className={styles.requestName}>{request.description}</span>}
             <dl className={styles.requestMeta}>
               <div><dt>Due</dt><dd>{review.due}</dd></div>
               <div><dt>Owner</dt><dd>{review.owner}</dd></div>
@@ -283,50 +262,36 @@ export function CreditReviewDrawer({
             </DrawerSection>
           ) : (
             <DrawerSection className={styles.outcomeSection} aria-labelledby={`${titleId}-review-focus`}>
-              <div className={styles.reviewBrief} data-tone={reviewBriefTone}>
-                <div className={styles.reviewBriefHeader}>
-                  <IconTile className={styles.reviewBriefIcon} tone={reviewBriefTone} shape="circle">
-                    <Icon name="spark" size="sm" />
-                  </IconTile>
-                  <span className={styles.reviewBriefHeading}>
-                    <span>AI review brief</span>
-                    <h3 id={`${titleId}-review-focus`}>{reviewBriefTitle}</h3>
-                  </span>
-                </div>
-                <p>{outcomeSummary}</p>
-                <div className={styles.reviewBriefNextStep}>
-                  <Icon name={reviewBriefTone === "success" ? "checkCircle" : "arrowRight"} size="sm" />
-                  <span><small>Next step</small><strong>{nextStep}</strong></span>
-                </div>
+              <h3 id={`${titleId}-review-focus`}>Review focus</h3>
+              <div className={styles.outcomeLedger} aria-label={review.company === "Northstar Health" ? "Evidence review status" : "Finding review status"}>
+                {findings.map((finding) => {
+                  const findingIsInteractive = review.company !== "Northstar Health" && Boolean(onOpenFinding);
+                  const findingTitleId = `${titleId}-${finding.id}-title`;
+                  const findingDescriptionId = `${titleId}-${finding.id}-description`;
+                  const findingStatusId = `${titleId}-${finding.id}-status`;
+                  const findingIcon = review.company === "Northstar Health"
+                    ? review.aiReviewState === "needs-verification" ? "document" : "calculator"
+                    : getCreditFindingIcon(finding);
+                  const content = (
+                    <>
+                      <IconTile size="sm" tone="neutral">
+                        <Icon name={findingIcon} size="sm" />
+                      </IconTile>
+                      <span className={styles.outcomeFindingCopy}>
+                        <strong id={findingTitleId}>{finding.title}</strong>
+                        <small id={findingDescriptionId}>{finding.description}</small>
+                        <span id={findingStatusId} className={styles.outcomeFindingStatus}><StatusPill tone={finding.tone}>{finding.status}</StatusPill></span>
+                      </span>
+                      {findingIsInteractive && <Icon className={styles.outcomeChevron} name="chevronRight" size="sm" />}
+                    </>
+                  );
+                  return findingIsInteractive ? (
+                    <button type="button" className={styles.outcomeFindingRow} key={finding.id} aria-labelledby={findingTitleId} aria-describedby={`${findingDescriptionId} ${findingStatusId}`} onClick={() => onOpenFinding?.(finding.id)}>{content}</button>
+                  ) : (
+                    <div className={styles.outcomeFindingRow} key={finding.id}>{content}</div>
+                  );
+                })}
               </div>
-              {review.company !== "Northstar Health" && (
-                <div className={styles.outcomeLedger} aria-label="Finding review status">
-                  {findings.map((finding) => {
-                    const findingIsInteractive = Boolean(onOpenFinding);
-                    const content = (
-                      <>
-                        <IconTile size="sm" tone={finding.addressed ? "success" : finding.tone === "danger" ? "danger" : finding.tone === "warning" ? "warning" : "neutral"}>
-                          <Icon name={getCreditFindingIcon(finding)} size="sm" />
-                        </IconTile>
-                        <span className={styles.outcomeFindingCopy}>
-                          <strong>{finding.title}</strong>
-                          <small>{finding.description}</small>
-                          <span className={styles.outcomeFindingMeta}>
-                            <span>{finding.risk} risk</span>
-                            <StatusPill tone={finding.tone}>{finding.status}</StatusPill>
-                          </span>
-                        </span>
-                        {findingIsInteractive && <Icon className={styles.outcomeChevron} name="chevronRight" size="sm" />}
-                      </>
-                    );
-                    return findingIsInteractive ? (
-                      <button type="button" className={styles.outcomeFindingRow} key={finding.id} aria-label={`Open ${finding.title} finding`} onClick={() => onOpenFinding?.(finding.id)}>{content}</button>
-                    ) : (
-                      <div className={styles.outcomeFindingRow} key={finding.id}>{content}</div>
-                    );
-                  })}
-                </div>
-              )}
             </DrawerSection>
           )}
 
