@@ -111,9 +111,8 @@ export const aiReviewStatus: Record<AIReviewState, { label: string; tone: Status
   "review-complete": { label: "Review complete", tone: "success" },
 };
 
-export function getAIReviewLabel(review: Pick<CreditReview, "aiReviewState" | "aiReviewDetail" | "statusLabel">) {
-  const label = review.statusLabel ?? aiReviewStatus[review.aiReviewState].label;
-  return review.aiReviewDetail ? `${label} · ${review.aiReviewDetail}` : label;
+export function getAIReviewLabel(review: Pick<CreditReview, "aiReviewState" | "statusLabel">) {
+  return review.statusLabel ?? aiReviewStatus[review.aiReviewState].label;
 }
 
 export function getAIReviewTone(review: Pick<CreditReview, "aiReviewState" | "statusTone">) {

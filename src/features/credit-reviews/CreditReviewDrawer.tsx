@@ -6,7 +6,6 @@ import { DocumentViewer } from "../../shared/ui/DocumentViewer/DocumentViewer";
 import { Drawer, DrawerBody, DrawerFooter, DrawerHeader, DrawerSection } from "../../shared/ui/Drawer/Drawer";
 import { Icon } from "../../shared/ui/Icon/Icon";
 import { IconTile } from "../../shared/ui/IconTile/IconTile";
-import { Notice, type NoticeTone } from "../../shared/ui/Notice/Notice";
 import { StatusPill, type StatusPillTone } from "../../shared/ui/StatusPill/StatusPill";
 import type { CreditReview, ReviewSource } from "./reviewData";
 import { companyLogoDomains } from "./companyLogos";
@@ -158,14 +157,22 @@ export function CreditReviewDrawer({
   const selectedSource = sources.find((source) => source.id === selectedSourceId);
   const openFindingCount = findings.filter((finding) => !finding.addressed).length;
   const primaryActionLabel = review.company === "Meridian Foods"
-    ? openFindingCount > 0 ? `Review ${openFindingCount} ${openFindingCount === 1 ? "finding" : "findings"}` : "View recommendation"
+    ? openFindingCount > 0 ? "Review findings" : "View recommendation"
     : primaryActionByState[review.aiReviewState];
   const northstarNeedsEvidence = review.company === "Northstar Health" && review.aiReviewState === "needs-verification";
-  const outcomeTitle = review.company === "Northstar Health"
-    ? northstarNeedsEvidence ? "2027 operating forecast" : "No credit findings identified"
-    : openFindingCount > 0
-      ? `${openFindingCount} ${openFindingCount === 1 ? "finding needs" : "findings need"} review`
-      : "All findings addressed";
+  const reviewBriefTitle = review.company === "Northstar Health"
+    ? northstarNeedsEvidence ? "Evidence required" : "Analysis complete"
+    : review.company === "Meridian Foods"
+      ? openFindingCount > 0 ? "Analyst review required" : "Ready for decision"
+      : review.aiReviewState === "needs-verification"
+        ? "Evidence verification required"
+        : review.aiReviewState === "needs-judgment"
+          ? "Analyst judgment required"
+          : review.aiReviewState === "analysis-ready"
+            ? "Analysis ready for review"
+            : review.aiReviewState === "analysis-updated"
+              ? "Updated analysis ready"
+              : "Ready for decision";
   const outcomeSummary = review.company === "Northstar Health"
     ? northstarNeedsEvidence
       ? "The approved forecast ends in December 2026. Downside repayment capacity cannot be completed until the 2027 operating forecast is verified."
@@ -173,12 +180,18 @@ export function CreditReviewDrawer({
     : review.details?.assessment ?? summaryByState[review.aiReviewState];
   const nextStep = review.company === "Northstar Health"
     ? northstarNeedsEvidence
-      ? "The borrower or Alex Kim supplies the 2027 operating forecast; an analyst must verify it before analysis resumes."
-      : "Alex Kim confirms the updated coverage result before preparing the recommendation for senior credit."
+      ? "Request or upload the 2027 forecast, then verify it to resume analysis."
+      : "Confirm the updated coverage result, then prepare the recommendation."
     : openFindingCount > 0
-      ? `Alex Kim reviews the ${openFindingCount === 1 ? "open finding" : "open findings"} and records a judgment before the review can move to decision.`
-      : "Alex Kim’s findings are complete; the recommendation is ready for senior credit review.";
-  const nextStepTone: NoticeTone = northstarNeedsEvidence || openFindingCount > 0 ? "warning" : "info";
+      ? "Review the flagged evidence and record analyst judgment before moving to decision."
+      : "Open the recommendation and prepare it for senior credit review.";
+  const reviewBriefTone = review.aiReviewState === "needs-verification"
+    ? "danger"
+    : review.aiReviewState === "needs-judgment"
+      ? "warning"
+      : review.aiReviewState === "review-complete"
+        ? "success"
+        : "info";
 
   useEffect(() => {
     setShowAllSources(false);
@@ -270,10 +283,22 @@ export function CreditReviewDrawer({
             </DrawerSection>
           ) : (
             <DrawerSection className={styles.outcomeSection} aria-labelledby={`${titleId}-review-focus`}>
-              <h3 id={`${titleId}-review-focus`}>{northstarNeedsEvidence ? "Evidence prerequisite" : "Review outcome"}</h3>
-              <strong className={styles.outcomeTitle}>{outcomeTitle}</strong>
-              <p>{outcomeSummary}</p>
-              <Notice className={styles.nextStep} tone={nextStepTone} title="Next step">{nextStep}</Notice>
+              <div className={styles.reviewBrief} data-tone={reviewBriefTone}>
+                <div className={styles.reviewBriefHeader}>
+                  <IconTile className={styles.reviewBriefIcon} tone={reviewBriefTone} shape="circle">
+                    <Icon name="spark" size="sm" />
+                  </IconTile>
+                  <span className={styles.reviewBriefHeading}>
+                    <span>AI review brief</span>
+                    <h3 id={`${titleId}-review-focus`}>{reviewBriefTitle}</h3>
+                  </span>
+                </div>
+                <p>{outcomeSummary}</p>
+                <div className={styles.reviewBriefNextStep}>
+                  <Icon name={reviewBriefTone === "success" ? "checkCircle" : "arrowRight"} size="sm" />
+                  <span><small>Next step</small><strong>{nextStep}</strong></span>
+                </div>
+              </div>
               {review.company !== "Northstar Health" && (
                 <div className={styles.outcomeLedger} aria-label="Finding review status">
                   {findings.map((finding) => {
@@ -286,10 +311,10 @@ export function CreditReviewDrawer({
                         <span className={styles.outcomeFindingCopy}>
                           <strong>{finding.title}</strong>
                           <small>{finding.description}</small>
-                        </span>
-                        <span className={styles.outcomeFindingMeta}>
-                          <span>{finding.risk} risk</span>
-                          <StatusPill tone={finding.tone}>{finding.status}</StatusPill>
+                          <span className={styles.outcomeFindingMeta}>
+                            <span>{finding.risk} risk</span>
+                            <StatusPill tone={finding.tone}>{finding.status}</StatusPill>
+                          </span>
                         </span>
                         {findingIsInteractive && <Icon className={styles.outcomeChevron} name="chevronRight" size="sm" />}
                       </>
@@ -300,17 +325,6 @@ export function CreditReviewDrawer({
                       <div className={styles.outcomeFindingRow} key={finding.id}>{content}</div>
                     );
                   })}
-                </div>
-              )}
-              {review.company === "Northstar Health" && (
-                <div className={`${styles.northstarOutcome} ${northstarNeedsEvidence ? styles.northstarPrerequisite : styles.northstarVerified}`}>
-                  <IconTile tone={northstarNeedsEvidence ? "warning" : "success"} shape="circle">
-                    <Icon name={northstarNeedsEvidence ? "document" : "checkCircle"} size="sm" />
-                  </IconTile>
-                  <span>
-                    <strong>{northstarNeedsEvidence ? "Analysis awaiting evidence" : "Verified analysis complete"}</strong>
-                    <small>{northstarNeedsEvidence ? "Requirement · not a credit finding" : "0 open findings · +0.09x above policy"}</small>
-                  </span>
                 </div>
               )}
             </DrawerSection>

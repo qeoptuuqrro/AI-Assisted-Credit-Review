@@ -29,12 +29,12 @@ function renderDrawer(
 }
 
 describe("CreditReviewDrawer outcome preview", () => {
-  it("uses a neutral outcome hierarchy and native finding buttons", () => {
+  it("uses one AI review brief and native finding buttons", () => {
     renderDrawer();
 
     expect(screen.getByRole("heading", { name: "Meridian Foods" })).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "Review outcome" })).toBeTruthy();
-    expect(screen.getByText("3 findings need review")).toBeTruthy();
+    expect(screen.getByText("AI review brief")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Analyst review required" })).toBeTruthy();
     expect(screen.getAllByRole("button", { name: /Open .* finding/ })).toHaveLength(3);
     expect(screen.queryByText("Initial assessment")).toBeNull();
     expect(screen.queryByText(/AI paused/i)).toBeNull();
@@ -53,18 +53,19 @@ describe("CreditReviewDrawer outcome preview", () => {
 
     renderDrawer(meridian, { meridianState: state });
 
-    expect(screen.getByText("2 findings need review")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Analyst review required" })).toBeTruthy();
     expect(screen.getByText("Accepted by analyst")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Review 2 findings" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Review findings" })).toBeTruthy();
   });
 
   it("presents Northstar's missing forecast as an evidence prerequisite, not a finding", () => {
-    renderDrawer(northstar, { status: { label: "Needs verification · 1 item", tone: "danger" } });
+    renderDrawer(northstar, { status: { label: "Needs verification", tone: "danger" } });
 
-    expect(screen.getByRole("heading", { name: "Evidence prerequisite" })).toBeTruthy();
-    expect(screen.getByText("Requirement · not a credit finding")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Evidence required" })).toBeTruthy();
+    expect(screen.getByText(/Request or upload the 2027 forecast/)).toBeTruthy();
     expect(screen.queryByLabelText("Finding review status")).toBeNull();
     expect(screen.queryByLabelText("Key findings")).toBeNull();
+    expect(screen.queryByText("Analysis awaiting evidence")).toBeNull();
   });
 
   it("shows the verified Northstar zero-finding outcome", () => {
@@ -72,8 +73,8 @@ describe("CreditReviewDrawer outcome preview", () => {
       status: { label: "Analysis updated", tone: "info" },
     });
 
-    expect(screen.getByText("No credit findings identified")).toBeTruthy();
-    expect(screen.getByText("0 open findings · +0.09x above policy")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Analysis complete" })).toBeTruthy();
+    expect(screen.getByText(/Confirm the updated coverage result/)).toBeTruthy();
     expect(screen.queryByText("2027 operating forecast", { exact: true })).toBeNull();
   });
 
