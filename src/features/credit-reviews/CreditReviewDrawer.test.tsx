@@ -11,6 +11,8 @@ const meridian = reviews.find((review) => review.slug === "meridian-foods")!;
 const northstar = reviews.find((review) => review.slug === "northstar-health")!;
 const brightline = reviews.find((review) => review.slug === "brightline-energy")!;
 const lakeview = reviews.find((review) => review.slug === "lakeview-medical")!;
+const atlas = reviews.find((review) => review.slug === "atlas-logistics")!;
+const apex = reviews.find((review) => review.slug === "apex-manufacturing")!;
 
 function renderDrawer(
   review = meridian,
@@ -111,6 +113,27 @@ describe("CreditReviewDrawer outcome preview", () => {
     expect(screen.getByLabelText("Assessment changed from Moderate to Low")).toBeTruthy();
     expect(screen.getAllByText("Analysis updated")).toHaveLength(1);
     expect(screen.queryByText("Updated", { exact: true })).toBeNull();
+  });
+
+  it("gives an analysis-ready review its own concise AI signal treatment", () => {
+    renderDrawer(atlas);
+
+    expect(screen.getByRole("heading", { name: "Ready for review" })).toBeTruthy();
+    expect(screen.getByLabelText("Finding review status").getAttribute("data-variant")).toBe("analysis");
+    expect(screen.getByText("AI signal")).toBeTruthy();
+    expect(screen.getByText("Fleet renewal capacity")).toBeTruthy();
+    expect(screen.getAllByText("Analysis ready")).toHaveLength(1);
+  });
+
+  it("previews the analyst recommendation without repeating the source summary", () => {
+    renderDrawer(apex);
+
+    expect(screen.getByRole("heading", { name: "Recommendation" })).toBeTruthy();
+    expect(screen.getByLabelText("Recommendation summary").getAttribute("data-variant")).toBe("result");
+    expect(screen.getByLabelText("Analyst recommendation: Approve with conditions")).toBeTruthy();
+    expect(screen.getByText("3 conditions proposed")).toBeTruthy();
+    expect(screen.getAllByText("4 sources reviewed")).toHaveLength(1);
+    expect(screen.queryByText("Findings resolution")).toBeNull();
   });
 
   it("keeps the historical drawer content addressable", () => {

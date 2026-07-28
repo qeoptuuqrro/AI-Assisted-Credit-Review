@@ -72,10 +72,17 @@ const focusHeadingByVariant: Record<ReviewFocusVariant, string> = {
 
 const focusIconToneByVariant: Record<ReviewFocusVariant, IconTone> = {
   review: "neutral",
-  evidence: "neutral",
-  analysis: "neutral",
+  evidence: "danger",
+  analysis: "success",
   change: "info",
   result: "success",
+};
+
+const focusCardLabelByVariant: Partial<Record<ReviewFocusVariant, string>> = {
+  evidence: "Prerequisite",
+  analysis: "AI signal",
+  change: "Assessment update",
+  result: "Recommendation",
 };
 
 const dominantRowStatuses: Record<CreditReview["aiReviewState"], string[]> = {
@@ -222,6 +229,16 @@ export function CreditReviewDrawer({
       ? "Required evidence"
       : focusHeadingByVariant[focusVariant];
   const focusIconTone = focusIconToneByVariant[focusVariant];
+  const focusCardLabel = focusVariant === "result"
+    ? review.status === "completed" ? "Decision record" : "Analyst recommendation"
+    : focusCardLabelByVariant[focusVariant];
+  const recommendation = review.details?.recommendation;
+  const recommendationMeta = recommendation
+    ? `${recommendation.conditions.length} ${recommendation.conditions.length === 1 ? "condition" : "conditions"} ${review.status === "completed" ? "recorded" : "proposed"}`
+    : "";
+  const outcomeAriaLabel = focusVariant === "result"
+    ? "Recommendation summary"
+    : review.company === "Northstar Health" ? "Evidence review status" : "Finding review status";
 
   useEffect(() => {
     setShowAllSources(false);
@@ -314,8 +331,18 @@ export function CreditReviewDrawer({
           ) : (
             <DrawerSection className={styles.outcomeSection} aria-labelledby={`${titleId}-review-focus`}>
               <h3 id={`${titleId}-review-focus`}>{focusHeading}</h3>
-              <div className={styles.outcomeLedger} data-variant={focusVariant} aria-label={review.company === "Northstar Health" ? "Evidence review status" : "Finding review status"}>
-                {findings.map((finding) => {
+              <div className={styles.outcomeLedger} data-variant={focusVariant} aria-label={outcomeAriaLabel}>
+                {focusVariant === "result" && recommendation ? (
+                  <article className={styles.outcomeRecommendationCard} aria-label={`${focusCardLabel}: ${recommendation.title}`}>
+                    <IconTile size="sm" tone={focusIconTone}><Icon name="checkCircle" size="sm" /></IconTile>
+                    <span className={styles.outcomeRecommendationCopy}>
+                      <span className={styles.outcomeCardLabel}>{focusCardLabel}</span>
+                      <strong>{recommendation.title}</strong>
+                      <small>{recommendation.rationale}</small>
+                      <span className={styles.outcomeRecommendationMeta}>{recommendationMeta}</span>
+                    </span>
+                  </article>
+                ) : findings.map((finding) => {
                   const findingIsInteractive = review.company !== "Northstar Health" && Boolean(onOpenFinding);
                   const findingTitleId = `${titleId}-${finding.id}-title`;
                   const findingDescriptionId = `${titleId}-${finding.id}-description`;
@@ -333,6 +360,7 @@ export function CreditReviewDrawer({
                         <Icon name={findingIcon} size="sm" />
                       </IconTile>
                       <span className={styles.outcomeFindingCopy}>
+                        {focusCardLabel && <span className={styles.outcomeCardLabel}>{focusCardLabel}</span>}
                         <strong id={findingTitleId}>{finding.title}</strong>
                         <small id={findingDescriptionId}>{finding.description}</small>
                         {focusVariant === "change" && finding.change && (
@@ -340,7 +368,12 @@ export function CreditReviewDrawer({
                             <span>{finding.change.from}</span><Icon name="arrowRight" size="xs" /><strong>{finding.change.to}</strong>
                           </span>
                         )}
-                        {showFindingStatus && <span id={findingStatusId} className={styles.outcomeFindingStatus}><StatusPill tone={finding.tone}>{finding.status}</StatusPill></span>}
+                        {showFindingStatus && (
+                          <span id={findingStatusId} className={styles.outcomeFindingStatus}>
+                            <span className={styles.outcomeStatusDot} data-tone={finding.tone} aria-hidden="true" />
+                            {finding.status}
+                          </span>
+                        )}
                       </span>
                       {findingIsInteractive && <Icon className={styles.outcomeChevron} name="chevronRight" size="sm" />}
                     </>

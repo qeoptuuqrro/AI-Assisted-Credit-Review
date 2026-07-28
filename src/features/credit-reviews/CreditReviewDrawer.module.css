@@ -142,6 +142,7 @@
 
 .outcomeLedger {
   display: grid;
+  gap: var(--salt-space-2);
 }
 
 .outcomeSection + .sourceSection {
@@ -155,25 +156,36 @@
   gap: var(--salt-space-3);
   width: 100%;
   min-width: 0;
-  padding: var(--salt-space-3) 0;
+  padding: var(--salt-space-3);
   border: 0;
-  background: transparent;
+  border-radius: var(--salt-radius-md);
+  background: var(--salt-color-surface-subtle);
   color: inherit;
   font: inherit;
   text-align: left;
 }
 
-.outcomeFindingRow:not(:last-child) {
-  border-bottom: var(--salt-border-subtle);
+.outcomeLedger[data-variant="evidence"] .outcomeFindingRow {
+  background: var(--salt-color-surface-warm);
+}
+
+.outcomeLedger[data-variant="analysis"] .outcomeFindingRow,
+.outcomeLedger[data-variant="result"] .outcomeFindingRow {
+  background: var(--salt-color-success-surface);
 }
 
 button.outcomeFindingRow {
   cursor: pointer;
-  transition: background-color var(--salt-motion-fast) var(--salt-ease-standard);
+  transition:
+    background-color var(--salt-motion-fast) var(--salt-ease-standard),
+    box-shadow var(--salt-motion-fast) var(--salt-ease-standard),
+    transform var(--salt-motion-fast) var(--salt-ease-standard);
 }
 
 button.outcomeFindingRow:hover {
   background: var(--salt-color-surface-hover);
+  box-shadow: var(--salt-product-object-shadow-subtle);
+  transform: translateY(-1px);
 }
 
 button.outcomeFindingRow:focus-visible {
@@ -181,10 +193,24 @@ button.outcomeFindingRow:focus-visible {
   box-shadow: var(--salt-shadow-focus);
 }
 
+button.outcomeFindingRow:active {
+  box-shadow: none;
+  transform: translateY(0);
+}
+
 .outcomeFindingCopy {
   display: grid;
-  gap: var(--salt-space-0-5);
+  gap: var(--salt-space-1);
   min-width: 0;
+}
+
+.outcomeCardLabel {
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-size-xs);
+  font-weight: var(--salt-type-weight-regular);
+  line-height: var(--salt-type-line-ui-secondary);
+  letter-spacing: var(--salt-type-tracking-label);
+  text-transform: uppercase;
 }
 
 .outcomeFindingCopy strong {
@@ -211,9 +237,38 @@ button.outcomeFindingRow:focus-visible {
 }
 
 .outcomeFindingStatus {
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-self: start;
+  gap: var(--salt-space-1);
   margin-top: var(--salt-space-1);
+  color: var(--salt-color-text-muted);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.outcomeStatusDot {
+  width: calc(var(--salt-space-1) + var(--salt-space-0-5));
+  height: calc(var(--salt-space-1) + var(--salt-space-0-5));
+  flex: 0 0 auto;
+  border-radius: var(--salt-radius-full);
+  background: var(--salt-color-text-subtle);
+}
+
+.outcomeStatusDot[data-tone="info"] {
+  background: var(--salt-color-focus);
+}
+
+.outcomeStatusDot[data-tone="success"] {
+  background: var(--salt-color-success-text);
+}
+
+.outcomeStatusDot[data-tone="warning"] {
+  background: var(--salt-color-warning-text);
+}
+
+.outcomeStatusDot[data-tone="danger"] {
+  background: var(--salt-color-danger-text);
 }
 
 .outcomeFindingChange {
@@ -222,6 +277,10 @@ button.outcomeFindingRow:focus-visible {
   justify-self: start;
   gap: var(--salt-space-2);
   margin-top: var(--salt-space-1);
+  padding: var(--salt-space-2) var(--salt-space-3);
+  border: var(--salt-border-subtle);
+  border-radius: var(--salt-radius-md);
+  background: var(--salt-color-surface);
   color: var(--salt-color-text-subtle);
   font-size: var(--salt-type-size-xs);
   line-height: var(--salt-type-line-ui-secondary);
@@ -234,6 +293,46 @@ button.outcomeFindingRow:focus-visible {
 
 .outcomeChevron {
   color: var(--salt-color-text-subtle);
+}
+
+.outcomeRecommendationCard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--salt-space-3);
+  padding: var(--salt-space-4);
+  border-radius: var(--salt-radius-md);
+  background: var(--salt-color-success-surface);
+}
+
+.outcomeRecommendationCopy {
+  display: grid;
+  gap: var(--salt-space-1);
+  min-width: 0;
+}
+
+.outcomeRecommendationCopy > strong {
+  color: var(--salt-color-text-strong);
+  font-size: var(--salt-type-size-ui);
+  font-weight: var(--salt-type-weight-regular);
+  line-height: var(--salt-type-line-ui);
+}
+
+.outcomeRecommendationCopy > small {
+  overflow: hidden;
+  display: -webkit-box;
+  color: var(--salt-color-text-muted);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.outcomeRecommendationMeta {
+  margin-top: var(--salt-space-1);
+  color: var(--salt-color-success-text);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
 }
 
 .findingList {
@@ -386,6 +485,7 @@ button.outcomeFindingRow:focus-visible {
 
 .footer {
   display: grid;
+  border-top: 0;
 }
 
 .footer button {
@@ -399,5 +499,9 @@ button.outcomeFindingRow:focus-visible {
 
   .outcomeFindingCopy small {
     -webkit-line-clamp: 2;
+  }
+
+  .outcomeRecommendationCopy > small {
+    -webkit-line-clamp: 3;
   }
 }
