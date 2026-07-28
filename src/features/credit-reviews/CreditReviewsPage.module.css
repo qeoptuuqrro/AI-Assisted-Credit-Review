@@ -66,6 +66,11 @@
   container-type: inline-size;
 }
 
+.drawerRail {
+  min-width: 0;
+  align-self: stretch;
+}
+
 .myReviewsPanel {
   padding-top: var(--salt-space-4);
 }

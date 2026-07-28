@@ -6,21 +6,31 @@ Status: Current. V1 Overlay preview and V2 Responsive detail rail remain URL-add
 
 Keep V2's proven responsive 392px rail, internal scrolling, mobile full-screen fallback, Escape behavior, and focus return. Replace the feature-owned drawer content with an outcome-led preview that helps an analyst decide whether to enter the full workflow.
 
+The July 27, 2026 refinement uses three live Mercury drawer references: Subscriptions detail (`https://demo.mercury.com/subscriptions/subscription/subscription-10-2`), Bill Pay detail (`https://demo.mercury.com/payments?bill=d1f7a0c2-0001-4001-8001-000000000001`), and Scheduled payment detail (`https://demo.mercury.com/payments/scheduled?payment=recurringPayment3`). They establish the same hierarchy: one entity header, one financial protagonist, flat rule-separated details, restrained status color, and a bounded action area. The subscription recommendation also proves that a shallow inset object is useful only when it represents a distinct suggestion or task—not as generic decoration around ordinary metadata.
+
 The current hierarchy is:
 
 1. Company identity, facility type, and current workflow status.
 2. Request amount, purpose, due date, and owner.
-3. One neutral review outcome or evidence prerequisite.
-4. A flat, icon-led finding ledger with risk severity separate from workflow status.
+3. One state-owned module: review focus, evidence prerequisite, changed analysis, or recorded outcome.
+4. A flat finding or evidence ledger only when multiple actionable objects remain.
 5. A short evidence disclosure.
 6. One contextual footer action.
 
 ## Workflow semantics
 
-- Meridian findings are projected from persisted workflow state. Reassessment, analyst judgment, escalation, and completion therefore change the queue preview and action count without a second source of truth.
-- Standard cases reuse the same finding-row geometry, semantic icons, risk labels, and native button interaction.
-- Northstar's missing 2027 operating forecast is an evidence prerequisite, not a finding. The unresolved preview reports the requirement explicitly. After verification, the preview reports zero findings and the 1.29x result against the 1.20x policy floor.
-- Primary headings use `Review outcome` and `Evidence prerequisite`. Model attribution stays in supporting records and activity rather than repeating generic AI framing in the preview.
+- `Needs judgment` and `Analysis ready` use a flat focus ledger. Meridian findings project from persisted workflow state; Brightline and Cedar use the same geometry as a single row without inventing a card.
+- `Needs verification` uses a flat verification ledger when several affected items exist. Northstar's missing 2027 operating forecast is instead one shallow evidence-prerequisite object because it is a distinct external task, not a finding. After verification, the preview reports zero findings and the 1.29x result against the 1.20x policy floor.
+- `Analysis updated` may use one shallow `What changed` record when a real before-and-after value and source provenance exist. This record replaces the ordinary finding row; it never sits above a duplicate row or becomes a generic AI summary.
+- `Review complete` uses a flat Recommendation or Decision record instead of a completed finding list. A recorded decision includes its accountable actor and date.
+- Generic AI briefs, sparkle treatments, long model explanations, and decorative cards do not belong in the preview. Model attribution remains in source provenance, supporting records, and activity.
+
+## Status and divider ownership
+
+- The drawer header owns the review-level `StatusPill`. A row renders a pill only when its semantic state differs from the dominant state of the module or when it records a meaningful analyst transition such as Accepted, Revised, or Escalated.
+- Meridian therefore omits `Needs judgment` from its baseline finding rows and retains `Needs verification` only on the exceptional row. Brightline and Cedar never repeat `Needs judgment` on their single row. Verification ledgers omit repeated `Needs verification`; updated and complete records omit their duplicate row pills.
+- Status comparison is semantic rather than literal: `Updated` duplicates `Analysis updated`, and `Complete` duplicates `Review complete`.
+- A repeated-row ledger draws dividers only between siblings: never below its heading and never after a single or final row. The outcome module hands off to Sources through whitespace rather than a visible closing divider.
 
 ## Ownership
 

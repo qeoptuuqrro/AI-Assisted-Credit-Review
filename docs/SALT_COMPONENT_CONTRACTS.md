@@ -178,6 +178,7 @@ Rules:
 - Do not use color alone; the label must state the condition.
 - Keep copy concise and action-oriented.
 - Keep row, drawer-header, and object-header status pills count-free. Put counts on aggregation surfaces such as group headings, tabs, and task-specific CTAs instead.
+- In a detail drawer, the header owns the review-level state. A child row renders a StatusPill only for a semantic exception or a meaningful human/terminal transition; it must not repeat the header state with shorter copy such as `Updated` beneath `Analysis updated`.
 - Workflow group and review status are separate dimensions. For example, an analyst may have an `Analysis updated` item in the `In progress` group.
 - Badge remains a compatibility alias while existing consumers migrate to StatusPill.
 
@@ -399,7 +400,7 @@ Previous design versions: `Overlay preview V1` and `Responsive detail rail V2`, 
 
 Variant:
 
-- Compact side preview, calibrated to Mercury Invoicing and Reimbursements.
+- Compact side preview, calibrated to Mercury Invoicing and Reimbursements and rechecked against Subscriptions detail (`https://demo.mercury.com/subscriptions/subscription/subscription-10-2`), Bill Pay detail (`https://demo.mercury.com/payments?bill=d1f7a0c2-0001-4001-8001-000000000001`), and Scheduled payment detail (`https://demo.mercury.com/payments/scheduled?payment=recurringPayment3`).
 
 Measured contract:
 
@@ -433,17 +434,20 @@ Current V3 content contract:
 
 - Lead with `CompanyLogo`, company name, facility type, and current workflow status.
 - Separate a missing evidence prerequisite from a credit finding; verified zero-findings states must remain explicit.
-- Render findings as one flat icon-led ledger with severity and workflow status visible as different fields.
+- Choose the body composition from workflow semantics: flat focus ledger for judgment/ready states, prerequisite object for one external evidence task, shallow from-to change record for updated analysis, and flat recommendation/decision record for completion.
+- Keep ordinary findings and multi-item verification states in a flat ledger. A shallow inset object is justified only for a discrete evidence task or a real before-and-after change; never place it above duplicate rows.
 - Project Meridian rows and task count from the persisted analyst workflow state.
 - Use native buttons for rows with real finding destinations and keep one footer action for the overall workflow handoff.
-- Use neutral `Review outcome` and `Evidence prerequisite` headings; do not repeat generic AI framing in primary preview copy.
+- Use concise state-owned headings such as `Review focus`, `Required evidence`, `What changed`, `Recommendation`, or `Decision`; do not repeat generic AI framing in primary preview copy.
 
 Rules:
 
 - Use flat sections, compact key-value content, and at most one primary next action.
+- The header owns the review-level StatusPill. Render a row pill only for a semantic exception or a meaningful analyst/terminal transition; single-row drawers never repeat the header state.
+- Repeated rows draw dividers only between siblings, never below the heading or after a single or final row. The Credit Review outcome module uses whitespace—not a closing divider—before Sources.
 - Use two or three `DocumentRow` instances as evidence grounding, with a same-drawer disclosure for the remaining sources when needed.
 - Put contextual evidence access beside the finding or source it explains; reserve the footer for the overall next workflow step.
-- State-dependent Credit Review CTA labels are `Review findings` (with a count when known), `Verify information`, `Review analysis`, `Review changes`, and `View recommendation`.
+- State-dependent Credit Review CTA labels are `Review findings`, `Verify information`, `Review analysis`, `Review changes`, and `View recommendation`; drawer action labels remain count-free.
 - A My Reviews preview has one footer action. Do not add a competing `Open overview` button; individual finding rows may deep-link when a real route exists.
 - Do not place floating cards, charts, long AI explanations, editing forms, or a full document browser in a preview drawer.
 - Use the 424px Transactions drawer only for metadata-heavy editing workflows; it is not the default detail pattern.

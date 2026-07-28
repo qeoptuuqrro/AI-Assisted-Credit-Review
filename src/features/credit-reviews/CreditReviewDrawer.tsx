@@ -5,7 +5,7 @@ import { DocumentRow } from "../../shared/ui/DocumentRow/DocumentRow";
 import { DocumentViewer } from "../../shared/ui/DocumentViewer/DocumentViewer";
 import { Drawer, DrawerBody, DrawerFooter, DrawerHeader, DrawerSection } from "../../shared/ui/Drawer/Drawer";
 import { Icon } from "../../shared/ui/Icon/Icon";
-import { IconTile } from "../../shared/ui/IconTile/IconTile";
+import { IconTile, type IconTone } from "../../shared/ui/IconTile/IconTile";
 import { StatusPill, type StatusPillTone } from "../../shared/ui/StatusPill/StatusPill";
 import type { CreditReview, ReviewSource } from "./reviewData";
 import { companyLogoDomains } from "./companyLogos";
@@ -51,6 +51,50 @@ const primaryActionByState: Record<CreditReview["aiReviewState"], string> = {
   "analysis-updated": "Review changes",
   "review-complete": "View recommendation",
 };
+
+type ReviewFocusVariant = "review" | "evidence" | "analysis" | "change" | "result";
+
+const focusVariantByState: Record<CreditReview["aiReviewState"], ReviewFocusVariant> = {
+  "needs-judgment": "review",
+  "needs-verification": "evidence",
+  "analysis-ready": "analysis",
+  "analysis-updated": "change",
+  "review-complete": "result",
+};
+
+const focusHeadingByVariant: Record<ReviewFocusVariant, string> = {
+  review: "Review focus",
+  evidence: "Verification needed",
+  analysis: "Ready for review",
+  change: "What changed",
+  result: "Recommendation",
+};
+
+const focusIconToneByVariant: Record<ReviewFocusVariant, IconTone> = {
+  review: "neutral",
+  evidence: "neutral",
+  analysis: "neutral",
+  change: "info",
+  result: "success",
+};
+
+const dominantRowStatuses: Record<CreditReview["aiReviewState"], string[]> = {
+  "needs-judgment": ["Needs judgment"],
+  "needs-verification": ["Needs verification"],
+  "analysis-ready": ["Analysis ready"],
+  "analysis-updated": ["Updated", "Analysis updated"],
+  "review-complete": ["Complete", "Review complete"],
+};
+
+function normalizeStatus(value: string) {
+  return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, " ");
+}
+
+function isRedundantRowStatus(status: string, reviewState: CreditReview["aiReviewState"], reviewStatus: string) {
+  const normalizedStatus = normalizeStatus(status);
+  return [reviewStatus, ...dominantRowStatuses[reviewState]]
+    .some((candidate) => normalizeStatus(candidate) === normalizedStatus);
+}
 
 type DrawerFinding = {
   id: string;
@@ -171,6 +215,13 @@ export function CreditReviewDrawer({
       ? "Review finding"
       : primaryActionByState[review.aiReviewState];
   const showRequestDescription = request.description.toLowerCase() !== review.facilityType.toLowerCase();
+  const focusVariant = review.company === "Meridian Foods" ? "review" : focusVariantByState[review.aiReviewState];
+  const focusHeading = focusVariant === "result" && review.status === "completed"
+    ? "Decision"
+    : review.company === "Northstar Health" && focusVariant === "evidence"
+      ? "Required evidence"
+      : focusHeadingByVariant[focusVariant];
+  const focusIconTone = focusIconToneByVariant[focusVariant];
 
   useEffect(() => {
     setShowAllSources(false);
@@ -262,31 +313,40 @@ export function CreditReviewDrawer({
             </DrawerSection>
           ) : (
             <DrawerSection className={styles.outcomeSection} aria-labelledby={`${titleId}-review-focus`}>
-              <h3 id={`${titleId}-review-focus`}>Review focus</h3>
-              <div className={styles.outcomeLedger} aria-label={review.company === "Northstar Health" ? "Evidence review status" : "Finding review status"}>
+              <h3 id={`${titleId}-review-focus`}>{focusHeading}</h3>
+              <div className={styles.outcomeLedger} data-variant={focusVariant} aria-label={review.company === "Northstar Health" ? "Evidence review status" : "Finding review status"}>
                 {findings.map((finding) => {
                   const findingIsInteractive = review.company !== "Northstar Health" && Boolean(onOpenFinding);
                   const findingTitleId = `${titleId}-${finding.id}-title`;
                   const findingDescriptionId = `${titleId}-${finding.id}-description`;
                   const findingStatusId = `${titleId}-${finding.id}-status`;
+                  const showFindingStatus = !isRedundantRowStatus(finding.status, review.aiReviewState, status.label);
                   const findingIcon = review.company === "Northstar Health"
                     ? review.aiReviewState === "needs-verification" ? "document" : "calculator"
                     : getCreditFindingIcon(finding);
+                  const describedBy = showFindingStatus
+                    ? `${findingDescriptionId} ${findingStatusId}`
+                    : findingDescriptionId;
                   const content = (
                     <>
-                      <IconTile size="sm" tone="neutral">
+                      <IconTile size="sm" tone={focusIconTone}>
                         <Icon name={findingIcon} size="sm" />
                       </IconTile>
                       <span className={styles.outcomeFindingCopy}>
                         <strong id={findingTitleId}>{finding.title}</strong>
                         <small id={findingDescriptionId}>{finding.description}</small>
-                        <span id={findingStatusId} className={styles.outcomeFindingStatus}><StatusPill tone={finding.tone}>{finding.status}</StatusPill></span>
+                        {focusVariant === "change" && finding.change && (
+                          <span className={styles.outcomeFindingChange} aria-label={`Assessment changed from ${finding.change.from} to ${finding.change.to}`}>
+                            <span>{finding.change.from}</span><Icon name="arrowRight" size="xs" /><strong>{finding.change.to}</strong>
+                          </span>
+                        )}
+                        {showFindingStatus && <span id={findingStatusId} className={styles.outcomeFindingStatus}><StatusPill tone={finding.tone}>{finding.status}</StatusPill></span>}
                       </span>
                       {findingIsInteractive && <Icon className={styles.outcomeChevron} name="chevronRight" size="sm" />}
                     </>
                   );
                   return findingIsInteractive ? (
-                    <button type="button" className={styles.outcomeFindingRow} key={finding.id} aria-labelledby={findingTitleId} aria-describedby={`${findingDescriptionId} ${findingStatusId}`} onClick={() => onOpenFinding?.(finding.id)}>{content}</button>
+                    <button type="button" className={styles.outcomeFindingRow} key={finding.id} aria-labelledby={findingTitleId} aria-describedby={describedBy} onClick={() => onOpenFinding?.(finding.id)}>{content}</button>
                   ) : (
                     <div className={styles.outcomeFindingRow} key={finding.id}>{content}</div>
                   );

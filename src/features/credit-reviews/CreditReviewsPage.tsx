@@ -344,7 +344,7 @@ function CreditReviewsPageContent() {
         </div>
 
         {responsiveDrawer && selectedReview && (
-          <div {...getLearningTargetProps(enabled, "queue-preview")}><CreditReviewDrawer
+          <div className={styles.drawerRail} {...getLearningTargetProps(enabled, "queue-preview")}><CreditReviewDrawer
             review={selectedReview}
             status={{ label: getAIReviewLabel(selectedReview), tone: getAIReviewTone(selectedReview) }}
             open={drawerOpen}

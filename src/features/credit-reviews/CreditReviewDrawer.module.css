@@ -144,6 +144,10 @@
   display: grid;
 }
 
+.outcomeSection + .sourceSection {
+  border-top: 0;
+}
+
 .outcomeFindingRow {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -153,11 +157,14 @@
   min-width: 0;
   padding: var(--salt-space-3) 0;
   border: 0;
-  border-bottom: var(--salt-border-subtle);
   background: transparent;
   color: inherit;
   font: inherit;
   text-align: left;
+}
+
+.outcomeFindingRow:not(:last-child) {
+  border-bottom: var(--salt-border-subtle);
 }
 
 button.outcomeFindingRow {
@@ -175,12 +182,9 @@ button.outcomeFindingRow:focus-visible {
 }
 
 .outcomeFindingCopy {
-  min-width: 0;
-}
-
-.outcomeFindingCopy {
   display: grid;
   gap: var(--salt-space-0-5);
+  min-width: 0;
 }
 
 .outcomeFindingCopy strong {
@@ -210,6 +214,22 @@ button.outcomeFindingRow:focus-visible {
   display: flex;
   align-items: center;
   margin-top: var(--salt-space-1);
+}
+
+.outcomeFindingChange {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: var(--salt-space-2);
+  margin-top: var(--salt-space-1);
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.outcomeFindingChange strong {
+  color: var(--salt-color-focus);
+  font-weight: var(--salt-type-weight-regular);
 }
 
 .outcomeChevron {
