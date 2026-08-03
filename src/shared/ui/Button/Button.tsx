@@ -3,7 +3,7 @@ import styles from "./Button.module.css";
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: "primary" | "secondary" | "soft" | "quiet";
-  size?: "sm" | "md";
+  size?: "sm" | "md" | "lg";
   icon?: ReactNode;
   iconPosition?: "start" | "end";
 };

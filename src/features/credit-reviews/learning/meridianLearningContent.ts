@@ -70,6 +70,7 @@ export type MeridianLearningTopicId =
   | "standard-activity"
   | "standard-recommendation"
   | "queue-overview"
+  | "queue-statuses"
   | "queue-filters"
   | "queue-preview"
   | "senior-queue-overview"
@@ -1006,13 +1007,27 @@ export const meridianLearningTopics: MeridianLearningTopic[] = [
     category: "Credit review queue",
     title: "How to read the credit reviews queue",
     shortLabel: "Queue overview",
-    simple: "The queue is the portfolio entry point. It groups your reviews, lets you search and filter them, and opens a preview before you enter a full case. A row status reflects the live workflow state, not a static label.",
-    professional: "The queue is a live case ledger with scoped tabs, search/filter controls, selected-row state, an outcome-led preview rail, and synchronized workflow projections from case state.",
-    aiSteps: ["Loaded the case list and current workflow state.", "Projected evidence, finding, recommendation, and senior attention into row labels.", "Prepared a preview that separates prerequisites, findings, and next action."],
+    simple: "The queue is the portfolio entry point. It groups your reviews, lets you search and filter them, and opens a preview before you enter a full case. Each row shows one status based on who owns the next important action.",
+    professional: "The queue is a live case ledger with scoped tabs, search/filter controls, selected-row state, an outcome-led preview rail, and a dominant-next-action lifecycle projected from case state.",
+    aiSteps: ["Loaded the case list and current workflow state.", "Projected evidence, finding, recommendation, and decision ownership into one case status.", "Prepared a preview that separates prerequisites, findings, and next action."],
     whyHere: "Reviewers need a fast portfolio scan before committing to a full case workspace.",
     presenterLine: "The queue tells you what needs attention and why, then opens the same case record used by the analyst.",
     sourceTrail: ["Review record", "Workflow projection", "Selected preview"],
     humanCheck: "Use the preview for triage; open the full case before making or relying on a material judgment.",
+  },
+  {
+    id: "queue-statuses",
+    category: "Credit review queue",
+    title: "What each case status means",
+    shortLabel: "Case statuses",
+    simple: "Needs verification means missing or unreliable evidence blocks the case. Analyst review means the evidence is usable and Alex must interpret it. Ready to recommend means the required findings are addressed. Awaiting decision means Morgan now owns the next action. Revision requested means Morgan returned the case to Alex. Approved and Declined are final outcomes. Change events stay inside the preview, case, and activity history instead of competing with the row status.",
+    professional: "The queue uses one case-level lifecycle derived from the dominant accountable next action: Needs verification, Analyst review, Ready to recommend, Awaiting decision, Revision requested, then Approved or Declined. Analysis ready and Analysis updated are system events, so they appear in contextual detail rather than beside the lifecycle status.",
+    example: "Meridian is Analyst review because Alex can continue interpreting the case despite one verification item. Northstar is Needs verification because the missing 2027 forecast blocks the downside analysis. Atlas is Ready to recommend because Alex has completed its last finding review.",
+    aiSteps: ["Checked whether an evidence gap blocks meaningful analysis.", "Checked whether the analyst, senior credit, or no one owns the next action.", "Projected one lifecycle status and kept finding counts and update events inside the case or preview."],
+    whyHere: "A queue status should answer what the reviewer needs to do now. It should not summarize every finding or repeat a system event.",
+    presenterLine: "We use one case status based on the dominant next action: AI events stay secondary, while the queue makes human ownership clear.",
+    sourceTrail: ["Evidence requirements", "Finding dispositions", "Recommendation state", "Senior decision record"],
+    humanCheck: "Open the preview when a case has mixed finding states; the row intentionally shows only the dominant case-level action.",
   },
   {
     id: "queue-filters",
@@ -1314,7 +1329,7 @@ export const platformLearningTopicIdsByScope: Record<PlatformLearningScope, Meri
   "standard-sources": ["standard-sources", "case-header", "review-navigation"],
   "standard-activity": ["standard-activity", "case-header", "review-navigation"],
   "standard-recommendation": ["standard-recommendation", "case-header", "review-navigation"],
-  queue: ["queue-overview", "queue-filters", "queue-preview"],
+  queue: ["queue-overview", "queue-statuses", "queue-filters", "queue-preview"],
   "senior-queue": ["senior-queue-overview", "senior-queue-filters", "senior-queue-preview"],
   overview: ["overview-command-center", "overview-workload"],
   intelligence: ["intelligence-workflow", "intelligence-answer"],

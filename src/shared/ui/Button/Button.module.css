@@ -40,6 +40,11 @@
   padding-inline: var(--salt-button-padding-md);
 }
 
+.lg {
+  min-height: var(--salt-button-height-lg);
+  padding-inline: var(--salt-button-padding-lg);
+}
+
 .primary {
   background: var(--salt-button-primary-background);
   color: var(--salt-button-primary-text);

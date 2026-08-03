@@ -15,6 +15,7 @@ const NorthstarSeniorReviewPage = lazy(() => import("../features/credit-reviews/
 const StandardReviewWorkspace = lazy(() => import("../features/credit-reviews/standard/StandardReviewWorkspace").then((module) => ({ default: module.StandardReviewWorkspace })));
 const IntelligencePage = lazy(() => import("../features/intelligence/IntelligencePage").then((module) => ({ default: module.IntelligencePage })));
 const ReimbursementsPage = lazy(() => import("../features/reimbursements/ReimbursementsPage").then((module) => ({ default: module.ReimbursementsPage })));
+const PolicyRulesPage = lazy(() => import("../features/policy-rules/PolicyRulesPage").then((module) => ({ default: module.PolicyRulesPage })));
 
 export function App() {
   useInputModality();
@@ -78,6 +79,8 @@ function AppRoutes() {
       ? <ReimbursementsPage />
     : pathname === "/credit-reviews"
       ? <CreditReviewsPage />
+    : pathname.startsWith("/policy-rules")
+      ? <PolicyRulesPage />
     : pathname === "/overview" || pathname === "/"
       ? <OverviewPage />
       : <OverviewPage />;

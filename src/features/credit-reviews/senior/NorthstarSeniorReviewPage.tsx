@@ -23,17 +23,22 @@ export function NorthstarSeniorReviewPage() {
     logoDomain={companyLogoDomains["Northstar Health"]}
     request="$15M revolving line"
     facilityType="3-year revolving line"
+    decisionQuestion="Should Northstar Health receive the $15M revolving line?"
     recommendation={recommendation}
     findings={[{ id: "forecast", title: "Downside coverage", detail: "Verified 1.29x fixed-charge coverage remains above the 1.20x policy floor.", risk: "Moderate", status: "Verified", tone: "info", icon: "calculator" }]}
+    decisionSignals={[
+      { label: "Downside FCCR", value: "1.29x", detail: "+0.09x to policy" },
+      { label: "Policy floor", value: "1.20x", detail: "Minimum coverage" },
+      { label: "2027 forecast", value: "Verified", detail: "Current evidence" },
+    ]}
     sourcesCount={state.request.fileName ? 1 : 0}
     draft={state.seniorDecisionDraft}
     existingDecision={state.seniorDecision}
     onDraftChange={(draft: SeniorDecisionDraft) => dispatch({ type: "save_senior_decision_draft", draft })}
-    onExit={() => navigate("/credit-reviews/northstar-health/recommendation")}
-    onOpenRecord={(tab) => navigate(`/credit-reviews/northstar-health/${tab}`)}
+    onExit={() => navigate("/credit-reviews/senior")}
+    onOpenRecord={(tab) => navigate(tab === "overview" ? "/credit-reviews/northstar-health" : `/credit-reviews/northstar-health/${tab}`)}
     onSubmit={(record) => {
       dispatch({ type: "record_senior_decision", record: { ...record, decisionMaker: "Morgan Lee", createdAt: new Date().toISOString() } });
-      navigate("/credit-reviews/northstar-health/recommendation");
     }}
   />;
 }

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter, type AppPath } from "../../../app/router";
 import { getDesignOption } from "../../design-tools/designOptions";
 import { Button } from "../../../shared/ui/Button/Button";
+import { CaseStatusPill, type CaseStatus } from "../../../shared/ui/CaseStatusPill/CaseStatusPill";
 import { CompanyLogo } from "../../../shared/ui/CompanyLogo/CompanyLogo";
 import { DesignVariantNotice } from "../../../shared/ui/DesignVariantNotice/DesignVariantNotice";
 import { FileDropzone } from "../../../shared/ui/FileDropzone/FileDropzone";
@@ -12,6 +13,7 @@ import { ObjectHeader } from "../../../shared/ui/ObjectHeader/ObjectHeader";
 import { StatusPill } from "../../../shared/ui/StatusPill/StatusPill";
 import { Tabs } from "../../../shared/ui/Tabs/Tabs";
 import { Toast } from "../../../shared/ui/Toast/Toast";
+import { WorkflowSteps } from "../../../shared/ui/WorkflowSteps/WorkflowSteps";
 import { companyLogoDomains } from "../companyLogos";
 import { BorrowerContactSelector } from "../borrower-requests/BorrowerContactSelector";
 import { contactLabel, northstarBorrowerContacts } from "../borrower-requests/borrowerContacts";
@@ -90,10 +92,23 @@ export function NorthstarReviewWorkspace() {
   const requestedPreset = searchParams.get("preset") as DemoPresetId | null;
 
   useEffect(() => {
-    if (!requestedPreset || !["northstar-request-sent", "northstar-analysis-updated", "northstar-senior-review"].includes(requestedPreset)) return;
-    dispatchReview({ type: "replace_state", state: createNorthstarPreset(requestedPreset) });
+    if (!requestedPreset || !["northstar-request-sent", "northstar-document-received", "northstar-analysis-updated", "northstar-senior-review"].includes(requestedPreset)) return;
+    if (requestedPreset === "northstar-document-received" && reviewState.request.status === "sent") {
+      dispatchReview({ type: "preview_received_response", at: "2026-08-01T14:42:00.000Z" });
+    } else {
+      dispatchReview({ type: "replace_state", state: createNorthstarPreset(requestedPreset) });
+    }
     navigate(pathname, { replace: true });
-  }, [dispatchReview, navigate, pathname, requestedPreset]);
+  }, [dispatchReview, navigate, pathname, requestedPreset, reviewState.request.status]);
+
+  useEffect(() => {
+    const status = reviewState.request.status;
+    if (status !== "received" && status !== "processing") return;
+    const timeout = window.setTimeout(() => {
+      dispatchReview({ type: status === "received" ? "start_processing" : "processing_succeeded" });
+    }, status === "received" ? 240 : 1400);
+    return () => window.clearTimeout(timeout);
+  }, [dispatchReview, reviewState.request.status]);
 
   function sendRequest(request: { recipient: string; dueDate: string; message: string }) {
     setRequestOpen(false);
@@ -114,9 +129,7 @@ export function NorthstarReviewWorkspace() {
   }
 
   function resetFile() {
-    const fallback = createInitialNorthstarState();
-    if (requestSent) fallback.request = { ...fallback.request, status: "sent", sentAt: reviewState.request.sentAt };
-    dispatchReview({ type: "replace_state", state: fallback });
+    dispatchReview({ type: "replace_document" });
   }
 
   function verifyForecast() {
@@ -150,17 +163,16 @@ export function NorthstarReviewWorkspace() {
     navigate(northstarTabPaths[tab], optionSearch ? { search: optionSearch } : undefined);
   }
 
-  const headerStatus = reviewState.seniorDecision
-    ? <StatusPill tone={reviewState.seniorDecision.decision === "decline" ? "danger" : reviewState.seniorDecision.decision === "return_to_analyst" ? "warning" : "success"}>{seniorDecisionLabel(reviewState.seniorDecision.decision)}</StatusPill>
+  const headerCaseStatus: CaseStatus = reviewState.seniorDecision
+    ? reviewState.seniorDecision.decision === "return_to_analyst" ? "revision-requested" : reviewState.seniorDecision.decision === "decline" ? "declined" : "approved"
     : reviewState.recommendation
-      ? <StatusPill tone="warning">Awaiting senior decision</StatusPill>
+      ? "awaiting-decision"
       : reviewState.analysisReviewState === "completed"
-        ? <StatusPill tone="success">Analyst review complete</StatusPill>
+        ? "ready-to-recommend"
         : verified
-          ? <StatusPill tone="info">Analysis updated</StatusPill>
-    : activeTab === "activity"
-      ? <StatusPill tone={reviewState.request.status === "failed" ? "danger" : reviewState.request.status === "ready" ? "info" : "neutral"}>{requestStatusLabel(reviewState.request.status)}</StatusPill>
-      : undefined;
+          ? "analyst-review"
+          : "needs-verification";
+  const headerStatus = <CaseStatusPill status={headerCaseStatus} />;
   const activityAction = activeTab !== "activity" || verified
     ? undefined
     : reviewState.request.status === "sent"
@@ -178,7 +190,7 @@ export function NorthstarReviewWorkspace() {
     ? activityAction
     : activeTab === "activity"
       ? activityAction
-      : activeTab === "findings" && !useLegacyFindingsState
+      : activeTab === "sources" || (activeTab === "findings" && !useLegacyFindingsState)
         ? undefined
         : activeTab === "recommendation"
           ? undefined
@@ -186,7 +198,7 @@ export function NorthstarReviewWorkspace() {
             ? <Button variant="primary" onClick={() => navigateToTab("recommendation")}>{reviewState.recommendation ? "Review recommendation" : "Prepare recommendation"}</Button>
             : verified
               ? <Button variant="primary" onClick={() => navigateToTab("financials")}>Review updated analysis</Button>
-              : <Button variant="primary" onClick={() => navigateToTab("sources")}>Resolve source verification</Button>;
+              : <Button variant="primary" onClick={() => navigateToTab("sources")}>Resolve missing evidence</Button>;
   const tabItems = legacyMode
     ? [{ id: "overview" as const, label: "Overview" }, { id: "activity" as const, label: "Activity" }]
     : [
@@ -251,10 +263,10 @@ export function NorthstarReviewWorkspace() {
 
       {requestOpen && <LearningTarget topicId="northstar-sources">
         {requestSent
-          ? <RequestStatusFlow request={reviewState.request} evidenceState={evidenceState} onClose={() => setRequestOpen(false)} onBorrowerUpload={(file) => receiveFile(file, "borrower-upload")} onReject={rejectFile} onReset={resetFile} />
+          ? <RequestStatusFlow request={reviewState.request} evidenceState={evidenceState} onClose={() => setRequestOpen(false)} onReviewReceived={() => { setRequestOpen(false); setUploadFlowOpen(true); }} onBorrowerUpload={(file) => receiveFile(file, "borrower-upload")} onReject={rejectFile} onReset={resetFile} />
           : <DocumentRequestFlow evidenceState={evidenceState} onClose={() => setRequestOpen(false)} onSend={sendRequest} onBorrowerUpload={(file) => receiveFile(file, "borrower-upload")} onReject={rejectFile} onReset={resetFile} />}
       </LearningTarget>}
-      {uploadFlowOpen && <LearningTarget topicId="northstar-sources"><NorthstarEvidenceFlow evidenceState={evidenceState} requestStatus={reviewState.request.status} requestError={reviewState.request.error} onClose={() => setUploadFlowOpen(false)} onReviewAnalysis={() => { setUploadFlowOpen(false); navigateToTab("financials"); }} onUpload={(file) => receiveFile(file, "analyst-upload")} onReject={rejectFile} onReset={resetFile} onStartProcessing={() => dispatchReview({ type: "start_processing" })} onProcessingSuccess={() => dispatchReview({ type: "processing_succeeded" })} onRetry={() => dispatchReview({ type: "retry" })} onVerify={verifyForecast} /></LearningTarget>}
+      {uploadFlowOpen && <LearningTarget topicId="northstar-sources"><NorthstarEvidenceFlow evidenceState={evidenceState} request={reviewState.request} onClose={() => setUploadFlowOpen(false)} onReviewAnalysis={() => { setUploadFlowOpen(false); navigateToTab("financials"); }} onUpload={(file) => receiveFile(file, "analyst-upload")} onReject={rejectFile} onReset={resetFile} onVerify={verifyForecast} /></LearningTarget>}
       {toast && <Toast title={toast.title} message={toast.message} onClose={() => setToast(null)} />}
     </div>
     </LearningModeSurface>
@@ -289,25 +301,57 @@ function requestStatusLabel(status: DocumentRequestStatus) {
   return "Request cancelled";
 }
 
-function NorthstarEvidenceFlow({ evidenceState, requestStatus, requestError, onClose, onReviewAnalysis, onUpload, onReject, onReset, onStartProcessing, onProcessingSuccess, onRetry, onVerify }: {
+function contactName(label?: string) {
+  return label?.split(" · ")[0] ?? "Northstar Health";
+}
+
+function requestSourceLabel(request: DocumentRequestRecord) {
+  const supplier = contactName(request.suppliedBy ?? request.recipient);
+  return request.provenance === "borrower-upload"
+    ? `${supplier} · Secure portal`
+    : `${supplier} · Analyst upload`;
+}
+
+function requestSourceSentence(request: DocumentRequestRecord) {
+  const supplier = contactName(request.suppliedBy ?? request.recipient);
+  return request.provenance === "borrower-upload"
+    ? `Received from ${supplier} via secure document portal.`
+    : `Uploaded by ${supplier}.`;
+}
+
+function formatReceivedAt(value?: string) {
+  if (!value) return "Not recorded";
+  const received = new Date(value);
+  const date = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "America/New_York",
+  }).format(received);
+  const time = new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "America/New_York",
+  }).format(received);
+  return `${date} at ${time}`;
+}
+
+function NorthstarEvidenceFlow({ evidenceState, request, onClose, onReviewAnalysis, onUpload, onReject, onReset, onVerify }: {
   evidenceState: EvidenceIntakeState;
-  requestStatus: DocumentRequestStatus;
-  requestError?: string;
+  request: DocumentRequestRecord;
   onClose: () => void;
   onReviewAnalysis: () => void;
   onUpload: (file: File) => void;
   onReject: (message: string) => void;
   onReset: () => void;
-  onStartProcessing: () => void;
-  onProcessingSuccess: () => void;
-  onRetry: () => void;
   onVerify: () => void;
 }) {
+  const requestStatus = request.status;
+  const requestError = request.error;
   const [stage, setStage] = useState<EvidenceStage>(() => stageForRequest(requestStatus, evidenceState));
   const closeRef = useRef<HTMLButtonElement>(null);
   const stages = [{ id: "evidence", label: "Evidence" }, { id: "processing", label: "Extraction" }, { id: "review", label: "Review" }, { id: "result", label: "Result" }] as const;
   const visualStage = stage === "received" || stage === "failed" ? "processing" : stage;
-  const activeIndex = stages.findIndex((item) => item.id === visualStage);
   const dropzoneStatus = evidenceState.status === "requested" ? "idle" : evidenceState.status;
 
   useDialogBehavior(closeRef, onClose);
@@ -319,25 +363,23 @@ function NorthstarEvidenceFlow({ evidenceState, requestStatus, requestError, onC
       <div className={styles.requestLayout}>
         <section className={styles.requestEditor}>
           <div className={styles.requestEditorInner}>
-            <nav className={styles.requestSteps} aria-label="Forecast verification steps">{stages.map((item, index) => <span key={item.id} data-active={item.id === visualStage} data-complete={index < activeIndex}><i>{index < activeIndex ? <Icon name="check" size="xs" /> : index + 1}</i>{item.label}</span>)}</nav>
+            <WorkflowSteps ariaLabel="Forecast verification steps" items={[...stages]} value={visualStage} className={styles.requestSteps} />
             <main className={styles.requestContent}>
-              {stage === "evidence" && <><div className={styles.requestTitle}><span>Evidence</span><h1 id="northstar-evidence-title">Upload the missing forecast</h1><p>Receipt, extraction, verification, and analysis remain separate events.</p></div><Notice title="Current assumption">{forecastRequirement.currentAssumption}</Notice><FileDropzone status={dropzoneStatus} fileName={evidenceState.fileName} error={evidenceState.error} acceptedFormats={forecastRequirement.acceptedFormats} onFileAccepted={onUpload} onFileRejected={onReject} onRemove={onReset} /></>}
-              {stage === "received" && <><div className={styles.requestTitle}><span>Received</span><h1 id="northstar-evidence-title">Document received — extraction not started</h1><p>The forecast satisfies request northstar-forecast-2027. It has not been extracted or verified.</p></div><Notice title="Supplied for the open request">{evidenceProvenanceLabel(evidenceState.provenance)} · {evidenceState.fileName}</Notice><dl className={styles.requestReview}><div><dt>Request</dt><dd>2027 Operating Forecast</dd></div><div><dt>Updates</dt><dd>Downside repayment capacity</dd></div><div><dt>Next state</dt><dd>Processing</dd></div></dl></>}
-              {stage === "processing" && <div className={styles.processing}><span className={styles.processingRing} /><h1 id="northstar-evidence-title">Forecast extraction is processing</h1><p>This state persists until an explicit success or failure result is recorded.</p><Notice title="Deterministic demo control">Choose the extraction result below. No timer will advance this request automatically.</Notice></div>}
-              {stage === "failed" && <><div className={styles.requestTitle}><span>Failed</span><h1 id="northstar-evidence-title">The forecast could not be processed</h1><p>{requestError ?? "The document was unreadable, incomplete, duplicate, or contradictory."}</p></div><Notice tone="warning" title="Recoverable request">Retry preserves the request, recipient, file attribution, and failure history.</Notice></>}
-              {stage === "review" && <><div className={styles.requestTitle}><span>Review</span><h1 id="northstar-evidence-title">Verify the forecast before use</h1><p>Extraction completed, but the forecast is not current evidence until Alex verifies it.</p></div><Notice title="Scoped analysis">{forecastRequirement.reviewScope}</Notice><dl className={styles.requestReview}><div><dt>Evidence</dt><dd>{evidenceState.fileName}</dd></div><div><dt>Supplied by</dt><dd>{evidenceProvenanceLabel(evidenceState.provenance)}</dd></div><div><dt>Extraction</dt><dd>Ready</dd></div><div><dt>Evidence review</dt><dd>Needs analyst verification</dd></div></dl><section className={styles.verificationChecklist}><header>Verification checks</header>{forecastRequirement.verificationChecks.map((check) => <span key={check}><Icon name="check" size="xs" />{check}</span>)}</section></>}
-              {stage === "result" && <><div className={styles.requestTitle}><span>Result</span><h1 id="northstar-evidence-title">{forecastRequirement.result.title}</h1><p>{forecastRequirement.result.description}</p></div><Notice tone="success" title="Verification complete">The evidence and resulting analysis change are now attributable in Activity.</Notice><div className={styles.changeGrid}><div><span>Changed</span><strong>{forecastRequirement.result.changedTitle}</strong><p>{forecastRequirement.result.changedDescription}</p></div><div><span>Unchanged</span><strong>{forecastRequirement.result.unchangedTitle}</strong><p>{forecastRequirement.result.unchangedDescription}</p></div></div></>}
+              {stage === "evidence" && <><div className={styles.requestTitle}><span>Evidence</span><h1 id="northstar-evidence-title">Upload the missing forecast</h1><p>Add Northstar’s board-approved 2027 forecast.</p></div><Notice title="Why it is needed">The approved package ends in Dec 2026, so FY 2027 downside capacity is still unknown.</Notice><FileDropzone status={dropzoneStatus} fileName={evidenceState.fileName} error={evidenceState.error} acceptedFormats={forecastRequirement.acceptedFormats} onFileAccepted={onUpload} onFileRejected={onReject} onRemove={onReset} /></>}
+              {stage === "received" && <><div className={styles.requestTitle}><span>Received</span><h1 id="northstar-evidence-title">Forecast received</h1><p>{requestSourceSentence(request)} Extraction will begin automatically.</p></div><Notice title="Matched to the open request">{evidenceState.fileName} · Received {formatReceivedAt(request.receivedAt)}</Notice></>}
+              {stage === "processing" && <div className={styles.processing}><span className={styles.processingRing} /><h1 id="northstar-evidence-title">Extracting the forecast</h1><p>Checking the file and preparing the downside figures.</p></div>}
+              {stage === "failed" && <><div className={styles.requestTitle}><span>File issue</span><h1 id="northstar-evidence-title">We couldn’t read this forecast</h1><p>{requestError ?? "Use the board-approved XLSX or a text-based PDF."}</p></div></>}
+              {stage === "review" && <><div className={styles.requestTitle}><span>Review</span><h1 id="northstar-evidence-title">Verify before use</h1><p>Compare the extracted values with the original forecast.</p></div><Notice title="Update scope">Only the 2027 downside capacity analysis will be updated.</Notice><dl className={styles.requestReview}><div><dt>Evidence</dt><dd>{evidenceState.fileName}</dd></div><div><dt>Supplied by</dt><dd>{requestSourceLabel(request)}</dd></div><div><dt>Received</dt><dd>{formatReceivedAt(request.receivedAt)}</dd></div><div><dt>Extraction</dt><dd>Ready</dd></div><div><dt>Evidence review</dt><dd>Needs analyst verification</dd></div><div><dt>2027 downside coverage</dt><dd>1.29x</dd></div></dl><section className={styles.verificationChecklist}><header>Verification checks</header>{forecastRequirement.verificationChecks.map((check) => <span key={check}><Icon name="check" size="xs" />{check}</span>)}</section></>}
+              {stage === "result" && <><div className={styles.requestTitle}><span>Result</span><h1 id="northstar-evidence-title">Downside capacity verified</h1><p>The approved forecast completes the missing 2027 analysis.</p></div><section className={styles.analysisResult} aria-label="Updated downside analysis"><header><span>Updated analysis</span><StatusPill tone="success">Analysis ready</StatusPill></header><dl><div><dt>Current coverage</dt><dd>1.36x</dd></div><div><dt>2027 downside coverage</dt><dd>1.29x</dd></div><div><dt>Bank minimum</dt><dd>1.20x</dd></div><div><dt>Remaining cushion</dt><dd>0.09x</dd></div></dl><p>Downside coverage remains above the bank minimum, with limited remaining cushion.</p></section></>}
             </main>
           </div>
         </section>
-        <ForecastDocumentPreview state={evidenceState.status} />
+        <ForecastDocumentPreview state={evidenceState.status} request={request} />
       </div>
       <footer className={styles.requestFooter}><div className={styles.requestFooterGrid}><div className={styles.requestFooterActions}>
         {stage === "evidence" && <Button variant="secondary" onClick={onClose}>Cancel</Button>}
         {stage !== "evidence" && stage !== "result" && <Button variant="secondary" onClick={onClose}>Close</Button>}
-        {stage === "received" && <Button variant="primary" onClick={onStartProcessing}>Start extraction</Button>}
-        {stage === "processing" && <><Button variant="secondary" onClick={() => onReject("The uploaded forecast could not be read. Retry with the board-approved XLSX or a text-based PDF.")}>Record failure</Button><Button variant="primary" onClick={onProcessingSuccess}>Complete extraction</Button></>}
-        {stage === "failed" && <Button variant="primary" onClick={onRetry}>Retry processing</Button>}
+        {stage === "failed" && <Button variant="primary" onClick={onReset}>Choose another file</Button>}
         {stage === "review" && <Button variant="primary" icon={<Icon name="fileCheck" size="xs" />} iconPosition="start" onClick={onVerify}>Verify &amp; update analysis</Button>}
         {stage === "result" && <><Button variant="secondary" onClick={onClose}>Close</Button><Button variant="primary" onClick={onReviewAnalysis}>Review updated analysis</Button></>}
       </div></div></footer>
@@ -364,11 +406,10 @@ function DocumentRequestFlow({ evidenceState, onClose, onSend, onBorrowerUpload,
 }) {
   const [stage, setStage] = useState<RequestStage>("document");
   const [dueDate, setDueDate] = useState("Aug 2, 2026");
-  const [message, setMessage] = useState("Hi Sarah — please upload Northstar's approved 2027 operating forecast, including income statement, cash flow, and downside assumptions.");
-  const [selectedContactId, setSelectedContactId] = useState(northstarBorrowerContacts.find((contact) => contact.primary)?.id ?? northstarBorrowerContacts[0].id);
+  const [message, setMessage] = useState("Hi Marcus — please upload Northstar's approved 2027 operating forecast, including income statement, cash flow, and downside assumptions.");
+  const [selectedContactId, setSelectedContactId] = useState(northstarBorrowerContacts.find((contact) => contact.id === "marcus-reed")?.id ?? northstarBorrowerContacts[0].id);
   const closeRef = useRef<HTMLButtonElement>(null);
   const stageOrder: Array<{ id: RequestStage; label: string }> = [{ id: "document", label: "Document" }, { id: "recipient", label: "Recipient" }, { id: "review", label: "Review" }];
-  const activeIndex = stageOrder.findIndex((item) => item.id === stage);
   const selectedContact = northstarBorrowerContacts.find((contact) => contact.id === selectedContactId) ?? northstarBorrowerContacts[0];
   useDialogBehavior(closeRef, onClose);
 
@@ -386,7 +427,7 @@ function DocumentRequestFlow({ evidenceState, onClose, onSend, onBorrowerUpload,
       <FocusedHeader closeRef={closeRef} subtitle="Evidence request" onClose={onClose} />
       <div className={styles.requestLayout}>
         <section className={styles.requestEditor}><div className={styles.requestEditorInner}>
-          <nav className={styles.requestSteps} aria-label="Document request steps">{stageOrder.map((item, index) => <span key={item.id} data-active={stage === item.id} data-complete={index < activeIndex}><i>{index < activeIndex ? <Icon name="check" size="xs" /> : index + 1}</i>{item.label}</span>)}</nav>
+          <WorkflowSteps ariaLabel="Document request steps" items={stageOrder} value={stage} className={styles.requestSteps} />
           <main className={styles.requestContent}>
             {stage === "document" && <><div className={styles.requestTitle}><span>Document</span><h1 id="document-request-title">What do you need from the borrower?</h1><p>The request stays linked to the verification requirement that created it.</p></div><Notice title="Why this is required">The current source package ends in December 2026, leaving downside analysis incomplete.</Notice><section className={styles.requestDocument}><header>Requested document</header><div><IconTile><Icon name="document" size="sm" /></IconTile><span><strong>2027 Operating Forecast</strong><small>Income statement, cash flow, and downside assumptions</small></span><Icon name="checkCircle" size="sm" /></div></section><label className={styles.requestField}><span>Due date</span><input value={dueDate} onChange={(event) => setDueDate(event.target.value)} /></label></>}
             {stage === "recipient" && <><div className={styles.requestTitle}><span>Recipient</span><h1 id="document-request-title">Who should receive this request?</h1><p>Select a Northstar Health contact. Borrower-facing details stay concise; internal analysis context is not shared.</p></div><BorrowerContactSelector contacts={northstarBorrowerContacts} selectedId={selectedContactId} onSelect={selectContact} name="northstar-evidence-recipient" /><label className={styles.requestField}><span>Message <small>Optional</small></span><textarea value={message} onChange={(event) => setMessage(event.target.value)} /></label><label className={styles.reminderToggle}><input type="checkbox" defaultChecked /><span><strong>Send automatic reminders</strong><small>Three days before and on the due date</small></span></label></>}
@@ -400,25 +441,38 @@ function DocumentRequestFlow({ evidenceState, onClose, onSend, onBorrowerUpload,
   );
 }
 
-function RequestStatusFlow({ request, evidenceState, onClose, onBorrowerUpload, onReject, onReset }: {
+function RequestStatusFlow({ request, evidenceState, onClose, onReviewReceived, onBorrowerUpload, onReject, onReset }: {
   request: DocumentRequestRecord;
   evidenceState: EvidenceIntakeState;
   onClose: () => void;
+  onReviewReceived: () => void;
   onBorrowerUpload: (file: File) => void;
   onReject: (message: string) => void;
   onReset: () => void;
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
-  const recipientName = request.recipient.split(" · ")[0];
+  const recipientName = contactName(request.recipient);
+  const hasReceivedDocument = ["received", "processing", "ready", "failed"].includes(request.status);
   useDialogBehavior(closeRef, onClose);
+
+  const statusContent = request.status === "sent"
+    ? <><div className={styles.requestTitle}><span>Request status</span><h1 id="request-status-title">Document requested — 2027 Operating Forecast</h1><p>The request is with {recipientName}. Delivery, reminders, and the open requirement remain connected here.</p></div><StatusPill tone="warning">Awaiting response</StatusPill><dl className={styles.requestReview}><div><dt>Document</dt><dd>2027 Operating Forecast</dd></div><div><dt>Recipient</dt><dd>{request.recipient}</dd></div><div><dt>Due</dt><dd>{request.dueDate}</dd></div><div><dt>Linked analysis</dt><dd>Downside repayment capacity</dd></div></dl><Notice title="Automatic follow-up is active">{recipientName} will receive reminders three days before and on the due date. The request remains open until a file is uploaded.</Notice></>
+    : request.status === "ready"
+      ? <><div className={styles.requestTitle}><span>Request status</span><h1 id="request-status-title">Forecast received</h1><p>{requestSourceSentence(request)} The file is matched to the open requirement and ready for review.</p></div><StatusPill tone="info">Awaiting analyst verification</StatusPill><dl className={styles.requestReview}><div><dt>Document</dt><dd>{request.fileName ?? "2027 Operating Forecast.xlsx"}</dd></div><div><dt>Received from</dt><dd>{requestSourceLabel(request)}</dd></div><div><dt>Received</dt><dd>{formatReceivedAt(request.receivedAt)}</dd></div><div><dt>Extraction</dt><dd>Ready</dd></div><div><dt>Linked analysis</dt><dd>Downside repayment capacity</dd></div></dl><Notice title="Receipt does not make evidence trusted">Compare the extracted values with the original forecast before the analysis can use them.</Notice></>
+      : request.status === "failed"
+        ? <><div className={styles.requestTitle}><span>Request status</span><h1 id="request-status-title">Forecast needs attention</h1><p>The received file remains linked to the request, but extraction could not be completed.</p></div><StatusPill tone="warning">Extraction failed</StatusPill><dl className={styles.requestReview}><div><dt>Document</dt><dd>{request.fileName ?? "2027 Operating Forecast.xlsx"}</dd></div><div><dt>Received from</dt><dd>{requestSourceLabel(request)}</dd></div><div><dt>Received</dt><dd>{formatReceivedAt(request.receivedAt)}</dd></div></dl><Notice tone="warning" title="Review the file issue">{request.error ?? "Open the document workflow to replace the file or retry processing."}</Notice></>
+        : <><div className={styles.requestTitle}><span>Request status</span><h1 id="request-status-title">Forecast received</h1><p>{requestSourceSentence(request)} The system matched it to the open requirement.</p></div><StatusPill tone="info">{request.status === "processing" ? "Extracting forecast" : "Preparing extraction"}</StatusPill><dl className={styles.requestReview}><div><dt>Document</dt><dd>{request.fileName ?? "2027 Operating Forecast.xlsx"}</dd></div><div><dt>Received from</dt><dd>{requestSourceLabel(request)}</dd></div><div><dt>Received</dt><dd>{formatReceivedAt(request.receivedAt)}</dd></div><div><dt>Linked analysis</dt><dd>Downside repayment capacity</dd></div></dl><Notice title="Processing automatically">The system is checking the workbook and preparing the relevant downside values for analyst verification.</Notice></>;
+
   return (
     <section className={styles.requestOverlay} role="dialog" aria-modal="true" aria-labelledby="request-status-title">
       <FocusedHeader closeRef={closeRef} subtitle="Evidence request" onClose={onClose} />
       <div className={styles.requestLayout}>
-        <section className={styles.requestEditor}><main className={styles.statusContent}><div className={styles.requestTitle}><span>Request status</span><h1 id="request-status-title">Document requested — 2027 Operating Forecast</h1><p>The request is with {recipientName}. Delivery, reminders, and the open requirement remain connected here.</p></div><StatusPill tone="warning">Awaiting response</StatusPill><dl className={styles.requestReview}><div><dt>Document</dt><dd>2027 Operating Forecast</dd></div><div><dt>Recipient</dt><dd>{request.recipient}</dd></div><div><dt>Due</dt><dd>{request.dueDate}</dd></div><div><dt>Linked analysis</dt><dd>Downside repayment capacity</dd></div></dl><Notice title="Automatic follow-up is active">{recipientName} will receive reminders three days before and on the due date. The request remains open until a file is uploaded.</Notice></main></section>
-        <BorrowerRequestPreview evidenceState={evidenceState} dueDate={request.dueDate} message={request.message ?? ""} onUpload={onBorrowerUpload} onReject={onReject} onReset={onReset} />
+        <section className={styles.requestEditor}><main className={styles.statusContent}>{statusContent}</main></section>
+        {hasReceivedDocument
+          ? <ForecastDocumentPreview state={evidenceState.status} request={request} />
+          : <BorrowerRequestPreview evidenceState={evidenceState} dueDate={request.dueDate} message={request.message ?? ""} onUpload={onBorrowerUpload} onReject={onReject} onReset={onReset} />}
       </div>
-      <footer className={styles.requestFooter}><div className={styles.statusFooterGrid}><Button variant="secondary" onClick={onClose}>Done</Button></div></footer>
+      <footer className={styles.requestFooter}><div className={styles.statusFooterGrid}><Button variant="secondary" onClick={onClose}>{hasReceivedDocument ? "Close" : "Done"}</Button>{hasReceivedDocument && <Button variant="primary" onClick={onReviewReceived}>{request.status === "ready" ? "Review received forecast" : request.status === "failed" ? "Resolve file issue" : "View processing"}</Button>}</div></footer>
     </section>
   );
 }
@@ -482,11 +536,15 @@ function useDialogBehavior(closeRef: React.RefObject<HTMLButtonElement | null>, 
   }, [closeRef, locked]);
 }
 
-function ForecastDocumentPreview({ state }: { state: EvidenceIntakeState["status"] }) {
+function ForecastDocumentPreview({ state, request }: { state: EvidenceIntakeState["status"]; request: DocumentRequestRecord }) {
+  const receivedSource = request.provenance === "borrower-upload"
+    ? `Received from ${contactName(request.suppliedBy ?? request.recipient)} via secure document portal`
+    : `Uploaded by ${contactName(request.suppliedBy ?? request.recipient)}`;
+  const previewState = state === "verified" ? "Verified" : state === "ready-for-review" ? "Extraction ready" : state === "uploading" ? "Processing" : state === "failed" ? "Needs attention" : "Expected source";
   return (
     <aside className={styles.requestPreview} aria-label="Forecast preview">
-      <header className={styles.previewToolbar}><span>Evidence preview</span><span><i aria-hidden="true" /> {state === "verified" ? "Verified" : state === "ready-for-review" ? "Matched" : "Expected source"}</span></header>
-      <div className={styles.previewStage}><article className={`${styles.previewPaper} ${styles.forecastPaper}`}><header className={styles.previewBrand}><CompanyLogo domain={companyLogoDomains["Northstar Health"]} name="Northstar Health" /><span><strong>Northstar Health</strong><small>Board-approved operating plan</small></span></header><div className={styles.previewBody}><span className={styles.previewEyebrow}>Planning &amp; finance</span><h2>2027 Operating Forecast</h2><p>Approved July 18, 2026 · USD millions</p><table className={styles.forecastTable}><thead><tr><th>Operating case</th><th>2026A</th><th>2027 base</th><th>2027 downside</th></tr></thead><tbody><tr><th>Net revenue</th><td>$214.8</td><td>$231.6</td><td>$218.2</td></tr><tr><th>EBITDA</th><td>$28.1</td><td>$31.4</td><td>$27.6</td></tr><tr><th>Cash flow</th><td>$20.6</td><td>$23.2</td><td>$18.9</td></tr><tr><th>Fixed-charge coverage</th><td>1.36x</td><td>1.44x</td><td>1.29x</td></tr></tbody></table><section className={styles.forecastAssumptions}><span>Downside assumptions</span><p>6% volume reduction, 90 bps reimbursement compression, and delayed working-capital normalization.</p></section></div><footer className={styles.previewSecurity}><Icon name="fileCheck" size="xs" /><span><strong>{state === "verified" ? "Verified by Alex Kim" : "Linked to verification requirement"}</strong><small>{state === "verified" ? "Evidence checks complete" : "Not yet verified"}</small></span></footer></article></div>
+      <header className={styles.previewToolbar}><span>{request.fileName ?? "Evidence preview"}</span><span><i aria-hidden="true" /> {previewState}</span></header>
+      <div className={styles.previewStage}><article className={`${styles.previewPaper} ${styles.forecastPaper}`}><header className={styles.previewBrand}><CompanyLogo domain={companyLogoDomains["Northstar Health"]} name="Northstar Health" /><span><strong>Northstar Health</strong><small>Board-approved operating plan</small></span></header><div className={styles.previewBody}><span className={styles.previewEyebrow}>Planning &amp; finance</span><h2>2027 Operating Forecast</h2><p>Approved July 18, 2026 · USD millions</p><table className={styles.forecastTable}><thead><tr><th>Operating case</th><th>2026A</th><th>2027 base</th><th>2027 downside</th></tr></thead><tbody><tr><th>Net revenue</th><td>$214.8</td><td>$231.6</td><td>$218.2</td></tr><tr><th>EBITDA</th><td>$28.1</td><td>$31.4</td><td>$27.6</td></tr><tr><th>Cash flow</th><td>$20.6</td><td>$23.2</td><td>$18.9</td></tr><tr><th>Fixed-charge coverage</th><td>1.36x</td><td>1.44x</td><td>1.29x</td></tr></tbody></table><section className={styles.forecastAssumptions}><span>Downside assumptions</span><p>6% volume reduction, 90 bps reimbursement compression, and delayed working-capital normalization.</p></section></div><footer className={styles.previewSecurity}><Icon name="fileCheck" size="xs" /><span><strong>{state === "verified" ? "Verified by Alex Kim" : request.receivedAt ? receivedSource : "Linked to verification requirement"}</strong><small>{state === "verified" ? `${requestSourceLabel(request)} · Evidence checks complete` : request.receivedAt ? `${formatReceivedAt(request.receivedAt)} · Awaiting analyst verification` : "Not yet verified"}</small></span></footer></article></div>
     </aside>
   );
 }

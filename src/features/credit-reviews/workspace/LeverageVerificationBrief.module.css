@@ -1,0 +1,208 @@
+.brief {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--salt-space-4);
+}
+
+.panel {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--salt-space-6);
+  padding: var(--salt-panel-padding);
+}
+
+.capacityPanel {
+  background: var(--salt-color-surface);
+}
+
+.evidencePanel {
+  background: var(--salt-color-surface-warm);
+  border-color: var(--salt-color-border-warm);
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--salt-space-3);
+}
+
+.panelHeader h2 {
+  margin: 0;
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-size-xs);
+  font-weight: var(--salt-type-weight-medium);
+  line-height: var(--salt-type-line-ui-secondary);
+  letter-spacing: var(--salt-type-tracking-label);
+  text-transform: uppercase;
+}
+
+.metricBlock {
+  display: grid;
+  gap: var(--salt-space-4);
+}
+
+.metricLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--salt-space-3);
+}
+
+.metricValue,
+.evidenceMetric > strong {
+  color: var(--salt-color-text-strong);
+  font-family: var(--salt-type-family-display);
+  font-size: var(--salt-type-size-metric);
+  font-weight: var(--salt-type-weight-display);
+  line-height: var(--salt-type-line-metric);
+  letter-spacing: var(--salt-type-tracking-money);
+}
+
+.metricLabel,
+.evidenceMetric > span {
+  color: var(--salt-color-text-muted);
+  font-size: var(--salt-type-size-ui-secondary);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.metricTranslation {
+  margin: 0;
+  color: var(--salt-color-text-muted);
+  font-size: var(--salt-type-size-ui-secondary);
+  line-height: var(--salt-type-line-ui);
+}
+
+.metricTranslation strong {
+  color: var(--salt-color-text-strong);
+  font-weight: var(--salt-type-weight-medium);
+}
+
+.capacitySummary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--salt-space-2) var(--salt-space-4);
+  padding-top: var(--salt-space-4);
+  border-top: var(--salt-border-subtle);
+}
+
+.capacitySummary > span {
+  color: var(--salt-color-text-muted);
+  font-size: var(--salt-type-size-sm);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.capacitySummary strong {
+  color: var(--salt-color-success-text);
+  font-size: var(--salt-type-size-md);
+  font-weight: var(--salt-type-weight-medium);
+}
+
+.gaugeFrame {
+  display: grid;
+  gap: var(--salt-space-1);
+}
+
+.capacityGauge {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: var(--salt-space-8);
+}
+
+.gaugeTrack {
+  position: relative;
+  width: 100%;
+  height: var(--salt-space-2);
+  border-radius: var(--salt-radius-full);
+  background: var(--salt-color-border-subtle);
+}
+
+.gaugeUsed {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 87%; /* design-system-ignore: ratio-derived position, 3.7 / 4.25. */
+  border-radius: inherit;
+  background: var(--salt-color-action);
+}
+
+.gaugeCurrent {
+  position: absolute;
+  top: 50%;
+  left: 87%; /* design-system-ignore: ratio-derived position, 3.7 / 4.25. */
+  width: var(--salt-space-3);
+  height: var(--salt-space-3);
+  border: var(--salt-space-0-5) solid var(--salt-color-action);
+  border-radius: var(--salt-radius-full);
+  background: var(--salt-color-surface);
+  transform: translate(-50%, -50%);
+}
+
+.gaugeMaximum {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: var(--salt-space-0-5);
+  height: var(--salt-space-6);
+  background: var(--salt-color-text-strong);
+  transform: translate(50%, -50%);
+}
+
+.gaugeLabels {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--salt-space-4);
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.evidenceCopy {
+  margin: 0;
+  color: var(--salt-color-text-muted);
+  font-size: var(--salt-type-size-ui-secondary);
+  line-height: var(--salt-type-line-ui);
+}
+
+.evidenceMetric {
+  display: grid;
+  gap: var(--salt-space-1);
+}
+
+.gateRow {
+  display: flex;
+  align-items: center;
+  gap: var(--salt-space-2);
+  padding-block: var(--salt-space-3);
+  border-block: var(--salt-border-width) solid var(--salt-color-border-warm);
+  color: var(--salt-color-warning-text);
+  font-size: var(--salt-type-size-sm);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.gateRow > svg {
+  flex: 0 0 auto;
+}
+
+.actionRow {
+  display: flex;
+  align-items: flex-end;
+  flex: 1;
+}
+
+@media (max-width: 760px) {
+  .brief {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .panel {
+    gap: var(--salt-space-5);
+  }
+
+  .actionRow > button {
+    width: 100%;
+  }
+}

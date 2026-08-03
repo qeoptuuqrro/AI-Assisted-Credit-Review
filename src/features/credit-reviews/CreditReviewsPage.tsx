@@ -4,19 +4,16 @@ import { getDesignOption } from "../design-tools/designOptions";
 import { DataCell } from "../../shared/ui/DataCell/DataCell";
 import { Button } from "../../shared/ui/Button/Button";
 import { CompanyLogo } from "../../shared/ui/CompanyLogo/CompanyLogo";
+import { CaseStatusPill, caseStatusPresentation } from "../../shared/ui/CaseStatusPill/CaseStatusPill";
 import { DesignVariantNotice } from "../../shared/ui/DesignVariantNotice/DesignVariantNotice";
 import { Icon } from "../../shared/ui/Icon/Icon";
 import { FilterChip } from "../../shared/ui/FilterChip/FilterChip";
 import { SearchField } from "../../shared/ui/SearchField/SearchField";
-import { StatusPill } from "../../shared/ui/StatusPill/StatusPill";
 import { Text } from "../../shared/ui/Text/Text";
 import { CreditReviewDrawer } from "./CreditReviewDrawer";
 import { companyLogoDomains, type ReviewCompanyName } from "./companyLogos";
 import { applyCreditReviewWorkflowState } from "./creditReviewPresentation";
 import {
-  aiReviewStatus,
-  getAIReviewLabel,
-  getAIReviewTone,
   getPrimaryReviewSection,
   getStandardReviewPath,
   isStandardReview,
@@ -33,18 +30,16 @@ import { getLearningTargetProps, LearningModeSurface, useLearningMode } from "./
 import { readPersistedStandardReviewState, standardReviewStorageKey } from "./standard/standardReviewState";
 
 type FilterSection = "owner" | "due" | "facility";
-type QueueFocus = "needs-judgment" | "needs-verification" | "ready-for-decision";
+type QueueFocus = "analyst-review" | "needs-verification" | "awaiting-decision";
 
 const queueFocusLabels: Record<QueueFocus, string> = {
-  "needs-judgment": "Needs judgment",
+  "analyst-review": "Analyst review",
   "needs-verification": "Needs verification",
-  "ready-for-decision": "Ready for decision",
+  "awaiting-decision": "Awaiting decision",
 };
 
 function matchesQueueFocus(review: CreditReview, focus: QueueFocus | null) {
-  if (focus === "needs-judgment") return review.aiReviewState === "needs-judgment";
-  if (focus === "needs-verification") return review.aiReviewState === "needs-verification";
-  if (focus === "ready-for-decision") return review.status === "ready-for-decision";
+  if (focus) return review.caseStatus === focus;
   return true;
 }
 
@@ -132,7 +127,7 @@ function CreditReviewsPageContent() {
   }), [due, facilityType, liveReviews, owner, queueFocus, status]);
 
   const filteredMyReviews = useMemo(() => liveReviews.filter((review) => {
-    const searchable = `${review.company} ${review.request} ${getAIReviewLabel(review)}`.toLowerCase();
+    const searchable = `${review.company} ${review.request} ${caseStatusPresentation[review.caseStatus].label}`.toLowerCase();
     return review.owner === "Alex Kim"
       && matchesQueueFocus(review, queueFocus)
       && (!myQuery || searchable.includes(myQuery.toLowerCase()))
@@ -195,7 +190,10 @@ function CreditReviewsPageContent() {
       return;
     }
     if (isStandardReview(selectedReview)) {
-      navigate(getStandardReviewPath(selectedReview.slug, getPrimaryReviewSection(selectedReview.aiReviewState)));
+      navigate(getStandardReviewPath(
+        selectedReview.slug,
+        selectedReview.aiReviewState === "review-complete" ? undefined : getPrimaryReviewSection(selectedReview.aiReviewState),
+      ));
     }
   };
 
@@ -266,7 +264,7 @@ function CreditReviewsPageContent() {
                       >
                         <ReviewCompanyIdentity review={review} />
                         <DataCell className={styles.requestCell} primary={review.request} />
-                        <DataCell className={styles.statusCell}><StatusPill tone={getAIReviewTone(review)}>{getAIReviewLabel(review)}</StatusPill></DataCell>
+                        <DataCell className={styles.statusCell}><CaseStatusPill status={review.caseStatus} /></DataCell>
                         <DataCell className={styles.ownerReviewCell}><span className={styles.ownerCell}><span aria-hidden="true">{review.owner.split(" ").map((part) => part[0]).join("")}</span>{review.owner}</span></DataCell>
                         <DataCell align="end" className={styles.dueCell}><span className={`${styles.dueContent} ${review.dueGroup === "urgent" ? styles.dueUrgent : ""}`}>{review.due}<Icon name="chevronRight" size="sm" /></span></DataCell>
                       </div>
@@ -330,7 +328,7 @@ function CreditReviewsPageContent() {
                   >
                     <td><ReviewCompanyIdentity review={review} /></td>
                     <td><DataCell primary={review.request} /></td>
-                    <td><DataCell><StatusPill tone={getAIReviewTone(review)}>{getAIReviewLabel(review)}</StatusPill></DataCell></td>
+                    <td><DataCell><CaseStatusPill status={review.caseStatus} /></DataCell></td>
                     <td><DataCell><span className={styles.ownerCell}><span aria-hidden="true">{review.owner.split(" ").map((part) => part[0]).join("")}</span>{review.owner}</span></DataCell></td>
                     <td><DataCell align="end"><span className={review.dueGroup === "urgent" ? styles.dueUrgent : ""}>{review.due}</span></DataCell></td>
                   </tr>
@@ -346,7 +344,6 @@ function CreditReviewsPageContent() {
         {responsiveDrawer && selectedReview && (
           <div className={styles.drawerRail} {...getLearningTargetProps(enabled, "queue-preview")}><CreditReviewDrawer
             review={selectedReview}
-            status={{ label: getAIReviewLabel(selectedReview), tone: getAIReviewTone(selectedReview) }}
             open={drawerOpen}
             layout="responsive"
             presentation={legacyDrawerContent ? "legacy" : "outcome"}
@@ -362,7 +359,6 @@ function CreditReviewsPageContent() {
       {!responsiveDrawer && selectedReview && (
           <div {...getLearningTargetProps(enabled, "queue-preview")}><CreditReviewDrawer
             review={selectedReview}
-            status={{ label: getAIReviewLabel(selectedReview), tone: getAIReviewTone(selectedReview) }}
             open={drawerOpen}
             presentation="legacy"
             meridianState={workflowProjection.meridianState}

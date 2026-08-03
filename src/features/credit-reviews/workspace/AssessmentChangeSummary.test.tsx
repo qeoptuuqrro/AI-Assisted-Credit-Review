@@ -28,4 +28,19 @@ describe("AssessmentChangeSummary flow ledger", () => {
       view.unmount();
     }
   });
+
+  it("keeps the decision-led review sequence explicit", () => {
+    const { container } = render(
+      <AssessmentChangeSummary
+        context="finding"
+        presentation="decision-led"
+        result={evidenceRequirements["customer-renewal"].result}
+      />,
+    );
+
+    expect(container.querySelector('[data-presentation="decision-led"]')).toBeTruthy();
+    expect(screen.getByText("Risk assessment")).toBeTruthy();
+    expect(screen.getByText("What changed")).toBeTruthy();
+    expect(screen.getByText("What stayed the same")).toBeTruthy();
+  });
 });

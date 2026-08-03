@@ -24,6 +24,8 @@ const routes = [
   ["reimbursements", "/reimbursements"],
   ["credit-reviews", "/credit-reviews"],
   ["intelligence", "/intelligence"],
+  ["policy-rules", "/policy-rules"],
+  ["policy-rules-leverage", "/policy-rules/leverage-ceiling"],
   ["design-system", "/design-system"],
   ["meridian-overview", "/credit-reviews/meridian-foods"],
   ["meridian-findings", "/credit-reviews/meridian-foods/findings"],

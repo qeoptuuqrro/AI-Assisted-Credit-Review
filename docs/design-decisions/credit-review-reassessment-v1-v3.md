@@ -1,10 +1,10 @@
-# Credit review reassessment V1–V5
+# Credit review reassessment V1–V5 history
 
 Updated: July 27, 2026.
 
 ## Decision status
 
-V5 is the current production direction. V1, V2, and V4 remain archived for comparison, and V3 remains a candidate.
+This document preserves the first five reassessment directions. V5 was the production direction before V6, V7, and V8; it is now archived. V1, V2, V4, and V5 remain archived for comparison, while V3 remains a candidate.
 
 | Version | Registry id | Status | Design intent |
 | --- | --- | --- | --- |
@@ -12,7 +12,7 @@ V5 is the current production direction. V1, V2, and V4 remain archived for compa
 | V2 | `reassessment-v2-focused-change` | Archived | Separate risk, changed evidence, unchanged conclusion, supporting analysis, and human judgment into a focused workflow. |
 | V3 | `reassessment-v3-insight-brief` | Candidate | Make one revised insight the visual protagonist while keeping evidence and judgment easy to audit. |
 | V4 | `reassessment-v4-breathable-judgment` | Archived | Give analyst revision a wider vertical authoring surface with a quiet AI baseline and descriptive two-position risk toggle. |
-| V5 | `reassessment-v5-attributable-analysis` | Current | Keep the V4 ownership sequence while presenting the primary workflow as evidence, scoped analysis, and analyst judgment instead of repeated AI branding. |
+| V5 | `reassessment-v5-attributable-analysis` | Archived | Keep the V4 ownership sequence while presenting the primary workflow as evidence, scoped analysis, and analyst judgment instead of repeated AI branding. |
 
 ## Why V3 exists
 
@@ -38,7 +38,7 @@ V4 keeps V2's workflow separation and V3's authorship principle, then gives the 
 4. A selection summary confirms the value that will carry into Recommendation.
 5. The analyst conclusion follows as the attributable written rationale.
 
-## Why V5 is current
+## Why V5 was promoted
 
 V4 established the right geometry and accountability model, but it still repeated “AI” in the page summary, evidence alert, matched-document explanation, preview label, processing title, progress status, primary action, and judgment handoff. That made the experience read like an AI demonstration rather than a crafted credit workflow.
 
@@ -65,11 +65,11 @@ V5 preserves V4 exactly as a saved design and changes the product language contr
 
 `AssessmentInsightBrief` and `RiskDecisionCard` are Credit Reviews-owned compositions because their signals and judgment semantics are domain-specific. They reuse shared `Icon`, `StatusPill`, and canonical Salt tokens, but they are not promoted into the shared design system.
 
-The typed Design Tools registry owns all five versions. V3 applies `meridian-margin-reassessment-ready`; V4 and V5 apply `meridian-reassessment-ready`. Preset application removes only the preset query and preserves the design query. Reassessment comparisons work across all three finding detail URLs so concentration, margins, and leverage can be evaluated with realistic data. Historical options display `DesignVariantNotice`, and removing their design query restores current V5.
+This document covers the first five versions; the typed Design Tools registry owns the complete reassessment history. V3 applies `meridian-margin-reassessment-ready`; V4 and V5 apply `meridian-reassessment-ready`. Preset application removes only the preset query and preserves the design query. Reassessment comparisons work across all three finding detail URLs so concentration, margins, and leverage can be evaluated with realistic data. Historical options display `DesignVariantNotice`, and removing their design query restores current V9.
 
 ## Promotion criteria
 
-Any future reassessment direction can replace V5 only after all three findings are reviewed at desktop and mobile widths and the new hierarchy proves faster to understand without hiding the audit trail. Promotion requires changing the typed registry so exactly one reassessment version is current and preserving V5 according to `docs/DESIGN_VERSIONING_ARCHITECTURE.md`.
+V5 was superseded by V6, V7, V8, and then V9. Any future reassessment direction can replace V9 only after all three findings are reviewed at desktop and mobile widths and the new hierarchy proves faster to understand without hiding the audit trail. Promotion requires changing the typed registry so exactly one reassessment version is current and preserving V5, V6, V7, V8, and V9 according to `docs/DESIGN_VERSIONING_ARCHITECTURE.md`.
 
 V4 was verified at 1280 × 900 and 390 × 844. Retained and changed risk states, internal scrolling, stable footer clearance, selection copy, and horizontal-overflow checks passed. Artifacts are stored under `output/playwright/reassessment-v4/`.
 

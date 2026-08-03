@@ -1,14 +1,25 @@
 import type { IconName } from "../../shared/ui/Icon/Icon";
+import type { ReviewCompanyName } from "../credit-reviews/companyLogos";
 
 export type ContextCategory = "Reviews" | "Findings" | "Sources" | "Portfolio";
 
-export type IntelligenceContext = {
+type IntelligenceContextBase = {
   id: string;
   label: string;
   detail: string;
-  category: ContextCategory;
+};
+
+type ReviewIntelligenceContext = IntelligenceContextBase & {
+  category: "Reviews";
+  company: ReviewCompanyName;
+};
+
+type SemanticIntelligenceContext = IntelligenceContextBase & {
+  category: Exclude<ContextCategory, "Reviews">;
   icon: IconName;
 };
+
+export type IntelligenceContext = ReviewIntelligenceContext | SemanticIntelligenceContext;
 
 export const contextCategories: ContextCategory[] = ["Reviews", "Findings", "Sources", "Portfolio"];
 
@@ -18,14 +29,14 @@ export const intelligenceContexts: IntelligenceContext[] = [
     label: "Meridian Foods",
     detail: "$18M working-capital line · Needs judgment",
     category: "Reviews",
-    icon: "building",
+    company: "Meridian Foods",
   },
   {
     id: "northstar-health",
     label: "Northstar Health",
     detail: "$15M revolving line · Needs verification",
     category: "Reviews",
-    icon: "building",
+    company: "Northstar Health",
   },
   {
     id: "customer-concentration",

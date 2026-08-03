@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { MeridianLearningPanel, getLearningTargetProps } from "./MeridianLearningMode";
+import { MeridianLearningPanel, MeridianLearningToggle, getLearningTargetProps } from "./MeridianLearningMode";
 import {
   financialsLearningTopicIds,
   firstLearningTopicForScope,
@@ -13,6 +13,21 @@ import {
 afterEach(cleanup);
 
 describe("Meridian Learning Mode", () => {
+  it("keeps one stable accessible name while exposing the pressed state", () => {
+    const onToggle = vi.fn();
+    const { rerender } = render(<MeridianLearningToggle enabled={false} onToggle={onToggle} />);
+    const toggle = screen.getByRole("button", { name: "Learning mode" });
+
+    expect(toggle.getAttribute("aria-pressed")).toBe("false");
+    expect(screen.getByText("Learn this page")).toBeTruthy();
+    fireEvent.click(toggle);
+    expect(onToggle).toHaveBeenCalledOnce();
+
+    rerender(<MeridianLearningToggle enabled onToggle={onToggle} />);
+    expect(screen.getByRole("button", { name: "Learning mode" }).getAttribute("aria-pressed")).toBe("true");
+    expect(screen.getByText("Learning on")).toBeTruthy();
+  });
+
   it("keeps every route scope non-empty, valid, and free of duplicate topic ids", () => {
     const knownIds = new Set(meridianLearningTopics.map((topic) => topic.id));
     expect(knownIds.size).toBe(meridianLearningTopics.length);
@@ -38,6 +53,9 @@ describe("Meridian Learning Mode", () => {
 
     expect(screen.getByRole("heading", { name: "How to read the financial assessment" })).toBeTruthy();
     expect(screen.getByText(meridianLearningTopicById["financials-story"].simple)).toBeTruthy();
+    expect(screen.getByText("Key takeaway")).toBeTruthy();
+    expect(screen.queryByText("Say it in the presentation")).toBeNull();
+    expect(screen.getByText(meridianLearningTopicById["financials-story"].presenterLine).tagName).toBe("P");
     fireEvent.click(screen.getByRole("button", { name: "Credit view" }));
     expect(screen.getByText(meridianLearningTopicById["financials-story"].professional)).toBeTruthy();
     expect(screen.getByText(`1 of ${financialsLearningTopicIds.length}`)).toBeTruthy();

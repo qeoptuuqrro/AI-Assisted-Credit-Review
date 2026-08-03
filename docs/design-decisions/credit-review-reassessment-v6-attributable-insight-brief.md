@@ -1,6 +1,8 @@
 # Credit review reassessment V6 — attributable insight brief
 
-Status: current
+Status: archived
+
+Historical outcome: V6 established a calmer single-brief direction and reduced repeated assessment language. V7 subsequently restored a stronger decision hierarchy, V8 established the evidence-first editorial workflow, and V9 is now current; V6 remains preserved as a selectable design-history option.
 
 Mercury reference: focused expense review and Treasury account surfaces, audited July 27, 2026.
 
@@ -19,7 +21,7 @@ The previous V5 direction was structurally sound but still repeated the same con
 - `Evidence changed` and `Still true` are sibling ledger rows, not competing CTAs.
 - `Assessment basis` stays collapsed by default and preserves provenance details.
 - `Record judgment` remains the only primary action on the durable finding page.
-- V1–V5 remain available in Design Tools as archived or candidate options.
+- When V6 was current, V1–V5 remained available in Design Tools. V6 itself remains preserved after the V7 and V8 promotions.
 
 ## Responsive contract
 

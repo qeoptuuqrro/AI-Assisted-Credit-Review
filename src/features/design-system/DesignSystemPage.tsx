@@ -1,11 +1,13 @@
-import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
+import { Children, isValidElement, useEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
 import { companyLogoDomains } from "../credit-reviews/companyLogos";
 import { ActivityLedger } from "../../shared/ui/ActivityLedger/ActivityLedger";
 import { Button } from "../../shared/ui/Button/Button";
+import { CaseStatusPill } from "../../shared/ui/CaseStatusPill/CaseStatusPill";
 import { CompanyLogo } from "../../shared/ui/CompanyLogo/CompanyLogo";
 import { DataCell } from "../../shared/ui/DataCell/DataCell";
 import { DocumentRow } from "../../shared/ui/DocumentRow/DocumentRow";
 import { DocumentViewer } from "../../shared/ui/DocumentViewer/DocumentViewer";
+import { Dialog } from "../../shared/ui/Dialog/Dialog";
 import { Drawer, DrawerBody, DrawerFooter, DrawerHeader, DrawerSection } from "../../shared/ui/Drawer/Drawer";
 import { FileDropzone } from "../../shared/ui/FileDropzone/FileDropzone";
 import { FilterChip } from "../../shared/ui/FilterChip/FilterChip";
@@ -19,6 +21,7 @@ import { Panel } from "../../shared/ui/Panel/Panel";
 import { Popover } from "../../shared/ui/Popover/Popover";
 import { ScenarioComparison } from "../../shared/ui/ScenarioComparison/ScenarioComparison";
 import { SearchField } from "../../shared/ui/SearchField/SearchField";
+import { SelectMenu, type SelectMenuOption } from "../../shared/ui/SelectMenu/SelectMenu";
 import { SectionHeader } from "../../shared/ui/SectionHeader/SectionHeader";
 import { StatusPill } from "../../shared/ui/StatusPill/StatusPill";
 import { Tabs } from "../../shared/ui/Tabs/Tabs";
@@ -26,13 +29,24 @@ import { Text } from "../../shared/ui/Text/Text";
 import { Timeline } from "../../shared/ui/Timeline/Timeline";
 import { Toast } from "../../shared/ui/Toast/Toast";
 import { WorkflowSteps } from "../../shared/ui/WorkflowSteps/WorkflowSteps";
+import { AINativeView } from "./AINativeView";
 import styles from "./DesignSystemPage.module.css";
 
-type SystemSection = "foundations" | "components" | "patterns" | "templates";
+type SystemSection = "foundations" | "components" | "patterns" | "templates" | "ai-native";
 type ComponentStatus = "Ready" | "In progress" | "Planned";
 type WorkspaceMode = "preview" | "inspect";
+type DialogExampleSize = "sm" | "md" | "lg";
 type InspectableProperty = "height" | "iconSize" | "padding" | "gap" | "borderRadius" | "fontFamily" | "fontSize" | "fontWeight" | "lineHeight" | "color" | "background" | "border" | "opacity";
 type InspectableTokenMap = Partial<Record<InspectableProperty, string>>;
+
+type SpecimenBoardProps = {
+  title: string;
+  description: string;
+  category: string;
+  status: ComponentStatus;
+  wide?: boolean;
+  children: ReactNode;
+};
 
 type InspectorSelection = {
   label: string;
@@ -54,11 +68,32 @@ type InspectorSelection = {
   tokenMap: InspectableTokenMap;
 };
 
+const componentCategories = [
+  { label: "All", count: 29 },
+  { label: "Foundations", count: 4 },
+  { label: "Actions", count: 4 },
+  { label: "Navigation", count: 4 },
+  { label: "Data display", count: 4 },
+  { label: "Status & feedback", count: 4 },
+  { label: "Evidence & audit", count: 5 },
+  { label: "Surfaces", count: 4 },
+] as const;
+
+const selectMenuExampleOptions: readonly SelectMenuOption<string>[] = [
+  { value: "analyst", label: "Analyst judgment" },
+  { value: "senior", label: "Senior credit review" },
+  { value: "evidence", label: "Evidence refresh" },
+];
+
+type ComponentCategory = (typeof componentCategories)[number]["label"];
+const productionComponentCount = componentCategories[0].count;
+
 const sections: Array<{ id: SystemSection; label: string; count: number }> = [
   { id: "foundations", label: "Foundations", count: 5 },
-  { id: "components", label: "Components", count: 26 },
+  { id: "components", label: "Components", count: 29 },
   { id: "patterns", label: "Patterns", count: 3 },
   { id: "templates", label: "Templates", count: 3 },
+  { id: "ai-native", label: "AI native", count: 4 },
 ];
 
 const specimenIcons: IconName[] = [
@@ -72,6 +107,7 @@ const specimenIcons: IconName[] = [
   "plus",
   "arrowLeft",
   "arrowRight",
+  "arrowDown",
   "chevronDown",
   "chevronRight",
   "externalLink",
@@ -184,6 +220,7 @@ export function DesignSystemPage() {
         {activeSection === "foundations" && <FoundationsView />}
         {activeSection === "patterns" && <PatternsView />}
         {activeSection === "templates" && <TemplatesView />}
+        {activeSection === "ai-native" && <AINativeView />}
       </div>
       {workspaceMode === "inspect" && selection && <InspectorPanel selection={selection} onClose={() => setSelection(null)} />}
     </div>
@@ -283,14 +320,57 @@ function InspectorSection({ title, rows }: { title: string; rows: Array<[string,
   );
 }
 
-function SectionIntroduction({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) {
+function SectionIntroduction({ eyebrow, title, description, stacked = false }: { eyebrow: string; title: string; description: string; stacked?: boolean }) {
   return (
-    <div className={styles.sectionIntroduction}>
+    <div className={`${styles.sectionIntroduction} ${stacked ? styles.sectionIntroductionStacked : ""}`}>
       <span>{eyebrow}</span>
       <div>
         <h2>{title}</h2>
         <p>{description}</p>
       </div>
+    </div>
+  );
+}
+
+function ComponentGallery({ category, query, inspectMode, children }: { category: ComponentCategory; query: string; inspectMode: boolean; children: ReactNode }) {
+  const normalizedQuery = query.trim().toLocaleLowerCase();
+  const visibleBoards = Children.toArray(children).filter((child) => {
+    if (!isValidElement<SpecimenBoardProps>(child) || child.type !== SpecimenBoard) return false;
+    const matchesCategory = category === "All" || child.props.category === category;
+    const searchableCopy = `${child.props.title} ${child.props.description} ${child.props.category}`.toLocaleLowerCase();
+    return matchesCategory && (!normalizedQuery || searchableCopy.includes(normalizedQuery));
+  });
+
+  const visibleFamilies = componentCategories
+    .slice(1)
+    .filter((family) => category === "All" || family.label === category)
+    .map((family) => ({
+      ...family,
+      boards: visibleBoards.filter((child) => isValidElement<SpecimenBoardProps>(child) && child.props.category === family.label),
+    }))
+    .filter((family) => family.boards.length > 0);
+
+  if (!visibleBoards.length) {
+    return (
+      <div className={styles.componentEmpty} role="status">
+        <Icon name="search" size="md" />
+        <strong>No matching components</strong>
+        <span>Try a broader search or another component family.</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`${styles.componentGallery} ${inspectMode ? styles.componentGalleryInspect : ""}`}>
+      {visibleFamilies.map((family) => (
+        <section className={styles.componentFamily} key={family.label} aria-labelledby={`component-family-${family.label.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-")}`}>
+          <header className={styles.componentFamilyHeader}>
+            <h3 id={`component-family-${family.label.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-")}`}>{family.label}</h3>
+            <span>{family.boards.length} {family.boards.length === 1 ? "component" : "components"}</span>
+          </header>
+          <div className={styles.galleryGrid}>{family.boards}</div>
+        </section>
+      ))}
     </div>
   );
 }
@@ -302,14 +382,7 @@ function SpecimenBoard({
   status,
   wide = false,
   children,
-}: {
-  title: string;
-  description: string;
-  category: string;
-  status: ComponentStatus;
-  wide?: boolean;
-  children: React.ReactNode;
-}) {
+}: SpecimenBoardProps) {
   return (
     <section className={`${styles.specimenBoard} ${wide ? styles.boardWide : ""}`}>
       <header className={styles.boardHeader}>
@@ -330,10 +403,10 @@ function StatusLabel({ status }: { status: ComponentStatus }) {
   return <span className={`${styles.statusLabel} ${statusClass}`}>{status}</span>;
 }
 
-function buttonTokenMap(variant: "primary" | "secondary" | "quiet", state: "default" | "hover"): InspectableTokenMap {
+function buttonTokenMap(variant: "primary" | "secondary" | "soft" | "quiet", state: "default" | "hover", size: "sm" | "md" | "lg" = "sm"): InspectableTokenMap {
   const shared: InspectableTokenMap = {
-    height: "--salt-button-height-sm",
-    padding: "--salt-button-padding-sm",
+    height: `--salt-button-height-${size}`,
+    padding: `--salt-button-padding-${size}`,
     gap: "--salt-button-gap",
     borderRadius: "--salt-button-radius",
     fontFamily: "--salt-button-font-family",
@@ -354,6 +427,12 @@ function buttonTokenMap(variant: "primary" | "secondary" | "quiet", state: "defa
     background: state === "hover" ? "--salt-button-secondary-background-hover" : "--salt-button-secondary-background",
     border: "--salt-button-border-secondary",
   };
+  if (variant === "soft") return {
+    ...shared,
+    color: "--salt-button-soft-text",
+    background: state === "hover" ? "--salt-button-soft-background-hover" : "--salt-button-soft-background",
+    border: "--salt-button-border-transparent",
+  };
   return {
     ...shared,
     color: "--salt-button-quiet-text",
@@ -372,6 +451,16 @@ function statusPillTokenMap(tone: "neutral" | "info" | "success" | "warning" | "
     lineHeight: "--salt-status-pill-line-height",
     color: `--salt-status-pill-${tone}-text`,
     background: `--salt-status-pill-${tone}-background`,
+  };
+}
+
+function companyLogoTokenMap(size: "sm" | "md" | "lg"): InspectableTokenMap {
+  return {
+    height: `--salt-company-logo-size-${size}`,
+    borderRadius: "--salt-company-logo-radius",
+    background: "--salt-company-logo-fallback-background",
+    border: "--salt-company-logo-border",
+    color: "--salt-company-logo-fallback-color",
   };
 }
 
@@ -454,7 +543,12 @@ function filterChipTokenMap(selected = false): InspectableTokenMap {
 }
 
 function ComponentsView({ inspectMode, onSelect }: { inspectMode: boolean; onSelect: (selection: InspectorSelection) => void }) {
+  const [componentQuery, setComponentQuery] = useState("");
+  const [componentCategory, setComponentCategory] = useState<ComponentCategory>("All");
   const [searchExample, setSearchExample] = useState("");
+  const [selectMenuExample, setSelectMenuExample] = useState("senior");
+  const [dialogExampleOpen, setDialogExampleOpen] = useState(false);
+  const [dialogExampleSize, setDialogExampleSize] = useState<DialogExampleSize>("md");
   const [drawerExampleOpen, setDrawerExampleOpen] = useState(false);
   const [documentExample, setDocumentExample] = useState<"financials" | "agreement" | null>(null);
   const [tabExample, setTabExample] = useState<"overview" | "findings" | "sources">("overview");
@@ -468,15 +562,43 @@ function ComponentsView({ inspectMode, onSelect }: { inspectMode: boolean; onSel
       <SectionIntroduction
         eyebrow="Shared UI"
         title="Components"
-        description="Live component sets arranged like a Figma library. Compare variants and states without leaving the canvas."
+        description="Production components, supported states, and usage guidance in one reference workspace."
+        stacked
       />
 
-      <div className={styles.galleryGrid}>
+      <div className={styles.catalogToolbar}>
+        <div className={styles.catalogTopline}>
+          <div className={styles.catalogSummary}>
+            <strong>{productionComponentCount} production components</strong>
+            <span>Seven families with live variants, states, and token inspection.</span>
+          </div>
+          <SearchField
+            className={styles.catalogSearch}
+            value={componentQuery}
+            onChange={setComponentQuery}
+            placeholder="Search components"
+            ariaLabel="Search component library"
+          />
+        </div>
+        <div className={styles.catalogFilters} role="group" aria-label="Filter components by family">
+          {componentCategories.map((category) => (
+            <FilterChip
+              key={category.label}
+              count={category.count}
+              pressed={componentCategory === category.label}
+              onClick={() => setComponentCategory(category.label)}
+            >
+              {category.label}
+            </FilterChip>
+          ))}
+        </div>
+      </div>
+
+      <ComponentGallery category={componentCategory} query={componentQuery} inspectMode={inspectMode}>
         <SpecimenBoard
-          wide
           title="Text"
           description="Semantic typography roles keep page titles, section headings, and body copy consistent without page-local type rules."
-          category="Typography"
+          category="Foundations"
           status="Ready"
         >
           <div className={styles.textComponentCanvas}>
@@ -491,13 +613,12 @@ function ComponentsView({ inspectMode, onSelect }: { inspectMode: boolean; onSel
           title="Button"
           description="Actions use one typography contract while hierarchy comes from surface, border, and emphasis."
           category="Actions"
-          status="In progress"
+          status="Ready"
         >
           <ButtonMatrix inspectMode={inspectMode} onSelect={onSelect} />
         </SpecimenBoard>
 
         <SpecimenBoard
-          wide
           title="Tabs"
           description="Durable page sections use restrained underline navigation, count badges, and keyboard roving behavior."
           category="Navigation"
@@ -541,7 +662,7 @@ function ComponentsView({ inspectMode, onSelect }: { inspectMode: boolean; onSel
         <SpecimenBoard
           title="Section header"
           description="A restrained title, optional context, and one compact action cluster for every major section."
-          category="Structure"
+          category="Navigation"
           status="Ready"
         >
           <div className={styles.sectionHeaderCanvas}>
@@ -558,7 +679,7 @@ function ComponentsView({ inspectMode, onSelect }: { inspectMode: boolean; onSel
           wide
           title="Object header"
           description="A consistent case-level entrance: quiet back navigation, object identity and metadata, workflow state near the object, and one compact primary action at the opposite edge."
-          category="Structure"
+          category="Navigation"
           status="Ready"
         >
           <div className={styles.objectHeaderCanvas}>
@@ -579,7 +700,7 @@ function ComponentsView({ inspectMode, onSelect }: { inspectMode: boolean; onSel
                 logo={<CompanyLogo domain={companyLogoDomains["Northstar Health"]} name="Northstar Health" size="lg" />}
                 title="Northstar Health"
                 metadata={["$15M revolving line", "3-year facility", "Alex Kim", "Due tomorrow"]}
-                status={<StatusPill tone="danger">Needs verification</StatusPill>}
+                status={<CaseStatusPill status="needs-verification" />}
                 action={<Button variant="primary">Request forecast</Button>}
               />
             </Inspectable>
@@ -603,7 +724,6 @@ function ComponentsView({ inspectMode, onSelect }: { inspectMode: boolean; onSel
         </SpecimenBoard>
 
         <SpecimenBoard
-          wide
           title="Metric card"
           description="One decision-relevant value in default or compact density, with shared elevation and semantic comparison treatment."
           category="Data display"
@@ -639,10 +759,9 @@ function ComponentsView({ inspectMode, onSelect }: { inspectMode: boolean; onSel
         </SpecimenBoard>
 
         <SpecimenBoard
-          wide
           title="Timeline"
           description="Attributable system, human, and evidence events stay compact until the user asks for the change detail."
-          category="Audit"
+          category="Evidence & audit"
           status="Ready"
         >
           <div className={styles.timelineCanvas}>
@@ -658,10 +777,9 @@ function ComponentsView({ inspectMode, onSelect }: { inspectMode: boolean; onSel
         </SpecimenBoard>
 
         <SpecimenBoard
-          wide
           title="Activity ledger"
           description="The current scan-first audit pattern: aligned events and timestamps, with optional whole-row disclosure for supporting detail."
-          category="Audit"
+          category="Evidence & audit"
           status="Ready"
         >
           <div className={styles.activityLedgerCanvas}>
@@ -679,7 +797,7 @@ function ComponentsView({ inspectMode, onSelect }: { inspectMode: boolean; onSel
         <SpecimenBoard
           title="Toast"
           description="Compact, nonblocking feedback confirms consequential workflow actions without interrupting the case."
-          category="Feedback"
+          category="Status & feedback"
           status="Ready"
         >
           <div className={styles.toastCanvas}>
@@ -690,22 +808,22 @@ function ComponentsView({ inspectMode, onSelect }: { inspectMode: boolean; onSel
         </SpecimenBoard>
 
         <SpecimenBoard
-          wide
           title="Notice"
           description="A low-contrast contextual message for requirements, scoped workflow consequences, and completed evidence changes. It does not compete with the primary action."
-          category="Feedback"
+          category="Status & feedback"
           status="Ready"
         >
           <div className={styles.noticeCanvas}>
             <Notice title="2027 operating forecast required" action={<Button size="sm" variant="quiet">Request document</Button>}>The approved source package ends in December 2026, so downside analysis is paused.</Notice>
             <Notice tone="success" title="Assessment updated">New evidence reduced the near-term risk from Material to Moderate. Human judgment is still required.</Notice>
+            <Notice tone="warning" title="Policy exception remains">Downside coverage is below the proposed floor and requires explicit analyst judgment.</Notice>
           </div>
         </SpecimenBoard>
 
         <SpecimenBoard
           title="Search field"
           description="A compact collection search with a persistent label, optional clear action, and tokenized focus state."
-          category="Inputs"
+          category="Actions"
           status="Ready"
         >
           <div className={styles.searchFieldCanvas}>
@@ -714,9 +832,25 @@ function ComponentsView({ inspectMode, onSelect }: { inspectMode: boolean; onSel
         </SpecimenBoard>
 
         <SpecimenBoard
+          title="Select menu"
+          description="A browser-consistent single-select field with an anchored option surface and complete keyboard behavior."
+          category="Actions"
+          status="Ready"
+        >
+          <div className={styles.selectMenuCanvas}>
+            <SelectMenu
+              label="Required action example"
+              value={selectMenuExample}
+              options={selectMenuExampleOptions}
+              onChange={setSelectMenuExample}
+            />
+          </div>
+        </SpecimenBoard>
+
+        <SpecimenBoard
           title="Popover"
           description="One compact floating surface for menus and pickers. The owning feature supplies anchoring, focus, dismissal, and selection logic."
-          category="Overlays"
+          category="Surfaces"
           status="Ready"
         >
           <div className={styles.popoverCanvas}>
@@ -742,7 +876,7 @@ function ComponentsView({ inspectMode, onSelect }: { inspectMode: boolean; onSel
         <SpecimenBoard
           title="Filter chip"
           description="A compact facet control that filters a collection without changing application mode."
-          category="Filters"
+          category="Actions"
           status="Ready"
         >
           <div className={styles.filterChipCanvas}>
@@ -756,17 +890,43 @@ function ComponentsView({ inspectMode, onSelect }: { inspectMode: boolean; onSel
         </SpecimenBoard>
 
         <SpecimenBoard
-          title="Review status"
-          description="Five workflow states for evidence review and analyst handoff. Color reinforces meaning; the label always carries the state."
-          category="Status"
+          title="Status pill"
+          description="The low-domain semantic primitive for compact labels. Tone communicates meaning while the visible text remains the primary signal."
+          category="Status & feedback"
+          status="Ready"
+        >
+          <div className={styles.statusPillCanvas}>
+            {([
+              ["neutral", "Neutral", "Draft"],
+              ["info", "Info", "Ready"],
+              ["success", "Success", "Verified"],
+              ["warning", "Warning", "Needs review"],
+              ["danger", "Danger", "Blocked"],
+            ] as const).map(([tone, label, example]) => (
+              <div key={tone}>
+                <span>{label}</span>
+                <Inspectable enabled={inspectMode} label={`Status pill / ${label}`} tokenMap={statusPillTokenMap(tone)} onSelect={onSelect}>
+                  <StatusPill tone={tone}>{example}</StatusPill>
+                </Inspectable>
+              </div>
+            ))}
+          </div>
+        </SpecimenBoard>
+
+        <SpecimenBoard
+          title="Case status"
+          description="One dominant-next-action lifecycle shared by queues, case headers, previews, and bookmarks. System events remain secondary metadata."
+          category="Status & feedback"
           status="Ready"
         >
           <div className={styles.badgeCanvas}>
-            <div><span>Human interpretation</span><Inspectable enabled={inspectMode} label="Review status / Needs judgment" tokenMap={statusPillTokenMap("warning")} onSelect={onSelect}><StatusPill tone="warning">Needs judgment</StatusPill></Inspectable></div>
-            <div><span>Evidence uncertainty</span><Inspectable enabled={inspectMode} label="Review status / Needs verification" tokenMap={statusPillTokenMap("danger")} onSelect={onSelect}><StatusPill tone="danger">Needs verification</StatusPill></Inspectable></div>
-            <div><span>Unblocked review</span><Inspectable enabled={inspectMode} label="Review status / Analysis ready" tokenMap={statusPillTokenMap("neutral")} onSelect={onSelect}><StatusPill>Analysis ready</StatusPill></Inspectable></div>
-            <div><span>Reassessed with context</span><Inspectable enabled={inspectMode} label="Review status / Analysis updated" tokenMap={statusPillTokenMap("info")} onSelect={onSelect}><StatusPill tone="info">Analysis updated</StatusPill></Inspectable></div>
-            <div><span>Ready for handoff</span><Inspectable enabled={inspectMode} label="Review status / Review complete" tokenMap={statusPillTokenMap("success")} onSelect={onSelect}><StatusPill tone="success">Review complete</StatusPill></Inspectable></div>
+            <div><span>Blocked by evidence</span><Inspectable enabled={inspectMode} label="Case status / Needs verification" tokenMap={statusPillTokenMap("danger")} onSelect={onSelect}><CaseStatusPill status="needs-verification" /></Inspectable></div>
+            <div><span>Analyst owns interpretation</span><Inspectable enabled={inspectMode} label="Case status / Analyst review" tokenMap={statusPillTokenMap("neutral")} onSelect={onSelect}><CaseStatusPill status="analyst-review" /></Inspectable></div>
+            <div><span>Analyst can author handoff</span><Inspectable enabled={inspectMode} label="Case status / Ready to recommend" tokenMap={statusPillTokenMap("info")} onSelect={onSelect}><CaseStatusPill status="ready-to-recommend" /></Inspectable></div>
+            <div><span>Senior credit owns action</span><Inspectable enabled={inspectMode} label="Case status / Awaiting decision" tokenMap={statusPillTokenMap("info")} onSelect={onSelect}><CaseStatusPill status="awaiting-decision" /></Inspectable></div>
+            <div><span>Analyst must revise</span><Inspectable enabled={inspectMode} label="Case status / Revision requested" tokenMap={statusPillTokenMap("warning")} onSelect={onSelect}><CaseStatusPill status="revision-requested" /></Inspectable></div>
+            <div><span>Final approval</span><Inspectable enabled={inspectMode} label="Case status / Approved" tokenMap={statusPillTokenMap("success")} onSelect={onSelect}><CaseStatusPill status="approved" /></Inspectable></div>
+            <div><span>Final decline</span><Inspectable enabled={inspectMode} label="Case status / Declined" tokenMap={statusPillTokenMap("danger")} onSelect={onSelect}><CaseStatusPill status="declined" /></Inspectable></div>
           </div>
         </SpecimenBoard>
 
@@ -778,14 +938,14 @@ function ComponentsView({ inspectMode, onSelect }: { inspectMode: boolean; onSel
         >
           <div className={styles.dataCellCanvas}>
             <Inspectable enabled={inspectMode} label="Data cell / Primary + secondary" tokenMap={dataCellTokenMap()} block onSelect={onSelect}><div className={styles.dataCellSpecimen}><DataCell primary="Meridian Foods" secondary="$18M working-capital line" /></div></Inspectable>
-            <Inspectable enabled={inspectMode} label="Data cell / Status content" tokenMap={dataCellTokenMap()} block onSelect={onSelect}><div className={styles.dataCellSpecimen}><DataCell><StatusPill tone="warning">Needs judgment</StatusPill></DataCell></div></Inspectable>
+            <Inspectable enabled={inspectMode} label="Data cell / Status content" tokenMap={dataCellTokenMap()} block onSelect={onSelect}><div className={styles.dataCellSpecimen}><DataCell><CaseStatusPill status="analyst-review" /></DataCell></div></Inspectable>
           </div>
         </SpecimenBoard>
 
         <SpecimenBoard
           title="Icon"
           description="A restrained line-icon vocabulary sized for dense financial workflows."
-          category="Graphics"
+          category="Foundations"
           status="In progress"
         >
           <div className={styles.iconCanvas}>
@@ -800,21 +960,57 @@ function ComponentsView({ inspectMode, onSelect }: { inspectMode: boolean; onSel
         <SpecimenBoard
           title="Icon tile"
           description="A restrained semantic container for leading glyphs in compact financial objects and driver rows."
-          category="Graphics"
+          category="Foundations"
           status="Ready"
         >
           <div className={styles.iconTileCanvas}>
             <span><IconTile><Icon name="chart" size="sm" /></IconTile><small>Neutral</small></span>
-            <span><IconTile tone="info"><Icon name="refresh" size="sm" /></IconTile><small>Info</small></span>
+            <span><IconTile tone="info" shape="circle"><Icon name="refresh" size="sm" /></IconTile><small>Info circle</small></span>
             <span><IconTile tone="warning"><Icon name="alertCircle" size="sm" /></IconTile><small>Warning</small></span>
+            <span><IconTile tone="danger"><Icon name="trendDown" size="sm" /></IconTile><small>Danger</small></span>
             <span><IconTile tone="success"><Icon name="check" size="sm" /></IconTile><small>Success</small></span>
+            <span><IconTile size="sm" shape="circle"><Icon name="document" size="xs" /></IconTile><small>Small circle</small></span>
+          </div>
+        </SpecimenBoard>
+
+        <SpecimenBoard
+          title="Company logo"
+          description="Rounded borrower identity marks use product-owned or Brandfetch assets, with a stable initials fallback and three shared sizes."
+          category="Foundations"
+          status="Ready"
+        >
+          <div className={styles.companyLogoCanvas}>
+            <div>
+              <Inspectable enabled={inspectMode} label="Company logo / Small" tokenMap={companyLogoTokenMap("sm")} onSelect={onSelect}>
+                <CompanyLogo domain={companyLogoDomains["Meridian Foods"]} name="Meridian Foods" size="sm" />
+              </Inspectable>
+              <span><strong>Small</strong><small>Queue rows</small></span>
+            </div>
+            <div>
+              <Inspectable enabled={inspectMode} label="Company logo / Medium" tokenMap={companyLogoTokenMap("md")} onSelect={onSelect}>
+                <CompanyLogo domain={companyLogoDomains["Northstar Health"]} name="Northstar Health" size="md" />
+              </Inspectable>
+              <span><strong>Medium</strong><small>Cards and previews</small></span>
+            </div>
+            <div>
+              <Inspectable enabled={inspectMode} label="Company logo / Large" tokenMap={companyLogoTokenMap("lg")} onSelect={onSelect}>
+                <CompanyLogo domain={companyLogoDomains["Brightline Energy"]} name="Brightline Energy" size="lg" />
+              </Inspectable>
+              <span><strong>Large</strong><small>Object headers</small></span>
+            </div>
+            <div>
+              <Inspectable enabled={inspectMode} label="Company logo / Fallback" tokenMap={companyLogoTokenMap("md")} onSelect={onSelect}>
+                <CompanyLogo name="Meridian Capital" size="md" />
+              </Inspectable>
+              <span><strong>Fallback</strong><small>Initials remain stable</small></span>
+            </div>
           </div>
         </SpecimenBoard>
 
         <SpecimenBoard
           title="Document row"
           description="A compact evidence trigger for reviewed source files. The row stays low emphasis; the parent owns preview or navigation behavior."
-          category="Evidence"
+          category="Evidence & audit"
           status="Ready"
         >
           <div className={styles.documentRowCanvas}>
@@ -835,6 +1031,22 @@ function ComponentsView({ inspectMode, onSelect }: { inspectMode: boolean; onSel
               />
             </Inspectable>
           </div>
+        </SpecimenBoard>
+
+        <SpecimenBoard
+          title="Document viewer"
+          description="A focus-contained attachment preview for read-only evidence inspection without replacing the current workflow context."
+          category="Evidence & audit"
+          status="Ready"
+        >
+          <div className={styles.documentViewerCanvas}>
+            <div>
+              <span>Evidence preview</span>
+              <strong>Readable source context</strong>
+              <p>The viewer owns focus, document framing, dismissal, and return to the exact source trigger.</p>
+            </div>
+            <Button variant="secondary" onClick={() => setDocumentExample("financials")}>Open document viewer</Button>
+          </div>
           <DocumentViewer
             open={Boolean(documentExample)}
             onClose={() => setDocumentExample(null)}
@@ -847,18 +1059,45 @@ function ComponentsView({ inspectMode, onSelect }: { inspectMode: boolean; onSel
         </SpecimenBoard>
 
         <SpecimenBoard
+          wide
           title="File dropzone"
           description="Evidence intake stays distinct from verification. Idle, uploading, ready, verified, and failed states share one restrained input contract."
-          category="Evidence"
+          category="Evidence & audit"
           status="Ready"
         >
           <div className={styles.fileDropzoneCanvas}>
-            <Inspectable enabled={inspectMode} label="File dropzone / Idle" tokenMap={fileDropzoneTokenMap()} block onSelect={onSelect}>
-              <FileDropzone status="idle" onFileAccepted={() => undefined} />
-            </Inspectable>
-            <Inspectable enabled={inspectMode} label="File dropzone / Ready for review" tokenMap={fileDropzoneTokenMap(true)} block onSelect={onSelect}>
-              <FileDropzone status="ready-for-review" fileName="2027 Operating Forecast.xlsx" compact onFileAccepted={() => undefined} onRemove={() => undefined} />
-            </Inspectable>
+            <div className={styles.fileDropzonePrimary}>
+              <span>Idle</span>
+              <Inspectable enabled={inspectMode} label="File dropzone / Idle" tokenMap={fileDropzoneTokenMap()} block onSelect={onSelect}>
+                <FileDropzone status="idle" onFileAccepted={() => undefined} />
+              </Inspectable>
+            </div>
+            <div className={styles.fileDropzoneStates}>
+              <div>
+                <span>Uploading</span>
+                <Inspectable enabled={inspectMode} label="File dropzone / Uploading" tokenMap={fileDropzoneTokenMap(true)} block onSelect={onSelect}>
+                  <FileDropzone status="uploading" fileName="2027 Operating Forecast.xlsx" compact onFileAccepted={() => undefined} />
+                </Inspectable>
+              </div>
+              <div>
+                <span>Ready for review</span>
+                <Inspectable enabled={inspectMode} label="File dropzone / Ready for review" tokenMap={fileDropzoneTokenMap(true)} block onSelect={onSelect}>
+                  <FileDropzone status="ready-for-review" fileName="2027 Operating Forecast.xlsx" compact onFileAccepted={() => undefined} onRemove={() => undefined} />
+                </Inspectable>
+              </div>
+              <div>
+                <span>Verified</span>
+                <Inspectable enabled={inspectMode} label="File dropzone / Verified" tokenMap={fileDropzoneTokenMap(true)} block onSelect={onSelect}>
+                  <FileDropzone status="verified" fileName="2027 Operating Forecast.xlsx" compact onFileAccepted={() => undefined} />
+                </Inspectable>
+              </div>
+              <div>
+                <span>Failed</span>
+                <Inspectable enabled={inspectMode} label="File dropzone / Failed" tokenMap={fileDropzoneTokenMap(true)} block onSelect={onSelect}>
+                  <FileDropzone status="failed" error="Upload failed. Choose the file again." compact onFileAccepted={() => undefined} />
+                </Inspectable>
+              </div>
+            </div>
           </div>
         </SpecimenBoard>
 
@@ -894,10 +1133,9 @@ function ComponentsView({ inspectMode, onSelect }: { inspectMode: boolean; onSel
         </SpecimenBoard>
 
         <SpecimenBoard
-          wide
           title="Drawer"
           description="Current Salt design: Overlay preview V1. A compact right-side panel that preserves list context while the shell owns close, scroll containment, section rhythm, and responsive behavior."
-          category="Overlays"
+          category="Surfaces"
           status="Ready"
         >
           <div className={styles.drawerCanvas}>
@@ -913,7 +1151,7 @@ function ComponentsView({ inspectMode, onSelect }: { inspectMode: boolean; onSel
               <span className={styles.drawerExampleEyebrow}>Credit review</span>
               <h2 id="drawer-specimen-title" className={styles.drawerExampleTitle}>Meridian Foods</h2>
               <p className={styles.drawerExampleMeta}>Revolving line</p>
-              <StatusPill tone="warning">Needs judgment</StatusPill>
+              <CaseStatusPill status="analyst-review" />
             </DrawerHeader>
             <DrawerBody>
               <DrawerSection className={styles.drawerExampleSection}>
@@ -931,7 +1169,54 @@ function ComponentsView({ inspectMode, onSelect }: { inspectMode: boolean; onSel
             </DrawerFooter>
           </Drawer>
         </SpecimenBoard>
-      </div>
+
+        <SpecimenBoard
+          title="Dialog"
+          description="A bounded modal task surface with a labelled header, scroll-contained body, explicit footer actions, Escape dismissal, focus containment, and focus return."
+          category="Surfaces"
+          status="Ready"
+        >
+          <div className={styles.dialogCanvas}>
+            <div>
+              <span>Focused modal task</span>
+              <strong>Small, medium, and large widths</strong>
+              <p>Use for bounded creation and confirmation work that must temporarily contain focus.</p>
+            </div>
+            <div className={styles.dialogLauncher}>
+              <div className={styles.dialogSizeControl} role="group" aria-label="Dialog example size">
+                {(["sm", "md", "lg"] as const).map((size) => (
+                  <button
+                    key={size}
+                    type="button"
+                    className={dialogExampleSize === size ? styles.dialogSizeActive : ""}
+                    aria-pressed={dialogExampleSize === size}
+                    onClick={() => setDialogExampleSize(size)}
+                  >
+                    {size === "sm" ? "Small" : size === "md" ? "Medium" : "Large"}
+                  </button>
+                ))}
+              </div>
+              <Button variant="secondary" onClick={() => setDialogExampleOpen(true)}>Open dialog</Button>
+            </div>
+          </div>
+          <Dialog
+            open={dialogExampleOpen}
+            onClose={() => setDialogExampleOpen(false)}
+            eyebrow="Policy rules"
+            title="Confirm policy change"
+            size={dialogExampleSize}
+            footer={<>
+              <Button variant="quiet" onClick={() => setDialogExampleOpen(false)}>Cancel</Button>
+              <Button variant="primary" onClick={() => setDialogExampleOpen(false)}>Confirm change</Button>
+            </>}
+          >
+            <div className={styles.dialogExampleBody}>
+              <strong>Pause Leverage ceiling?</strong>
+              <p>New Meridian evaluations will stop until an authorized policy owner reactivates the rule.</p>
+            </div>
+          </Dialog>
+        </SpecimenBoard>
+      </ComponentGallery>
     </>
   );
 }
@@ -959,9 +1244,10 @@ function SaltTokenCanvas() {
 }
 
 function ButtonMatrix({ inspectMode, onSelect }: { inspectMode: boolean; onSelect: (selection: InspectorSelection) => void }) {
-  const rows: Array<{ label: string; variant: "primary" | "secondary" | "quiet" }> = [
+  const rows: Array<{ label: string; variant: "primary" | "secondary" | "soft" | "quiet" }> = [
     { label: "Primary", variant: "primary" },
     { label: "Secondary", variant: "secondary" },
+    { label: "Soft", variant: "soft" },
     { label: "Quiet", variant: "quiet" },
   ];
 
@@ -978,13 +1264,21 @@ function ButtonMatrix({ inspectMode, onSelect }: { inspectMode: boolean; onSelec
           <ButtonMatrixRow key={row.variant} label={row.label} variant={row.variant} inspectMode={inspectMode} onSelect={onSelect} />
         ))}
       </div>
+      <div className={styles.buttonSizeStrip} role="group" aria-label="Button sizes">
+        <span>Sizes</span>
+        {(["sm", "md", "lg"] as const).map((size) => (
+          <Inspectable key={size} enabled={inspectMode} label={`Button / ${size.toUpperCase()}`} tokenMap={buttonTokenMap("secondary", "default", size)} onSelect={onSelect}>
+            <Button size={size} variant="secondary">{size === "sm" ? "Small" : size === "md" ? "Medium" : "Large"}</Button>
+          </Inspectable>
+        ))}
+      </div>
     </div>
   );
 }
 
-function ButtonMatrixRow({ label, variant, inspectMode, onSelect }: { label: string; variant: "primary" | "secondary" | "quiet"; inspectMode: boolean; onSelect: (selection: InspectorSelection) => void }) {
-  const buttonLabel = variant === "primary" ? "Continue review" : variant === "secondary" ? "Add evidence" : "View source";
-  const hoverClass = variant === "primary" ? styles.primaryHover : variant === "secondary" ? styles.secondaryHover : styles.quietHover;
+function ButtonMatrixRow({ label, variant, inspectMode, onSelect }: { label: string; variant: "primary" | "secondary" | "soft" | "quiet"; inspectMode: boolean; onSelect: (selection: InspectorSelection) => void }) {
+  const buttonLabel = variant === "primary" ? "Continue review" : variant === "secondary" ? "Add evidence" : variant === "soft" ? "Save draft" : "View source";
+  const hoverClass = variant === "primary" ? styles.primaryHover : variant === "secondary" ? styles.secondaryHover : variant === "soft" ? styles.softHover : styles.quietHover;
   const defaultTokens = buttonTokenMap(variant, "default");
   const hoverTokens = buttonTokenMap(variant, "hover");
 

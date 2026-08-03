@@ -7,7 +7,6 @@ import { SectionHeader } from "../../../shared/ui/SectionHeader/SectionHeader";
 import { StatusPill } from "../../../shared/ui/StatusPill/StatusPill";
 import { CreditFindingsState } from "../findings/CreditFindingsWorkspace";
 import {
-  evidenceProvenanceLabel,
   type EvidenceIntakeState,
 } from "../workflow/evidenceWorkflow";
 import {
@@ -207,7 +206,6 @@ function NorthstarFinancials({ verified, analysisReviewed, onNavigate, onComplet
 
 function NorthstarSources({ reviewState, evidenceState, displayState, verified, onOpenUpload, onOpenRequest }: Omit<NorthstarCaseSectionsProps, "activeTab" | "legacyMode" | "useLegacyFindingsState" | "onNavigate" | "onCompleteAnalysisReview" | "onSubmitRecommendation" | "onSeniorDecision" | "onReopenReturnedRecommendation">) {
   const { enabled } = useLearningMode();
-  const requestSent = reviewState.request.status !== "draft" && reviewState.request.status !== "cancelled";
   const sourceCount = evidenceState.fileName ? 1 : 0;
   return (
     <section id="sources-panel" role="tabpanel" className={styles.flatSection} aria-labelledby="northstar-sources-title" {...getLearningTargetProps(enabled, "northstar-sources")}>
@@ -215,8 +213,19 @@ function NorthstarSources({ reviewState, evidenceState, displayState, verified, 
       <VerificationNotice state={displayState} evidenceState={evidenceState} request={reviewState.request} />
       {!verified && (
         <div className={styles.evidenceActions} aria-label="Evidence options">
-          <Button variant="primary" onClick={onOpenUpload}>{uploadActionLabel(evidenceState, reviewState.request.status)}</Button>
-          <Button variant="secondary" onClick={onOpenRequest}>{requestSent ? "View borrower request" : "Request borrower"}</Button>
+          {reviewState.request.status === "ready" ? <>
+            <Button variant="primary" onClick={onOpenUpload}>Review received forecast</Button>
+            <Button variant="secondary" onClick={onOpenRequest}>View borrower request</Button>
+          </> : reviewState.request.status === "sent" ? <>
+            <Button variant="primary" onClick={onOpenRequest}>View borrower request</Button>
+            <Button variant="secondary" onClick={onOpenUpload}>Upload file</Button>
+          </> : ["received", "processing", "failed"].includes(reviewState.request.status) ? <>
+            <Button variant="primary" onClick={onOpenUpload}>{uploadActionLabel(evidenceState, reviewState.request.status)}</Button>
+            <Button variant="secondary" onClick={onOpenRequest}>View borrower request</Button>
+          </> : <>
+            <Button variant="primary" onClick={onOpenRequest}>Request borrower</Button>
+            <Button variant="secondary" onClick={onOpenUpload}>Upload file</Button>
+          </>}
         </div>
       )}
       <RequirementLedger reviewState={reviewState} evidenceState={evidenceState} displayState={displayState} verified={verified} onOpenUpload={onOpenUpload} onOpenRequest={onOpenRequest} />
@@ -258,7 +267,7 @@ function RequirementLedger({ reviewState, evidenceState, displayState, verified,
       <button className={styles.requirementRow} type="button" onClick={displayState === "requested" ? onOpenRequest : onOpenUpload}>
         <IconTile><Icon name="document" size="sm" /></IconTile>
         <span><strong>2027 Operating Forecast</strong><small>Income statement, cash flow, and downside assumptions</small></span>
-        <span><small>Source</small><strong>{evidenceState.provenance ? evidenceProvenanceLabel(evidenceState.provenance) : requestSent ? reviewState.request.recipient : "Not supplied"}</strong></span>
+        <span><small>Source</small><strong>{evidenceState.provenance ? documentSourceLabel(reviewState.request) : requestSent ? reviewState.request.recipient : "Not supplied"}</strong></span>
         <span><small>Status</small><strong>{requirementLabel(displayState)}</strong></span>
         <span className={styles.requirementAction} data-complete={verified}>{verified ? <Icon name="checkCircle" size="sm" /> : <Icon name="chevronRight" size="sm" />}</span>
       </button>
@@ -269,9 +278,9 @@ function RequirementLedger({ reviewState, evidenceState, displayState, verified,
 function VerificationNotice({ state, evidenceState, request }: { state: VerificationDisplayState; evidenceState: EvidenceIntakeState; request: DocumentRequestRecord }) {
   const recipientName = request.recipient.split(" · ")[0];
   if (state === "verified") return <Notice tone="success" title="Analysis updated">The verified 2027 forecast resolved the requirement. Downside coverage is 1.29x, 0.09x above the policy floor.</Notice>;
-  if (state === "ready-for-review") return <Notice title="Forecast ready for analyst review">The file is matched to the requirement. Confirm its approval, reconciliation, and downside assumptions before updating analysis.</Notice>;
+  if (state === "ready-for-review") return <Notice title="Forecast ready for analyst review">{documentSourceSentence(request)} Extraction is complete. Confirm the original document and extracted downside assumptions before updating analysis.</Notice>;
   if (state === "received") return <Notice title="Forecast received">{evidenceState.provenance === "analyst-upload" ? "Alex Kim uploaded the file directly." : `${recipientName} supplied the file for this request.`} Extraction has not started.</Notice>;
-  if (state === "processing") return <Notice title="Extracting forecast">The file remains in processing until an explicit result is recorded.</Notice>;
+  if (state === "processing") return <Notice title="Extracting forecast">Checking the file and preparing the downside figures.</Notice>;
   if (state === "failed") return <Notice tone="warning" title="The file could not be accepted">Choose a supported file up to 25 MB, then try again.</Notice>;
   if (state === "requested") return <Notice title={`Request sent to ${recipientName}`}>Due {request.dueDate} · Automatic reminders are on. The requirement remains open until a file is uploaded and verified.</Notice>;
   if (state === "cancelled") return <Notice tone="warning" title="Request cancelled">Create a new request or upload the forecast directly to continue.</Notice>;
@@ -279,9 +288,40 @@ function VerificationNotice({ state, evidenceState, request }: { state: Verifica
 }
 
 function uploadActionLabel(evidenceState: EvidenceIntakeState, requestStatus: DocumentRequestStatus) {
-  if (evidenceState.status === "ready-for-review") return "Review uploaded file";
+  if (evidenceState.status === "ready-for-review") return evidenceState.provenance === "borrower-upload" ? "Review received forecast" : "Review uploaded file";
   if (["received", "processing", "failed"].includes(requestStatus)) return "Continue document processing";
   return "Upload file";
+}
+
+function documentSourceLabel(request: DocumentRequestRecord) {
+  const supplier = (request.suppliedBy ?? request.recipient).split(" · ")[0];
+  return request.provenance === "borrower-upload"
+    ? `${supplier} · Secure portal`
+    : `${supplier} · Analyst upload`;
+}
+
+function documentSourceSentence(request: DocumentRequestRecord) {
+  const supplier = (request.suppliedBy ?? request.recipient).split(" · ")[0];
+  return request.provenance === "borrower-upload"
+    ? `Received from ${supplier} via secure document portal.`
+    : `Uploaded by ${supplier}.`;
+}
+
+function activityTimestamp(value?: string) {
+  if (!value) return "Just now";
+  const received = new Date(value);
+  const date = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "America/New_York",
+  }).format(received);
+  const time = new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "America/New_York",
+  }).format(received);
+  return `${date} · ${time}`;
 }
 
 function requirementLabel(state: VerificationDisplayState) {
@@ -305,9 +345,8 @@ function activityForState(state: NorthstarReviewState): ActivityLedgerItem[] {
     { id: "analysis-paused", title: "Initial analysis paused", description: "Latest approved forecast ends in Dec 2026.", meta: "Today · 9:14 AM", icon: "alertCircle", tone: "warning" },
   ];
   if (state.request.sentAt) items.unshift({ id: "request-sent", title: `Forecast request sent to ${state.request.recipient.split(" · ")[0]}`, description: `Due ${state.request.dueDate} · Automatic reminders enabled.`, meta: "Just now", icon: "send", tone: "human" });
-  if (state.request.fileName && state.request.provenance) items.unshift({ id: "forecast-received", title: `${state.request.fileName} uploaded`, description: `${evidenceProvenanceLabel(state.request.provenance)} · Matched to the open requirement.`, meta: "Just now", icon: "document", tone: "evidence" });
-  if (state.request.status === "received") items.unshift({ id: "forecast-received-state", title: "Document received for the open request", description: `${state.request.suppliedBy} · Extraction not started.`, meta: "Just now", icon: "document", tone: "evidence" });
-  if (state.request.status === "processing") items.unshift({ id: "forecast-processing", title: "Forecast extraction started", description: "The request remains in processing until a result is recorded.", meta: "Just now", icon: "refresh", tone: "info" });
+  if (state.request.fileName && state.request.provenance) items.unshift({ id: "forecast-received", title: `${state.request.fileName} ${state.request.provenance === "borrower-upload" ? "received" : "uploaded"}`, description: `${documentSourceLabel(state.request)} · Matched to the open requirement.`, meta: activityTimestamp(state.request.receivedAt), icon: "document", tone: "evidence" });
+  if (state.request.status === "processing") items.unshift({ id: "forecast-processing", title: "Forecast extraction started", description: "Checking the workbook structure and required figures.", meta: "Just now", icon: "refresh", tone: "info" });
   if (evidence?.status === "ready-for-review") items.unshift({ id: "forecast-ready", title: "Forecast ready for analyst review", description: "Extraction is complete; verification is still open.", meta: "Just now", icon: "fileCheck", tone: "info" });
   if (state.request.status === "failed") items.unshift({ id: "forecast-failed", title: "Forecast processing failed", description: state.request.error ?? "The document could not be processed.", meta: "Just now", icon: "alertCircle", tone: "danger" });
   if (evidence?.status === "verified") items.unshift({ id: "analysis-update", title: "Alex verified the forecast and updated downside analysis", description: "Fixed-charge coverage verified at 1.29x.", meta: "Just now", icon: "checkCircle", tone: "success" });

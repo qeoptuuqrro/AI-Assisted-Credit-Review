@@ -8,6 +8,7 @@ import { Notice } from "../../../shared/ui/Notice/Notice";
 import { Panel } from "../../../shared/ui/Panel/Panel";
 import { SectionHeader } from "../../../shared/ui/SectionHeader/SectionHeader";
 import { StatusPill } from "../../../shared/ui/StatusPill/StatusPill";
+import { WorkflowSteps } from "../../../shared/ui/WorkflowSteps/WorkflowSteps";
 import { findings, type FindingId, type FindingWorkflowState, type ReviewTab } from "./meridianData";
 import {
   currentJudgmentForFinding,
@@ -27,10 +28,11 @@ import { companyLogoDomains } from "../companyLogos";
 import { getCreditFindingIcon } from "../creditReviewPresentation";
 import { getFindingDisplayRisk, getFindingDisplaySummary, getFindingScanSummary, getFindingStatusPresentation } from "./findingJudgmentPresentation";
 import { getLearningTargetProps } from "../learning/MeridianLearningMode";
+import { SeniorDecisionWorkspaceV5, SeniorDecisionWorkspaceV6, type SeniorReviewDecisionSignal } from "../senior/SeniorReviewPackage";
 import styles from "./MeridianReviewWorkspace.module.css";
 
 type RecommendationVariant = "credit-memo" | "open-canvas" | "icon-led" | "focused-lifecycle" | "full-screen-lifecycle";
-type SeniorDecisionVariant = "dense-brief" | "focused-layer" | "full-screen-review" | "command-center";
+type SeniorDecisionVariant = "dense-brief" | "focused-layer" | "full-screen-review" | "command-center" | "unified-brief" | "aligned-workflow";
 type RecommendationRouteMode = "recommendation" | "recommendation-draft" | "senior-decision" | "senior-review";
 
 type RecommendationTabProps = {
@@ -59,6 +61,20 @@ type RecommendationTabProps = {
 };
 
 const availableConditions = meridianDefaultConditions;
+
+function getMeridianDecisionSignals(reassessedFindings: Record<FindingId, boolean>): SeniorReviewDecisionSignal[] {
+  return [
+    { label: "Top-two revenue", value: "61%", detail: "11 pts over threshold" },
+    {
+      label: "Pro forma leverage",
+      value: reassessedFindings["increasing-leverage"] ? "3.9x" : "3.7x",
+      detail: reassessedFindings["increasing-leverage"] ? "0.35x headroom" : "Before classification",
+    },
+    { label: "Fixed-charge coverage", value: "1.41x", detail: "0.21x headroom" },
+  ];
+}
+
+const meridianSeniorReviewSummary = "The renewed Customer A contract lowers near-term expiration risk; margin pressure and leverage still require reporting and covenant protection.";
 
 const recommendationOptions: Array<{
   value: string;
@@ -185,6 +201,40 @@ export function RecommendationTab({ variant = "credit-memo", seniorVariant = "fo
     });
   }
 
+  if (seniorDecision && recommendation && (seniorVariant === "unified-brief" || seniorVariant === "aligned-workflow") && routeMode === "senior-review") {
+    const SeniorWorkspace = seniorVariant === "aligned-workflow" ? SeniorDecisionWorkspaceV6 : SeniorDecisionWorkspaceV5;
+    return (
+      <SeniorWorkspace
+        company="Meridian Foods"
+        logoDomain={companyLogoDomains["Meridian Foods"]}
+        request="$18M working-capital line"
+        facilityType="3-year revolver"
+        decisionQuestion="Should Meridian Foods receive the $18M working-capital line?"
+        reviewSummary={meridianSeniorReviewSummary}
+        recommendation={recommendation}
+        findings={outcomes.map((outcome) => ({
+          id: outcome.finding.id,
+          title: outcome.finding.title,
+          detail: outcome.scanDetail,
+          risk: outcome.risk,
+          status: outcome.shortStatus,
+          tone: outcome.presentation.tone,
+          icon: outcome.icon,
+        }))}
+        decisionSignals={getMeridianDecisionSignals(reassessedFindings)}
+        sourcesCount={12}
+        existingDecision={seniorDecision}
+        draft={seniorDecisionDraft}
+        learningMode={learningMode}
+        learningControl={learningControl}
+        onDraftChange={onSaveSeniorDraft}
+        onExit={onExitSeniorReview ?? (() => undefined)}
+        onOpenRecord={onNavigate}
+        onSubmit={onSeniorDecision}
+      />
+    );
+  }
+
   if (seniorDecision && recommendation) {
     const returnedToAnalyst = seniorDecision.decision === "return_to_analyst";
     return (
@@ -218,6 +268,38 @@ export function RecommendationTab({ variant = "credit-memo", seniorVariant = "fo
   }
 
   if (recommendation) {
+    if ((seniorVariant === "unified-brief" || seniorVariant === "aligned-workflow") && routeMode === "senior-review") {
+      const SeniorWorkspace = seniorVariant === "aligned-workflow" ? SeniorDecisionWorkspaceV6 : SeniorDecisionWorkspaceV5;
+      return (
+        <SeniorWorkspace
+          company="Meridian Foods"
+          logoDomain={companyLogoDomains["Meridian Foods"]}
+          request="$18M working-capital line"
+          facilityType="3-year revolver"
+          decisionQuestion="Should Meridian Foods receive the $18M working-capital line?"
+          reviewSummary={meridianSeniorReviewSummary}
+          recommendation={recommendation}
+          findings={outcomes.map((outcome) => ({
+            id: outcome.finding.id,
+            title: outcome.finding.title,
+            detail: outcome.scanDetail,
+            risk: outcome.risk,
+            status: outcome.shortStatus,
+            tone: outcome.presentation.tone,
+            icon: outcome.icon,
+          }))}
+          decisionSignals={getMeridianDecisionSignals(reassessedFindings)}
+          sourcesCount={12}
+          draft={seniorDecisionDraft}
+          learningMode={learningMode}
+          learningControl={learningControl}
+          onDraftChange={onSaveSeniorDraft}
+          onExit={onExitSeniorReview ?? (() => undefined)}
+          onOpenRecord={onNavigate}
+          onSubmit={onSeniorDecision}
+        />
+      );
+    }
     if (seniorVariant === "command-center" && routeMode === "senior-review") {
       return (
         <CommandCenterSeniorDecisionWorkspace
@@ -249,7 +331,7 @@ export function RecommendationTab({ variant = "credit-memo", seniorVariant = "fo
         />
       );
     }
-    if ((seniorVariant === "full-screen-review" && routeMode !== "senior-review") || (seniorVariant === "command-center" && routeMode !== "senior-review") || (variant === "focused-lifecycle" && routeMode === "recommendation")) {
+    if ((seniorVariant === "full-screen-review" && routeMode !== "senior-review") || (seniorVariant === "command-center" && routeMode !== "senior-review") || ((seniorVariant === "unified-brief" || seniorVariant === "aligned-workflow") && routeMode !== "senior-review") || (variant === "focused-lifecycle" && routeMode === "recommendation")) {
       return (
         <SubmittedRecommendationRecord
           recommendation={recommendation}
@@ -490,7 +572,7 @@ function RecommendationLaunchPanel({ draft, outcomes, escalatedCount, onStart, o
   onNavigate: (tab: ReviewTab) => void;
   learningMode: boolean;
 }) {
-  const activeSectionLabel = ["Recommendation", "Structure", "Rationale", "Protections"][(draft?.activeSection ?? 1) - 1];
+  const activeSectionLabel = ["Recommendation", "Structure", "Rationale", "Protections", "Review"][(draft?.activeSection ?? 1) - 1];
 
   return (
     <div className={styles.recommendationLaunch}>
@@ -508,7 +590,7 @@ function RecommendationLaunchPanel({ draft, outcomes, escalatedCount, onStart, o
           <IconTile tone={draft ? "info" : "success"}><Icon name={draft ? "document" : "checkCircle"} /></IconTile>
           <div>
             <span>{draft ? "Draft in progress" : "Review complete"}</span>
-            <h3 id="recommendation-launch-title">{draft ? `Section ${draft.activeSection} of 4 · ${activeSectionLabel}` : "Ready for Alex Kim to author"}</h3>
+            <h3 id="recommendation-launch-title">{draft ? `Section ${draft.activeSection} of 5 · ${activeSectionLabel}` : "Ready for Alex Kim to author"}</h3>
             <p>{draft ? formatDraftTimestamp(draft.updatedAt) : `${outcomes.length - escalatedCount} findings resolved${escalatedCount > 0 ? ` · ${escalatedCount} escalated` : ""} · 12 sources reviewed`}</p>
           </div>
         </div>
@@ -535,21 +617,30 @@ function FullScreenRecommendationLifecycle(props: DraftRecommendationProps & { d
   return (
     <div className={styles.recommendationFullScreenWorkspace}>
       <header className={styles.recommendationTaskbar}>
-        <Button variant="quiet" size="sm" iconPosition="start" icon={<Icon name="arrowLeft" size="xs" />} onClick={onExit}>Exit and save</Button>
-        <div className={styles.recommendationTaskIdentity}>
-          <CompanyLogo domain={companyLogoDomains["Meridian Foods"]} name="Meridian Foods" size="sm" />
-          <span><strong>Meridian Foods</strong><small>Analyst recommendation · $18M revolver</small></span>
-        </div>
-        <div className={styles.recommendationTaskActions}>
-          <span className={styles.recommendationSaveState}><Icon name="checkCircle" size="xs" /> {formatDraftTimestamp(draft?.updatedAt)}</span>
-          {learningControl}
-          <Button variant="secondary" size="sm" aria-expanded={contextOpen} onClick={() => setContextOpen((current) => !current)}>{contextOpen ? "Close context" : "Case context"}</Button>
+        <div className={styles.recommendationTaskbarInner}>
+          <div className={styles.recommendationTaskLead}>
+            <div className={styles.recommendationTaskIdentity}>
+              <CompanyLogo domain={companyLogoDomains["Meridian Foods"]} name="Meridian Foods" size="sm" />
+              <span><strong>Meridian Foods</strong><small>$18M revolver</small></span>
+            </div>
+            <span className={styles.recommendationTaskDivider} aria-hidden="true" />
+            <div className={styles.recommendationTaskTitle}>
+              <strong>Analyst recommendation</strong>
+              <small>Step {activeSection} of 5</small>
+            </div>
+          </div>
+          <div className={styles.recommendationTaskActions}>
+            <span className={styles.recommendationSaveState}><Icon name="checkCircle" size="xs" /> {formatDraftTimestamp(draft?.updatedAt)}</span>
+            {learningControl}
+            <Button variant="secondary" size="sm" aria-expanded={contextOpen} onClick={() => setContextOpen((current) => !current)}>{contextOpen ? "Close context" : "Case context"}</Button>
+            <Button className={styles.recommendationExitButton} variant="quiet" size="sm" aria-label="Exit and save" title="Exit and save" icon={<Icon name="close" size="sm" />} onClick={onExit}><span className={styles.visuallyHidden}>Exit and save</span></Button>
+          </div>
         </div>
       </header>
 
       <div className={styles.recommendationTaskScroll}>
-        <main className={styles.recommendationFullScreenCanvas} aria-label={`Recommendation section ${activeSection} of 4`}>
-          <GuidedRecommendationCanvas {...props} />
+        <main className={styles.recommendationFullScreenCanvas} aria-label={`Recommendation section ${activeSection} of 5`}>
+          <EditorialRecommendationCanvas {...props} />
         </main>
       </div>
 
@@ -568,6 +659,192 @@ function FullScreenRecommendationLifecycle(props: DraftRecommendationProps & { d
         </aside>
       )}
     </div>
+  );
+}
+
+function EditorialRecommendationCanvas({
+  decision,
+  amount,
+  rationale,
+  conditions,
+  setDecision,
+  setAmount,
+  setRationale,
+  toggleCondition,
+  onSubmit,
+  onNavigate,
+  outcomes,
+  activeSection,
+  setActiveSection,
+  learningMode,
+}: DraftRecommendationProps) {
+  const sections: Array<{ id: RecommendationDraftSection; label: string }> = [
+    { id: 1, label: "Recommendation" },
+    { id: 2, label: "Structure" },
+    { id: 3, label: "Rationale" },
+    { id: 4, label: "Protections" },
+    { id: 5, label: "Review" },
+  ];
+  const selectedOption = recommendationOptions.find((option) => option.value === decision) ?? recommendationOptions[0];
+  const selectedConditions = decision === "Proceed with conditions" ? conditions : [];
+  const readyToReview = Boolean(rationale.trim() && amount.trim() && (decision !== "Proceed with conditions" || conditions.length > 0));
+
+  return (
+    <form className={styles.editorialRecommendation} onSubmit={activeSection === 5 ? onSubmit : (event) => event.preventDefault()}>
+      <div className={styles.editorialRecommendationWorkspace}>
+        <aside className={styles.editorialRecommendationRail}>
+          <div {...getLearningTargetProps(learningMode, "recommendation-sections")}>
+            <WorkflowSteps
+              ariaLabel="Recommendation sections"
+              items={sections}
+              value={activeSection}
+              onChange={setActiveSection}
+              className={styles.editorialRecommendationSteps}
+            />
+          </div>
+
+          <button className={styles.editorialCaseSummary} type="button" onClick={() => onNavigate("findings")} {...getLearningTargetProps(learningMode, "recommendation-readiness")}>
+            <span><strong><Icon name="checkCircle" size="sm" /> Review complete</strong><small>{outcomes.length} findings · 12 sources</small></span>
+          </button>
+        </aside>
+
+        <div className={styles.editorialRecommendationEditor} {...getLearningTargetProps(learningMode, "recommendation-authoring")}>
+          <div key={activeSection} className={styles.editorialRecommendationStage}>
+          {activeSection === 1 && (
+            <section className={styles.editorialRecommendationSection} aria-labelledby="editorial-recommendation-title">
+              <header className={styles.editorialRecommendationHeader} {...getLearningTargetProps(learningMode, "recommendation-story")}>
+                <span>Recommendation</span>
+                <h1 id="editorial-recommendation-title">Choose the credit posture</h1>
+                <p>Set the recommendation senior credit will review.</p>
+              </header>
+
+              <fieldset className={styles.editorialPosturePicker}>
+                <legend className={styles.visuallyHidden}>Recommendation</legend>
+                {recommendationOptions.map((option) => (
+                  <label key={option.value} data-selected={decision === option.value}>
+                    <input className={styles.visuallyHidden} type="radio" name="analyst-recommendation" value={option.value} checked={decision === option.value} onChange={() => setDecision(option.value)} />
+                    <Icon name={option.icon} size="sm" />
+                    <span>{option.label}</span>
+                    <span className={styles.visuallyHidden}>{option.description}</span>
+                  </label>
+                ))}
+              </fieldset>
+
+              <div className={styles.editorialSelectionNote} aria-live="polite">
+                <Icon name={selectedOption.icon} size="sm" />
+                <span>{selectedOption.description}</span>
+              </div>
+            </section>
+          )}
+
+          {activeSection === 2 && (
+            <section className={styles.editorialRecommendationSection} aria-labelledby="editorial-structure-title">
+              <header className={styles.editorialRecommendationHeader}>
+                <span>Structure</span>
+                <h1 id="editorial-structure-title">Set the facility</h1>
+                <p>Confirm the amount and term that will travel with the recommendation.</p>
+              </header>
+              <div className={styles.editorialTermFields}>
+                <label><span>Recommended amount</span><input value={amount} onChange={(event) => setAmount(event.target.value)} /></label>
+                <label><span>Facility term</span><input value="3 years" readOnly /></label>
+              </div>
+            </section>
+          )}
+
+          {activeSection === 3 && (
+            <section className={styles.editorialRecommendationSection} aria-labelledby="editorial-rationale-title">
+              <header className={styles.editorialRecommendationHeader}>
+                <span>Rationale</span>
+                <h1 id="editorial-rationale-title">Write the credit rationale</h1>
+                <p>Give senior credit the judgment behind the posture, not a recap of every finding.</p>
+              </header>
+              <label className={styles.editorialRationaleField}>
+                <span>Analyst rationale</span>
+                <textarea value={rationale} placeholder="Summarize the credit case for senior review…" onChange={(event) => setRationale(event.target.value)} />
+                <small>Human-authored · Included in the decision record</small>
+              </label>
+            </section>
+          )}
+
+          {activeSection === 4 && (
+            <section className={styles.editorialRecommendationSection} aria-labelledby="editorial-protections-title">
+              <header className={styles.editorialRecommendationHeader}>
+                <span>Protections</span>
+                <h1 id="editorial-protections-title">Choose the protections</h1>
+                <p>Only selected conditions will appear in the senior handoff.</p>
+              </header>
+              {decision === "Proceed with conditions" ? (
+                <fieldset className={styles.editorialConditionList}>
+                  <legend className={styles.visuallyHidden}>Recommended conditions</legend>
+                  {availableConditions.map((condition) => (
+                    <label key={condition} data-selected={conditions.includes(condition)}>
+                      <input type="checkbox" checked={conditions.includes(condition)} onChange={() => toggleCondition(condition)} />
+                      <span>{condition}</span>
+                      {conditions.includes(condition) && <Icon name="check" size="sm" />}
+                    </label>
+                  ))}
+                </fieldset>
+              ) : (
+                <div className={styles.editorialSelectionNote}>
+                  <Icon name="checkCircle" size="sm" />
+                  <span>No additional conditions will be included.</span>
+                </div>
+              )}
+            </section>
+          )}
+
+          {activeSection === 5 && (
+            <section className={`${styles.editorialRecommendationSection} ${styles.editorialRecommendationReview}`} aria-labelledby="editorial-review-title">
+              <header className={styles.editorialRecommendationHeader}>
+                <span>Review</span>
+                <h1 id="editorial-review-title">Ready for senior credit</h1>
+                <p>Confirm the recommendation record before it becomes read-only.</p>
+              </header>
+
+              <section className={styles.editorialReviewPosture} aria-label="Recommendation summary">
+                <span className={styles.editorialReviewPostureIcon}><Icon name={selectedOption.icon} size="md" /></span>
+                <div><small>Recommendation</small><h2>{decision}</h2><p>{selectedOption.description}</p></div>
+                <Button type="button" size="sm" variant="quiet" onClick={() => setActiveSection(1)}>Edit</Button>
+              </section>
+
+              <div className={styles.editorialReviewDetails}>
+                <section aria-labelledby="editorial-review-structure-title">
+                  <header><h2 id="editorial-review-structure-title">Facility</h2><Button type="button" size="sm" variant="quiet" onClick={() => setActiveSection(2)}>Edit</Button></header>
+                  <dl>
+                    <div><dt>Amount</dt><dd>{amount}</dd></div>
+                    <div><dt>Term</dt><dd>3 years</dd></div>
+                    <div><dt>Type</dt><dd>Revolver</dd></div>
+                  </dl>
+                </section>
+
+                <section aria-labelledby="editorial-review-rationale-title">
+                  <header><h2 id="editorial-review-rationale-title">Rationale</h2><Button type="button" size="sm" variant="quiet" onClick={() => setActiveSection(3)}>Edit</Button></header>
+                  <p>{rationale}</p>
+                </section>
+
+                <section aria-labelledby="editorial-review-protections-title">
+                  <header><h2 id="editorial-review-protections-title">Protections</h2><Button type="button" size="sm" variant="quiet" onClick={() => setActiveSection(4)}>Edit</Button></header>
+                  {selectedConditions.length > 0 ? (
+                    <ul>{selectedConditions.map((condition) => <li key={condition}><Icon name="check" size="xs" /><span>{condition}</span></li>)}</ul>
+                  ) : <p>No additional protections.</p>}
+                </section>
+              </div>
+            </section>
+          )}
+          </div>
+
+          <footer className={styles.editorialRecommendationFooter}>
+            <span className={styles.editorialRecommendationOwner}><Icon name="lock" size="sm" /><span><strong>Alex Kim</strong><small>Recommendation owner</small></span></span>
+            <div>
+              {activeSection > 1 && <Button type="button" size="lg" variant="secondary" onClick={() => setActiveSection((activeSection - 1) as RecommendationDraftSection)}>Back</Button>}
+              {activeSection < 5
+                ? <Button type="button" size="lg" variant="primary" disabled={activeSection === 4 && !readyToReview} onClick={() => setActiveSection((activeSection + 1) as RecommendationDraftSection)}>{activeSection === 4 ? "Review recommendation" : "Continue"}</Button>
+                : <Button type="submit" size="lg" variant="primary" disabled={!readyToReview}>Submit for senior review</Button>}
+            </div>
+          </footer>
+        </div>
+      </div>
+    </form>
   );
 }
 

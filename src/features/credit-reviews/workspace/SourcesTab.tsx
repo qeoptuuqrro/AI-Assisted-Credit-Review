@@ -1,14 +1,16 @@
 import { useMemo, useRef, useState, type KeyboardEvent, type ReactNode, type RefObject } from "react";
 import { Button } from "../../../shared/ui/Button/Button";
+import { CompanyLogo } from "../../../shared/ui/CompanyLogo/CompanyLogo";
 import { FilterChip } from "../../../shared/ui/FilterChip/FilterChip";
 import { Icon } from "../../../shared/ui/Icon/Icon";
 import { IconTile } from "../../../shared/ui/IconTile/IconTile";
 import { SearchField } from "../../../shared/ui/SearchField/SearchField";
 import { SectionHeader } from "../../../shared/ui/SectionHeader/SectionHeader";
-import { SourceDocumentPreview, SourceReviewDetail } from "./SourceReviewDetail";
+import { SourceDocumentPreview, SourceReviewActions, SourceReviewDetail } from "./SourceReviewDetail";
 import { getSourceReviewPresentation } from "./sourceReviewData";
 import { isSourceReviewReady, sources, type FindingId, type SourceRecord, type SourceReviewState } from "./meridianData";
 import { getCreditSourceIcon } from "../creditReviewPresentation";
+import { companyLogoDomains } from "../companyLogos";
 import { getLearningTargetProps } from "../learning/MeridianLearningMode";
 import styles from "./SourcesTab.module.css";
 
@@ -17,6 +19,7 @@ type SourcesTabProps = {
   onLinkRenewal: () => void;
   selectedId: string | null;
   returnFindingId: FindingId | null;
+  resumeEvidenceStage?: "evidence" | "review" | null;
   reviewStates: Record<string, SourceReviewState>;
   onReviewStateChange: (id: string, state: SourceReviewState) => void;
   onSelectSource: (id: string) => void;
@@ -27,7 +30,7 @@ type SourcesTabProps = {
 
 type SourceScope = "all" | "attention" | "ready";
 
-export function SourcesTab({ renewalLinked, onLinkRenewal, selectedId, returnFindingId, reviewStates, onReviewStateChange, onSelectSource, onCloseSource, learningMode = false, learningControl }: SourcesTabProps) {
+export function SourcesTab({ renewalLinked, onLinkRenewal, selectedId, returnFindingId, resumeEvidenceStage = null, reviewStates, onReviewStateChange, onSelectSource, onCloseSource, learningMode = false, learningControl }: SourcesTabProps) {
   const learn = (topicId: "source-review-story") => getLearningTargetProps(learningMode, topicId);
   const [query, setQuery] = useState("");
   const [scope, setScope] = useState<SourceScope>("all");
@@ -39,6 +42,7 @@ export function SourcesTab({ renewalLinked, onLinkRenewal, selectedId, returnFin
   const unresolvedCount = sources.filter((source) => !isSourceReviewReady(source, reviewStates[source.id])).length;
   const selected = sources.find((source) => source.id === selectedId) ?? sources[0];
   const selectedIndex = sources.findIndex((source) => source.id === selected.id);
+  const contextualInspection = Boolean(returnFindingId);
 
   if (!selectedId) {
     return (
@@ -92,8 +96,8 @@ export function SourcesTab({ renewalLinked, onLinkRenewal, selectedId, returnFin
       <section className={styles.workflowPane} aria-label="Evidence review workflow">
         <header className={styles.focusedHeader} {...learn("source-review-story")}>
           <div className={styles.productIdentity}>
-            <span className={styles.productMark} aria-hidden="true">B</span>
-            <span><strong>Meridian Foods</strong><small>Credit review · Evidence</small></span>
+            <CompanyLogo domain={companyLogoDomains["Meridian Foods"]} name="Meridian Foods" size="sm" />
+            <span><strong>Meridian Foods</strong><small>{contextualInspection ? "Credit review · Document inspection" : "Credit review · Evidence"}</small></span>
           </div>
           <div className={styles.focusedHeaderActions}>
             {learningControl}
@@ -119,20 +123,33 @@ export function SourcesTab({ renewalLinked, onLinkRenewal, selectedId, returnFin
             </div>
           </div>
         ) : (
-          <div className={styles.workflowScroll}>
-            <SourceReviewDetail
+          <div className={styles.reviewWorkflow}>
+            <div className={styles.workflowScroll}>
+              <SourceReviewDetail
+                source={selected}
+                reviewState={reviewStates[selected.id] ?? "pending"}
+                renewalLinked={renewalLinked}
+                sourceIndex={selectedIndex}
+                sourceCount={sources.length}
+                unresolvedCount={unresolvedCount}
+                contextFindingId={returnFindingId}
+                resumeEvidenceStage={resumeEvidenceStage}
+                onBrowseSources={() => setSourceBrowserOpen(true)}
+                onSelectSource={onSelectSource}
+                onPrevious={() => moveSource(-1)}
+                onNext={() => moveSource(1)}
+                learningMode={learningMode}
+              />
+            </div>
+            <SourceReviewActions
               source={selected}
               reviewState={reviewStates[selected.id] ?? "pending"}
               renewalLinked={renewalLinked}
-              sourceIndex={selectedIndex}
-              sourceCount={sources.length}
-              unresolvedCount={unresolvedCount}
-              onBrowseSources={() => setSourceBrowserOpen(true)}
-              onSelectSource={onSelectSource}
-              onPrevious={() => moveSource(-1)}
-              onNext={() => moveSource(1)}
+              contextFindingId={returnFindingId}
+              resumeEvidenceStage={resumeEvidenceStage}
               onFlag={toggleFlag}
               onComplete={completeReview}
+              onReturn={onCloseSource}
               learningMode={learningMode}
             />
           </div>

@@ -13,8 +13,25 @@
 .sourcePage {
   width: 100%;
   height: 100%;
+  overflow: hidden;
   margin: 0;
   padding: 0;
+}
+
+.sourcePage > .focusedContent {
+  height: 100%;
+  min-height: 0;
+}
+
+@media (max-width: 960px) {
+  .sourcePage {
+    overflow-y: auto;
+  }
+
+  .sourcePage > .focusedContent {
+    height: auto;
+    min-height: 100%;
+  }
 }
 
 .seniorDecisionPage {
@@ -1885,21 +1902,38 @@
 .recommendationTaskbar {
   position: relative;
   z-index: var(--salt-z-navigation);
-  min-height: var(--salt-space-16);
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: var(--salt-space-6);
+  min-height: var(--salt-recommendation-editor-taskbar-height);
   padding-inline: var(--salt-layout-page-gutter-fluid);
   border-bottom: var(--salt-border-subtle);
   background: var(--salt-color-surface);
+}
+
+.recommendationTaskbarInner {
+  width: min(100%, var(--salt-layout-standard-max));
+  min-height: var(--salt-recommendation-editor-taskbar-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--salt-space-6);
+  margin-inline: auto;
+}
+
+.recommendationTaskLead,
+.recommendationTaskActions,
+.recommendationSaveState {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.recommendationTaskLead {
+  gap: var(--salt-space-4);
 }
 
 .recommendationTaskIdentity {
   min-width: 0;
   display: flex;
   align-items: center;
-  justify-self: center;
   gap: var(--salt-space-3);
 }
 
@@ -1924,16 +1958,38 @@
 }
 
 .recommendationTaskIdentity small,
+.recommendationTaskTitle small,
 .recommendationSaveState {
   color: var(--salt-color-text-subtle);
   font-size: var(--salt-type-size-xs);
   line-height: var(--salt-type-line-ui-secondary);
 }
 
+.recommendationTaskDivider {
+  width: var(--salt-border-width);
+  height: var(--salt-space-8);
+  flex: 0 0 var(--salt-border-width);
+  background: var(--salt-color-border-subtle);
+}
+
+.recommendationTaskTitle {
+  min-width: 0;
+  display: grid;
+  gap: var(--salt-space-0-5);
+}
+
+.recommendationTaskTitle strong {
+  overflow: hidden;
+  color: var(--salt-color-text-strong);
+  font-size: var(--salt-type-size-ui-secondary);
+  font-weight: var(--salt-type-weight-regular);
+  line-height: var(--salt-type-line-ui-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .recommendationTaskActions,
 .recommendationSaveState {
-  display: flex;
-  align-items: center;
   gap: var(--salt-space-2);
 }
 
@@ -1941,22 +1997,28 @@
   color: var(--salt-color-success-text);
 }
 
+.recommendationExitButton {
+  width: var(--salt-button-height-sm);
+  padding-inline: 0;
+}
+
 .recommendationTaskScroll {
   min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: var(--salt-space-10) var(--salt-layout-page-gutter-fluid) var(--salt-space-16);
+  overflow: hidden;
+  padding-inline: var(--salt-layout-page-gutter-fluid);
 }
 
 .recommendationFullScreenCanvas {
   width: min(100%, var(--salt-layout-standard-max));
+  height: 100%;
+  min-height: 100%;
   margin-inline: auto;
 }
 
 .recommendationFullScreenContext {
   position: absolute;
   z-index: var(--salt-z-drawer);
-  top: calc(var(--salt-space-16) + var(--salt-space-4));
+  top: calc(var(--salt-recommendation-editor-taskbar-height) + var(--salt-space-4));
   right: var(--salt-space-4);
   bottom: var(--salt-space-4);
   width: min(calc(100% - var(--salt-space-8)), var(--salt-drawer-width));
@@ -2041,6 +2103,526 @@
 
 .recommendationFullScreenContext > footer {
   padding-top: var(--salt-space-4);
+}
+
+/* Recommendation V5: focused focused editor. */
+.editorialRecommendation,
+.editorialRecommendationWorkspace {
+  height: 100%;
+  min-height: 100%;
+}
+
+.editorialRecommendationWorkspace {
+  display: grid;
+  grid-template-columns: var(--salt-recommendation-editor-rail-width) minmax(0, var(--salt-recommendation-editor-content-width));
+  align-items: stretch;
+  justify-content: start;
+  gap: var(--salt-recommendation-editor-rail-gap);
+}
+
+.editorialRecommendationRail {
+  position: sticky;
+  top: 0;
+  height: calc(100dvh - var(--salt-recommendation-editor-taskbar-height));
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--salt-space-8);
+  padding-block: var(--salt-space-20) var(--salt-space-12);
+}
+
+.editorialRecommendationSteps {
+  width: 100%;
+  max-width: 100%;
+}
+
+.editorialRecommendationRail > div {
+  min-width: 0;
+}
+
+.editorialCaseSummary {
+  width: 100%;
+  display: block;
+  padding: var(--salt-space-4) var(--salt-space-2);
+  border: 0;
+  border-top: var(--salt-border-subtle);
+  background: transparent;
+  color: var(--salt-color-text-muted);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.editorialCaseSummary:hover {
+  background: var(--salt-color-surface-hover);
+}
+
+.editorialCaseSummary:focus-visible {
+  border-radius: var(--salt-radius-sm);
+  outline: 0;
+  box-shadow: var(--salt-shadow-focus);
+}
+
+.editorialCaseSummary > span {
+  min-width: 0;
+  display: grid;
+  gap: var(--salt-space-0-5);
+}
+
+.editorialCaseSummary strong {
+  display: flex;
+  align-items: center;
+  gap: var(--salt-space-2);
+  color: var(--salt-color-text-strong);
+  font-size: var(--salt-type-size-sm);
+  font-weight: var(--salt-type-weight-regular);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.editorialCaseSummary strong svg {
+  flex: 0 0 var(--salt-icon-sm);
+  color: var(--salt-color-success-text);
+}
+
+.editorialCaseSummary small {
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.editorialRecommendationEditor {
+  min-width: 0;
+  height: calc(100dvh - var(--salt-recommendation-editor-taskbar-height));
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
+.editorialRecommendationStage {
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: var(--salt-space-3);
+  scrollbar-gutter: stable;
+  animation: editorial-recommendation-enter var(--salt-motion-fast) var(--salt-ease-standard) both;
+}
+
+@keyframes editorial-recommendation-enter {
+  from {
+    opacity: 0;
+    transform: translateY(var(--salt-space-1));
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.editorialRecommendationSection {
+  display: grid;
+  align-content: start;
+  gap: var(--salt-space-8);
+  padding-block: var(--salt-space-16) var(--salt-space-12);
+}
+
+.editorialRecommendationHeader {
+  max-width: var(--salt-recommendation-editor-content-width);
+  display: grid;
+  gap: var(--salt-space-1);
+}
+
+.editorialRecommendationHeader > span {
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
+  letter-spacing: var(--salt-type-tracking-label);
+  text-transform: uppercase;
+}
+
+.editorialRecommendationHeader h1 {
+  margin: 0;
+  color: var(--salt-color-text-strong);
+  font-family: var(--salt-type-family-display);
+  font-size: var(--salt-type-size-2xl);
+  font-weight: var(--salt-type-weight-display);
+  line-height: var(--salt-type-line-heading);
+}
+
+.editorialRecommendationHeader p {
+  margin: 0;
+  color: var(--salt-color-text-muted);
+  font-size: var(--salt-type-size-ui);
+  line-height: var(--salt-type-line-ui);
+}
+
+.editorialPosturePicker,
+.editorialConditionList {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.editorialPosturePicker {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--salt-border-width);
+  overflow: hidden;
+  border: var(--salt-border-subtle);
+  border-radius: var(--salt-radius-md);
+  background: var(--salt-color-border-subtle);
+}
+
+.editorialPosturePicker label {
+  min-height: var(--salt-space-16);
+  display: flex;
+  align-items: center;
+  gap: var(--salt-space-3);
+  padding-inline: var(--salt-space-4);
+  background: var(--salt-color-surface);
+  color: var(--salt-color-text-muted);
+  cursor: pointer;
+  transition: background-color var(--salt-motion-fast) var(--salt-ease-standard), color var(--salt-motion-fast) var(--salt-ease-standard);
+}
+
+.editorialPosturePicker label:hover {
+  background: var(--salt-color-surface-hover);
+  color: var(--salt-color-text-strong);
+}
+
+.editorialPosturePicker label[data-selected="true"] {
+  background: var(--salt-color-indigo-100);
+  color: var(--salt-color-action);
+}
+
+.editorialPosturePicker label:has(input:focus-visible),
+.editorialConditionList label:has(input:focus-visible) {
+  position: relative;
+  z-index: 1;
+  outline: var(--salt-focus-ring-width) solid var(--salt-color-focus);
+  outline-offset: calc(var(--salt-focus-ring-width) * -1);
+}
+
+.editorialPosturePicker label > span:not(.visuallyHidden) {
+  color: var(--salt-color-text-strong);
+  font-size: var(--salt-type-size-ui-secondary);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.editorialSelectionNote {
+  min-height: var(--salt-space-12);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: var(--salt-space-3);
+  padding-inline: var(--salt-space-4);
+  border-radius: var(--salt-radius-md);
+  background: var(--salt-color-surface-subtle);
+  color: var(--salt-color-text-muted);
+  font-size: var(--salt-type-size-ui-secondary);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.editorialSelectionNote svg {
+  color: var(--salt-color-action);
+}
+
+.editorialTermFields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--salt-space-4);
+}
+
+.editorialTermFields label,
+.editorialRationaleField {
+  display: grid;
+  gap: var(--salt-space-2);
+  color: var(--salt-color-text);
+  font-size: var(--salt-type-size-sm);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.editorialTermFields input,
+.editorialRationaleField textarea {
+  box-sizing: border-box;
+  border: var(--salt-border-default);
+  border-radius: var(--salt-radius-md);
+  background: var(--salt-color-surface);
+  color: var(--salt-color-text-strong);
+  font: inherit;
+}
+
+.editorialTermFields input {
+  height: var(--salt-control-height-xl);
+  padding-inline: var(--salt-space-3);
+}
+
+.editorialTermFields input[readonly] {
+  background: var(--salt-color-surface-subtle);
+  color: var(--salt-color-text-muted);
+}
+
+.editorialRationaleField textarea {
+  min-height: var(--salt-recommendation-rationale-min-height);
+  resize: vertical;
+  padding: var(--salt-space-3);
+  font-size: var(--salt-type-size-ui);
+  line-height: var(--salt-type-line-ui);
+}
+
+.editorialRationaleField small {
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.editorialTermFields input:focus,
+.editorialRationaleField textarea:focus {
+  border-color: var(--salt-color-focus);
+  outline: 0;
+  box-shadow: var(--salt-shadow-focus);
+}
+
+.editorialConditionList {
+  display: grid;
+}
+
+.editorialConditionList label {
+  min-height: var(--salt-space-12);
+  display: grid;
+  grid-template-columns: var(--salt-space-4) minmax(0, 1fr) var(--salt-icon-sm);
+  align-items: center;
+  gap: var(--salt-space-3);
+  padding-inline: var(--salt-space-3);
+  border-bottom: var(--salt-border-subtle);
+  color: var(--salt-color-text-strong);
+  font-size: var(--salt-type-size-ui-secondary);
+  line-height: var(--salt-type-line-ui-secondary);
+  cursor: pointer;
+}
+
+.editorialConditionList label:first-of-type {
+  border-top: var(--salt-border-subtle);
+}
+
+.editorialConditionList label[data-selected="true"] {
+  background: var(--salt-color-surface-subtle);
+}
+
+.editorialConditionList input {
+  width: var(--salt-space-4);
+  height: var(--salt-space-4);
+  margin: 0;
+  accent-color: var(--salt-color-focus);
+}
+
+.editorialConditionList label > svg {
+  color: var(--salt-color-action);
+}
+
+.editorialRecommendationReview {
+  gap: var(--salt-space-6);
+}
+
+.editorialReviewPosture {
+  display: grid;
+  grid-template-columns: var(--salt-space-12) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--salt-space-4);
+  padding: var(--salt-space-4);
+  border-radius: var(--salt-radius-md);
+  background: var(--salt-color-surface-subtle);
+}
+
+.editorialReviewPostureIcon {
+  width: var(--salt-space-12);
+  height: var(--salt-space-12);
+  display: grid;
+  place-items: center;
+  border-radius: var(--salt-radius-full);
+  background: var(--salt-color-indigo-100);
+  color: var(--salt-color-action);
+}
+
+.editorialReviewPosture > div {
+  min-width: 0;
+  display: grid;
+  gap: var(--salt-space-0-5);
+}
+
+.editorialReviewPosture small,
+.editorialReviewDetails dt {
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.editorialReviewPosture h2,
+.editorialReviewDetails h2 {
+  margin: 0;
+  color: var(--salt-color-text-strong);
+  font-size: var(--salt-type-size-ui);
+  font-weight: var(--salt-type-weight-regular);
+  line-height: var(--salt-type-line-ui);
+}
+
+.editorialReviewPosture p,
+.editorialReviewDetails p {
+  margin: 0;
+  color: var(--salt-color-text-muted);
+  font-size: var(--salt-type-size-sm);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.editorialReviewDetails {
+  border-top: var(--salt-border-subtle);
+}
+
+.editorialReviewDetails > section {
+  display: grid;
+  gap: var(--salt-space-3);
+  padding-block: var(--salt-space-4);
+  border-bottom: var(--salt-border-subtle);
+}
+
+.editorialReviewDetails > section > header {
+  min-height: var(--salt-control-height-sm);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--salt-space-4);
+}
+
+.editorialReviewDetails dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--salt-space-5);
+  margin: 0;
+}
+
+.editorialReviewDetails dl > div {
+  min-width: 0;
+  display: grid;
+  gap: var(--salt-space-1);
+}
+
+.editorialReviewDetails dd {
+  overflow: hidden;
+  margin: 0;
+  color: var(--salt-color-text-strong);
+  font-size: var(--salt-type-size-sm);
+  line-height: var(--salt-type-line-ui-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.editorialReviewDetails ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--salt-space-2) var(--salt-space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.editorialReviewDetails li {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--salt-space-2);
+  color: var(--salt-color-text);
+  font-size: var(--salt-type-size-sm);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.editorialReviewDetails li svg {
+  flex: 0 0 auto;
+  margin-top: var(--salt-space-1);
+  color: var(--salt-color-success-text);
+}
+
+.editorialRecommendationFooter {
+  position: sticky;
+  z-index: var(--salt-z-base);
+  bottom: 0;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: var(--salt-recommendation-editor-footer-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--salt-space-6);
+  border-top: var(--salt-border-subtle);
+  background: var(--salt-color-surface);
+  box-shadow: var(--salt-focused-workflow-footer-shadow);
+}
+
+.editorialRecommendationFooter > div {
+  display: flex;
+  gap: var(--salt-space-3);
+}
+
+.editorialRecommendationOwner {
+  display: flex;
+  align-items: center;
+  gap: var(--salt-space-3);
+  color: var(--salt-color-text-subtle);
+}
+
+.editorialRecommendationOwner > span {
+  display: grid;
+  gap: var(--salt-space-0-5);
+}
+
+.editorialRecommendationOwner strong {
+  color: var(--salt-color-text-strong);
+  font-size: var(--salt-type-size-sm);
+  font-weight: var(--salt-type-weight-regular);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.editorialRecommendationOwner small {
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+@container (max-width: 900px) {
+  .editorialRecommendationWorkspace {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .editorialRecommendationRail {
+    position: static;
+    height: auto;
+    display: grid;
+    gap: var(--salt-space-6);
+    padding-block: var(--salt-space-8) 0;
+  }
+
+  .editorialRecommendationEditor {
+    height: calc(100dvh - var(--salt-recommendation-editor-taskbar-height) - var(--salt-control-height-lg) - var(--salt-space-8));
+  }
+
+  .editorialCaseSummary {
+    max-width: calc(var(--salt-space-20) * 3);
+  }
+
+  .editorialRecommendationSection {
+    padding-block: var(--salt-space-8) var(--salt-space-12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .editorialRecommendationStage {
+    animation: none;
+  }
 }
 
 /* Recommendation V4: gated, focused analyst lifecycle. */
@@ -5009,32 +5591,75 @@
   }
 
   .recommendationTaskbar {
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: var(--salt-space-3);
     padding-block: var(--salt-space-2);
   }
 
-  .recommendationTaskbar > button:first-child {
-    justify-self: start;
+  .recommendationTaskbarInner {
+    min-height: var(--salt-control-height-xl);
+    gap: var(--salt-space-3);
   }
 
-  .recommendationTaskIdentity {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    justify-self: start;
+  .recommendationTaskLead {
+    gap: var(--salt-space-2);
   }
 
-  .recommendationTaskActions {
-    grid-column: 2;
-    grid-row: 1;
-  }
-
+  .recommendationTaskDivider,
+  .recommendationTaskTitle,
+  .recommendationTaskIdentity small,
   .recommendationSaveState {
     display: none;
   }
 
+  .editorialCaseSummary {
+    display: none;
+  }
+
   .recommendationTaskScroll {
-    padding-top: var(--salt-space-8);
+    padding-top: 0;
+  }
+
+  .editorialRecommendationSection {
+    gap: var(--salt-space-6);
+  }
+
+  .editorialRecommendationHeader h1 {
+    font-size: var(--salt-type-size-xl);
+    line-height: var(--salt-type-line-section);
+  }
+
+  .editorialTermFields {
+    grid-template-columns: 1fr;
+  }
+
+  .editorialReviewPosture {
+    grid-template-columns: var(--salt-space-10) minmax(0, 1fr) auto;
+    gap: var(--salt-space-3);
+    padding: var(--salt-space-3);
+  }
+
+  .editorialReviewPostureIcon {
+    width: var(--salt-space-10);
+    height: var(--salt-space-10);
+  }
+
+  .editorialReviewDetails dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .editorialReviewDetails ul {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .editorialRecommendationOwner {
+    display: none;
+  }
+
+  .editorialRecommendationFooter {
+    padding-right: var(--salt-space-4);
+  }
+
+  .editorialRecommendationFooter > div {
+    margin-left: auto;
   }
 
   .seniorTaskStatus > span {

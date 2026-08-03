@@ -123,7 +123,7 @@
 .comparisonItem > p {
   margin: 0;
   color: var(--salt-color-text-muted);
-  font-size: var(--salt-type-size-sm);
+  font-size: var(--salt-type-size-ui-secondary);
   line-height: var(--salt-type-line-ui-secondary);
 }
 
@@ -230,6 +230,69 @@
   border-left: var(--salt-border-subtle);
 }
 
+/* The decision-led presentation keeps V5's explicit before/after sequence,
+   but groups the supporting change records into one compound review object. */
+.summary[data-presentation="decision-led"] .comparisonGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  overflow: hidden;
+  border: var(--salt-border-subtle);
+  border-radius: var(--salt-radius-lg);
+  background: var(--salt-color-surface);
+  box-shadow: var(--salt-product-object-shadow-subtle);
+}
+
+.summary[data-presentation="decision-led"] .comparisonItem {
+  min-height: 0;
+  padding: var(--salt-space-3) var(--salt-space-5);
+  border: 0;
+  border-right: var(--salt-border-subtle);
+  background: var(--salt-color-surface);
+}
+
+.summary[data-presentation="decision-led"] .comparisonItem:last-child {
+  border-right: 0;
+}
+
+.summary[data-presentation="decision-led"] .riskItem {
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas:
+    "heading heading"
+    "transition description";
+  align-items: center;
+  column-gap: var(--salt-space-6);
+  row-gap: var(--salt-space-3);
+  padding-block: var(--salt-space-4);
+  border-right: 0;
+  border-bottom: var(--salt-border-subtle);
+  background: var(--salt-color-surface-subtle);
+}
+
+.summary[data-presentation="decision-led"] .riskItem .itemHeading {
+  grid-area: heading;
+}
+
+.summary[data-presentation="decision-led"] .riskItem .riskTransition {
+  grid-area: transition;
+  min-height: 0;
+}
+
+.summary[data-presentation="decision-led"] .riskItem .riskTransition > span {
+  padding: var(--salt-space-3);
+  border: var(--salt-border-subtle);
+  border-radius: var(--salt-radius-sm);
+  background: var(--salt-color-surface);
+}
+
+.summary[data-presentation="decision-led"] .riskDescription {
+  grid-area: description;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  padding-left: var(--salt-space-5);
+  border-left: var(--salt-border-subtle);
+}
+
 @media (max-width: 760px) {
   .comparisonGrid,
   .comparisonGrid[data-has-risk="true"] {
@@ -268,6 +331,36 @@
   }
 
   .summary[data-presentation="detail-v2"] .riskDescription {
+    padding-top: var(--salt-space-4);
+    padding-left: 0;
+    border-top: var(--salt-border-subtle);
+    border-left: 0;
+  }
+
+  .summary[data-presentation="decision-led"] .comparisonGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .summary[data-presentation="decision-led"] .comparisonItem,
+  .summary[data-presentation="decision-led"] .comparisonItem:last-child {
+    border-right: 0;
+    border-bottom: var(--salt-border-subtle);
+  }
+
+  .summary[data-presentation="decision-led"] .comparisonItem:last-child {
+    border-bottom: 0;
+  }
+
+  .summary[data-presentation="decision-led"] .riskItem {
+    grid-column: auto;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "heading"
+      "transition"
+      "description";
+  }
+
+  .summary[data-presentation="decision-led"] .riskDescription {
     padding-top: var(--salt-space-4);
     padding-left: 0;
     border-top: var(--salt-border-subtle);

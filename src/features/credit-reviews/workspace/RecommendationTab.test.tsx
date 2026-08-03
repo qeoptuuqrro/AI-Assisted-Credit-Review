@@ -227,14 +227,17 @@ describe("RecommendationTab full-screen lifecycle", () => {
       />,
     );
 
-    expect(screen.getByRole("heading", { name: "Explain why this posture is supportable" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Write the credit rationale" })).toBeTruthy();
+    const sectionNavigation = screen.getByRole("navigation", { name: "Recommendation sections" });
+    expect(sectionNavigation.querySelectorAll("button")).toHaveLength(5);
+    expect(screen.getByRole("button", { name: "Rationale" }).getAttribute("aria-current")).toBe("step");
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
     expect(onSaveDraft).toHaveBeenLastCalledWith(expect.objectContaining({ activeSection: 4 }));
     fireEvent.click(screen.getByRole("button", { name: "Exit and save" }));
     expect(onExitRecommendation).toHaveBeenCalledOnce();
   });
 
-  it("submits the completed full-screen analyst draft", () => {
+  it("reviews and submits the completed full-screen analyst draft", () => {
     const onSubmit = vi.fn();
     render(
       <RecommendationTab
@@ -248,7 +251,7 @@ describe("RecommendationTab full-screen lifecycle", () => {
           amount: "$18,000,000",
           rationale: "Saved rationale",
           conditions: recommendation.conditions,
-          activeSection: 4,
+          activeSection: 5,
           updatedAt: "2026-07-26T15:30:00.000Z",
         }}
         onSaveDraft={vi.fn()}
@@ -258,6 +261,8 @@ describe("RecommendationTab full-screen lifecycle", () => {
       />,
     );
 
+    expect(screen.getByRole("heading", { name: "Ready for senior credit" })).toBeTruthy();
+    expect(screen.getByText("$18,000,000")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Submit for senior review" }));
     expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ rationale: "Saved rationale", amount: "$18,000,000" }));
   });

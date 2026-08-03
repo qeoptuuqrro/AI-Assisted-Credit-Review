@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState, type KeyboardEvent, type MouseEvent } from "react";
 import { useRouter, type AppPath } from "../../../app/router";
 import { AppUtilityAction } from "../../../app/AppUtilityActions";
-import { getDesignOption } from "../../design-tools/designOptions";
+import { getCurrentDesignOption, getDesignOption } from "../../design-tools/designOptions";
 import { Button } from "../../../shared/ui/Button/Button";
+import { CaseStatusPill, type CaseStatus } from "../../../shared/ui/CaseStatusPill/CaseStatusPill";
 import { CompanyLogo } from "../../../shared/ui/CompanyLogo/CompanyLogo";
 import { DesignVariantNotice } from "../../../shared/ui/DesignVariantNotice/DesignVariantNotice";
 import { Icon } from "../../../shared/ui/Icon/Icon";
@@ -36,6 +37,7 @@ import {
   type AnalystRecommendationDraft,
   type DemoPresetId,
   type JudgmentRecord,
+  type ReassessmentInput,
   type SeniorDecisionDraft,
   type SeniorDecisionRecord,
 } from "../workflow/creditReviewState";
@@ -156,19 +158,28 @@ export function MeridianReviewWorkspace() {
   const financialVariant = designOption?.area === "financials" && designOption.renderKey === "card-grid"
     ? "card-grid"
     : "treasury";
-  const findingVariant = designOption?.area === "reassessment"
-    ? designOption.renderKey === "inline-dossier"
+  const reassessmentDesignOption = designOption?.area === "reassessment"
+    ? designOption
+    : getCurrentDesignOption("reassessment");
+  const findingVariant = reassessmentDesignOption
+    ? reassessmentDesignOption.renderKey === "inline-dossier"
       ? "inline-dossier"
-      : designOption.renderKey === "insight-led-reassessment"
+      : reassessmentDesignOption.renderKey === "insight-led-reassessment"
         ? "insight-led-reassessment"
-        : designOption.renderKey === "attributable-insight-brief"
+        : reassessmentDesignOption.renderKey === "verification-led-decision-review"
+          ? "verification-led-decision-review"
+        : reassessmentDesignOption.renderKey === "evidence-first-decision-review"
+          ? "evidence-first-decision-review"
+        : reassessmentDesignOption.renderKey === "attributable-decision-review"
+          ? "attributable-decision-review"
+        : reassessmentDesignOption.renderKey === "attributable-insight-brief"
           ? "attributable-insight-brief"
-        : designOption.renderKey === "attributable-analysis-reassessment"
+        : reassessmentDesignOption.renderKey === "attributable-analysis-reassessment"
           ? "attributable-analysis-reassessment"
-        : designOption.renderKey === "breathable-judgment-reassessment"
+        : reassessmentDesignOption.renderKey === "breathable-judgment-reassessment"
           ? "breathable-judgment-reassessment"
           : "focused-reassessment"
-    : "attributable-insight-brief";
+    : "focused-reassessment";
   const activityVariant = designOption?.area === "activity"
     ? designOption.renderKey === "timeline"
       ? "timeline"
@@ -188,14 +199,18 @@ export function MeridianReviewWorkspace() {
         : "credit-memo"
     : "full-screen-lifecycle";
   const seniorDecisionVariant = designOption?.area === "senior-decision"
-    ? designOption.renderKey === "senior-decision-command-center"
+    ? designOption.renderKey === "senior-decision-aligned-workflow"
+      ? "aligned-workflow"
+      : designOption.renderKey === "senior-decision-unified-brief"
+      ? "unified-brief"
+      : designOption.renderKey === "senior-decision-command-center"
       ? "command-center"
       : designOption.renderKey === "senior-decision-full-screen-review"
       ? "full-screen-review"
       : designOption.renderKey === "senior-decision-dense-brief"
         ? "dense-brief"
         : "focused-layer"
-    : "command-center";
+    : "aligned-workflow";
   const requestedSourceId = searchParams.get("source");
   const activeSourceId = activeTab === "sources"
     ? requestedSourceId && sources.some((source) => source.id === requestedSourceId)
@@ -206,6 +221,11 @@ export function MeridianReviewWorkspace() {
   const returnFindingId = requestedReturnFindingId && findings.some((finding) => finding.id === requestedReturnFindingId)
     ? requestedReturnFindingId as FindingId
     : null;
+  const requestedResumeEvidenceStage = searchParams.get("resumeEvidence");
+  const sourceResumeEvidenceStage = requestedResumeEvidenceStage === "evidence" || requestedResumeEvidenceStage === "review"
+    ? requestedResumeEvidenceStage
+    : null;
+  const resumeEvidenceStage = activeFindingId ? sourceResumeEvidenceStage : null;
   const [reviewState, dispatchReview] = usePersistentReviewState(meridianReviewReducer, createInitialMeridianState(baseActivity), MERIDIAN_STORAGE_KEY);
   const { findingStates, sourceReviewStates, evidenceStates, activity, judgments, recommendationDraft, recommendation, seniorDecisionDraft, seniorDecision } = reviewState;
   const isSeniorDecisionRoute = pathname === seniorDecisionPath;
@@ -235,7 +255,6 @@ export function MeridianReviewWorkspace() {
   const unresolvedFindings = findings.filter((finding) => !isFindingAddressed(findingStates[finding.id]));
   const escalatedCount = findings.filter((finding) => findingStates[finding.id] === "escalated").length;
   const reviewComplete = resolvedCount === findings.length;
-  const hasPendingReassessment = Object.values(findingStates).some((state) => state === "analysis_ready");
   const revisionInProgress = Boolean(recommendationDraft && reviewState.decisionHistory?.some((decision) => decision.decision === "return_to_analyst"));
   const caseAttention = deriveMeridianCaseAttention(reviewState);
   const requestedPreset = searchParams.get("preset") as DemoPresetId | null;
@@ -274,10 +293,10 @@ export function MeridianReviewWorkspace() {
       navigate(tabPaths.recommendation, { replace: true });
       return;
     }
-    if (isSeniorDecisionReviewRoute && (!recommendation || Boolean(seniorDecision))) {
+    if (isSeniorDecisionReviewRoute && (!recommendation || (Boolean(seniorDecision) && seniorDecisionVariant !== "unified-brief"))) {
       navigate(tabPaths.recommendation, { replace: true });
     }
-  }, [applyingPreset, isRecommendationDraftRoute, isSeniorDecisionReviewRoute, navigate, recommendation, reviewComplete, seniorDecision]);
+  }, [applyingPreset, isRecommendationDraftRoute, isSeniorDecisionReviewRoute, navigate, recommendation, reviewComplete, seniorDecision, seniorDecisionVariant]);
 
   useEffect(() => {
     setLearningScope(routeLearningScope);
@@ -304,16 +323,23 @@ export function MeridianReviewWorkspace() {
     navigate(findingPaths[id]);
   }
 
-  function openSource(id: string, fromFinding: FindingId | null = returnFindingId) {
+  function openSource(id: string, fromFinding: FindingId | null = returnFindingId, resumeStage: "evidence" | "review" | null = sourceResumeEvidenceStage) {
     const params = new URLSearchParams();
     params.set("source", id);
     if (fromFinding) params.set("fromFinding", fromFinding);
+    if (resumeStage) params.set("resumeEvidence", resumeStage);
+    const activeDesign = searchParams.get("design");
+    if (activeDesign) params.set("design", activeDesign);
     navigate(tabPaths.sources, { search: `?${params.toString()}` });
   }
 
   function closeSource() {
     if (returnFindingId) {
-      navigate(findingPaths[returnFindingId]);
+      const activeDesign = searchParams.get("design");
+      const params = new URLSearchParams();
+      if (sourceResumeEvidenceStage) params.set("resumeEvidence", sourceResumeEvidenceStage);
+      if (activeDesign) params.set("design", activeDesign);
+      navigate(findingPaths[returnFindingId], { search: `?${params.toString()}` });
       return;
     }
     navigate(tabPaths.sources);
@@ -509,13 +535,28 @@ export function MeridianReviewWorkspace() {
     });
   }
 
-  function reassessFinding(id: FindingId) {
+  function updateVerificationDraft(id: FindingId, draft: { confirmedChecks: string[]; analystContext?: string }) {
+    const requirementId = findingRequirementIds[id];
+    dispatchReview({
+      type: "evidence_transition",
+      id: requirementId,
+      action: {
+        type: "verification-progress-updated",
+        confirmedChecks: draft.confirmedChecks,
+        analystContext: draft.analystContext,
+        updatedBy: "Alex Kim",
+        updatedAt: new Date().toISOString(),
+      },
+    });
+  }
+
+  function reassessFinding(id: FindingId, input: ReassessmentInput = {}) {
     const requirementId = findingRequirementIds[id];
     const evidence = evidenceStates[requirementId];
     if (!evidence.fileName || !["ready-for-review", "verified"].includes(evidence.status)) return;
     const requirement = evidenceRequirements[requirementId];
     const createdAt = new Date().toISOString();
-    dispatchReview({ type: "analysis_completed", record: { id: `${id}-${createdAt}`, findingId: id, evidenceRequirementId: requirementId, createdAt, status: "current" } });
+    dispatchReview({ type: "analysis_completed", record: { id: `${id}-${createdAt}`, findingId: id, evidenceRequirementId: requirementId, createdAt, status: "current", ...input } });
     addActivity({
       id: `${id}-reassessed`,
       type: "ai",
@@ -590,18 +631,15 @@ export function MeridianReviewWorkspace() {
     if (next) openFinding(next.id);
   }
 
-  const statusLabel = seniorDecision
-    ? seniorDecision.decision === "return_to_analyst" ? "Returned to analyst" : "Decision recorded"
+  const caseStatus: CaseStatus = seniorDecision
+    ? seniorDecision.decision === "return_to_analyst" ? "revision-requested" : seniorDecision.decision === "decline" ? "declined" : "approved"
     : caseAttention === "awaiting_senior_decision"
-      ? "Senior decision"
+      ? "awaiting-decision"
     : revisionInProgress
-      ? "Revision in progress"
+      ? "revision-requested"
     : reviewComplete
-      ? escalatedCount > 0 ? "Senior attention" : "Review complete"
-      : hasPendingReassessment
-        ? "Analysis updated"
-        : null;
-  const statusTone = hasPendingReassessment || revisionInProgress ? "info" : escalatedCount > 0 ? "warning" : "success";
+      ? "ready-to-recommend"
+      : "analyst-review";
   const primaryLabel = recommendationSubmitted
     ? seniorDecisionDraft ? "Resume senior review" : "Senior review"
     : reviewComplete
@@ -627,7 +665,7 @@ export function MeridianReviewWorkspace() {
               logo={<CompanyLogo domain={companyLogoDomains["Meridian Foods"]} name="Meridian Foods" size="lg" />}
               title="Meridian Foods"
               metadata={["$18M working-capital line", "3-year revolver", "Alex Kim", "Due today"]}
-              status={statusLabel ? <StatusPill tone={statusTone}>{statusLabel}</StatusPill> : undefined}
+              status={<CaseStatusPill status={caseStatus} />}
               utilityAction={<ReviewBookmarkButton slug="meridian-foods" company="Meridian Foods" />}
               action={headerAction}
             />
@@ -679,13 +717,20 @@ export function MeridianReviewWorkspace() {
             onRejectEvidence={rejectEvidence}
             onUseExistingEvidence={useExistingEvidence}
             onResetEvidence={resetEvidence}
+            onUpdateVerificationDraft={updateVerificationDraft}
             onVerifyEvidence={verifyEvidence}
             onReassess={reassessFinding}
             onRecordJudgment={recordFindingJudgment}
-            onOpenSource={(sourceId, fromFindingId) => {
+            onOpenSource={(sourceId, fromFindingId, resumeStage) => {
               const sourceFindingId = fromFindingId ?? activeFindingId;
               const firstFindingSource = sourceFindingId ? findings.find((finding) => finding.id === sourceFindingId)?.sourceIds[0] : undefined;
-              openSource(sourceId ?? firstFindingSource ?? "customer-a-contract", sourceFindingId);
+              openSource(sourceId ?? firstFindingSource ?? "customer-a-contract", sourceFindingId, resumeStage ?? null);
+            }}
+            resumeEvidenceStage={resumeEvidenceStage}
+            onEvidenceResumeHandled={() => {
+              if (!activeFindingId) return;
+              const activeDesign = searchParams.get("design");
+              navigate(findingPaths[activeFindingId], { search: activeDesign ? `?design=${encodeURIComponent(activeDesign)}` : "", replace: true });
             }}
             learningMode={learningMode}
           />
@@ -698,6 +743,7 @@ export function MeridianReviewWorkspace() {
             onLinkRenewal={linkRenewal}
             selectedId={activeSourceId}
             returnFindingId={returnFindingId}
+            resumeEvidenceStage={sourceResumeEvidenceStage}
             reviewStates={sourceReviewStates}
             onReviewStateChange={updateSourceReviewState}
             onSelectSource={(sourceId) => openSource(sourceId)}
@@ -726,7 +772,7 @@ export function MeridianReviewWorkspace() {
             onStartRecommendation={startRecommendation}
             onExitRecommendation={() => navigate(tabPaths.recommendation)}
             onOpenSeniorReview={() => navigate(seniorDecisionReviewPath)}
-            onExitSeniorReview={() => navigate(tabPaths.recommendation)}
+            onExitSeniorReview={() => navigate("/credit-reviews/senior")}
             onReopenReturnedRecommendation={reopenReturnedRecommendation}
             onNavigate={navigateToTab}
             learningMode={learningMode}

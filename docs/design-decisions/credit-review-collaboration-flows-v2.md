@@ -22,18 +22,19 @@ Meridian remains the deep `Needs judgment` scenario.
 4. The result shows `Material → Moderate`, what changed, and what did not.
 5. The 61% concentration remains, so Alex must accept the updated analysis and own the resulting judgment.
 
-The old long inline dossier is preserved as `reassessment-v1-inline-dossier`. The current focused flow is `reassessment-v2-focused-change`. The insight-led post-reassessment composition remains an evaluation-only candidate at `reassessment-v3-insight-brief`; it does not replace the V2 production default.
+The old long inline dossier is preserved as `reassessment-v1-inline-dossier`, and the original focused flow remains preserved as `reassessment-v2-focused-change`. The insight-led post-reassessment composition remains an evaluation-only candidate at `reassessment-v3-insight-brief`. V8 remains the historical evidence-first direction, while the current direction is `reassessment-v9-verification-led-brief`, which keeps the same evidence selection, analyst verification, scoped analysis, and human judgment sequence and adds a capacity-first entry for the leverage finding.
 
 ## Northstar — missing evidence is resolved
 
 Northstar is the canonical `Needs verification` scenario.
 
 1. The 2027 Operating Forecast is missing and downside coverage is unavailable.
-2. Alex requests the document from Sarah Lee with a due date, optional message, and reminders.
+2. Alex requests the document from Marcus Reed with a due date, optional message, and reminders.
 3. The right-hand live preview shows the exact secure borrower experience.
-4. The received forecast is matched to the open requirement.
-5. Only the affected analysis reruns.
-6. Downside fixed-charge coverage becomes 1.29x and the case becomes `Analysis ready`.
+4. Marcus uploads the forecast through the secure document portal; supplier and receipt time remain attached to the file.
+5. The received forecast is matched to the open requirement and extracted automatically.
+6. Alex compares the extracted values with the original document and explicitly verifies the evidence.
+7. Only the affected analysis reruns. Downside fixed-charge coverage becomes 1.29x and the case becomes `Analysis ready`.
 
 ## Mercury transfer
 
@@ -56,7 +57,7 @@ Northstar is the canonical `Needs verification` scenario.
 
 - Meridian Context → Review → Processing → Result → Accept updated analysis.
 - Explicit Changed/Unchanged result and Material-to-Moderate transition.
-- Design Tools V1 selection and Return to current V2.
+- Historical Design Tools selections and return to the current route were verified in this pass. Design Tools now preserves V1–V8 and returns to current V9.
 - Northstar Document → Recipient → Review → Send request.
-- Waiting for borrower → Received → Processing → Analysis ready at 1.29x.
+- Waiting for borrower → Received → Ready for verification → Analyst verification → Analysis ready at 1.29x.
 - Northstar split screen at desktop and single-pane 390px flow without horizontal overflow.

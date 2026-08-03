@@ -1,0 +1,738 @@
+/*
+ * Policy rule authoring is a page-owned task surface. It borrows the quiet
+ * controls and spacing of the Salt system, while keeping the compact,
+ * icon-first chooser and sentence-like configuration rows.
+ */
+
+.builderDialog {
+  --salt-dialog-max-height: calc(100dvh - (var(--salt-space-8) * 2));
+  --salt-dialog-header-padding: var(--salt-space-6) var(--salt-space-8) var(--salt-space-4);
+  --salt-dialog-header-padding-mobile: var(--salt-space-5) var(--salt-space-4) var(--salt-space-4);
+  --salt-dialog-body-padding: var(--salt-space-5) var(--salt-space-8) var(--salt-space-6);
+  --salt-dialog-body-padding-mobile: var(--salt-space-5) var(--salt-space-4);
+  --salt-dialog-footer-padding: var(--salt-space-4) var(--salt-space-8) var(--salt-space-5);
+  --salt-dialog-footer-padding-mobile: var(--salt-space-4);
+  --salt-dialog-body-gap: 0;
+  --salt-dialog-footer-min-height: calc(var(--salt-space-12) + var(--salt-space-4));
+  --salt-dialog-radius: var(--salt-radius-lg);
+}
+
+.builderDialog > header {
+  align-items: center;
+}
+
+.builderDialog > header h2 {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.builderDialog > footer {
+  flex-wrap: wrap;
+}
+
+.builderProgress {
+  padding: 0 0 var(--salt-space-6);
+}
+
+.builderProgress ol {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.builderProgress ol::before {
+  content: "";
+  position: absolute;
+  top: calc(var(--salt-space-3) - var(--salt-border-width));
+  left: var(--salt-space-3);
+  right: var(--salt-space-3);
+  height: var(--salt-border-width);
+  background: var(--salt-color-border-subtle);
+}
+
+.progressStep {
+  position: relative;
+  z-index: 0;
+  display: grid;
+  justify-items: center;
+  gap: var(--salt-space-1);
+  min-width: 0;
+  color: var(--salt-color-text-subtle);
+  text-align: center;
+}
+
+.progressStep > span {
+  position: relative;
+  z-index: 1;
+  width: var(--salt-space-6);
+  height: var(--salt-space-6);
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  border: var(--salt-border-default);
+  border-radius: var(--salt-radius-full);
+  background: var(--salt-color-surface);
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-none);
+}
+
+.progressStep small {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  color: inherit;
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.progressStep:first-child {
+  justify-items: start;
+  text-align: left;
+}
+
+.progressStep:last-child {
+  justify-items: end;
+  text-align: right;
+}
+
+.progressStepDone,
+.progressStepCurrent {
+  color: var(--salt-color-text-strong);
+}
+
+.progressStepDone > span {
+  border-color: var(--salt-color-action);
+  color: var(--salt-color-action);
+}
+
+.progressStepCurrent > span {
+  border-color: var(--salt-color-action);
+  background: var(--salt-color-action);
+  color: var(--salt-color-on-action);
+  box-shadow: var(--salt-shadow-focus);
+}
+
+.builderStart {
+  display: grid;
+  gap: var(--salt-space-5);
+}
+
+.builderSectionLabel {
+  color: var(--salt-color-text-muted);
+  font-size: var(--salt-type-size-sm);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.ruleTypeGrid {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--salt-space-3);
+}
+
+.ruleTypeCard {
+  min-width: 0;
+  max-width: 100%;
+  min-height: calc(var(--salt-control-height-xl) + var(--salt-space-1));
+  display: inline-flex;
+  align-items: center;
+  gap: var(--salt-space-2);
+  padding: var(--salt-space-1) var(--salt-space-3);
+  border: var(--salt-border-default);
+  border-radius: var(--salt-radius-md);
+  background: var(--salt-color-surface);
+  color: var(--salt-color-text-strong);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--salt-motion-fast) var(--salt-ease-standard), background-color var(--salt-motion-fast) var(--salt-ease-standard), box-shadow var(--salt-motion-fast) var(--salt-ease-standard), transform var(--salt-motion-fast) var(--salt-ease-standard);
+}
+
+.ruleTypeCard:hover {
+  border-color: var(--salt-color-text-subtle);
+  background: var(--salt-color-surface-subtle);
+  box-shadow: var(--salt-shadow-raised);
+}
+
+.ruleTypeCard:active {
+  transform: translateY(var(--salt-motion-press-offset));
+}
+
+.ruleTypeCard:focus-visible {
+  outline: var(--salt-focus-ring-width) solid var(--salt-color-focus);
+  outline-offset: var(--salt-focus-ring-offset);
+}
+
+.ruleTypeCard strong {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: inherit;
+  font-size: var(--salt-type-size-ui-secondary);
+  font-weight: var(--salt-type-weight-medium);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.builderDivider {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--salt-space-3);
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.builderDivider::before,
+.builderDivider::after {
+  content: "";
+  border-top: var(--salt-border-subtle);
+}
+
+.promptField {
+  display: grid;
+  gap: var(--salt-space-2);
+}
+
+.promptLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--salt-space-2);
+  color: var(--salt-color-text-strong);
+  font-size: var(--salt-type-size-sm);
+  font-weight: var(--salt-type-weight-medium);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.promptLabel svg {
+  flex: 0 0 auto;
+  color: var(--salt-color-action);
+}
+
+.promptField textarea {
+  width: 100%;
+  min-height: calc(var(--salt-space-16) + var(--salt-space-12));
+  box-sizing: border-box;
+  resize: vertical;
+  padding: var(--salt-space-4);
+  border: var(--salt-border-default);
+  border-radius: var(--salt-radius-md);
+  background: var(--salt-color-surface);
+  color: var(--salt-color-text-strong);
+  font: inherit;
+  font-size: var(--salt-type-size-ui);
+  line-height: var(--salt-type-line-ui);
+  transition: border-color var(--salt-motion-fast) var(--salt-ease-standard), box-shadow var(--salt-motion-fast) var(--salt-ease-standard);
+}
+
+.promptField textarea:hover {
+  border-color: var(--salt-color-text-subtle);
+}
+
+.promptField textarea:focus {
+  border-color: var(--salt-color-focus);
+  outline: 0;
+  box-shadow: var(--salt-shadow-focus);
+}
+
+.promptMeta {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--salt-space-4);
+  color: var(--salt-color-text-subtle);
+}
+
+.promptMeta small,
+.promptError {
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.promptMeta small:first-child {
+  min-width: 0;
+}
+
+.promptMeta small:last-child {
+  flex: none;
+  white-space: nowrap;
+}
+
+.promptError {
+  margin: calc(var(--salt-space-2) * -1) 0 0;
+  color: var(--salt-color-danger-text);
+}
+
+.builderGenerating {
+  min-height: calc(var(--salt-space-20) * 3);
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: var(--salt-space-4);
+  padding-block: var(--salt-space-6);
+  text-align: center;
+}
+
+.builderGenerating > :first-child {
+  animation: policy-generation-pulse var(--salt-motion-processing-spin) var(--salt-ease-standard) infinite alternate;
+}
+
+.builderGenerating > div:nth-child(2) {
+  display: grid;
+  gap: var(--salt-space-1);
+}
+
+.builderGenerating h3,
+.builderGenerating p {
+  margin: 0;
+}
+
+.builderGenerating h3 {
+  color: var(--salt-color-text-strong);
+  font-size: var(--salt-type-size-lg);
+  font-weight: var(--salt-type-weight-display);
+  line-height: var(--salt-type-line-section);
+}
+
+.builderGenerating p {
+  max-width: var(--salt-measure-copy);
+  color: var(--salt-color-text-muted);
+  font-size: var(--salt-type-size-sm);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.builderGenerating ol {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin: var(--salt-space-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.builderGenerating li {
+  position: relative;
+  z-index: 0;
+  display: grid;
+  justify-items: center;
+  gap: var(--salt-space-2);
+  min-width: 0;
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
+  text-align: center;
+  transition: color var(--salt-motion-fast) var(--salt-ease-standard);
+}
+
+.builderGenerating li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: calc(var(--salt-space-3) - var(--salt-border-width));
+  left: calc(50% + var(--salt-space-4));
+  right: calc(-50% + var(--salt-space-4));
+  height: var(--salt-border-width);
+  background: var(--salt-color-border-subtle);
+}
+
+.builderGenerating li > span {
+  width: var(--salt-space-6);
+  height: var(--salt-space-6);
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  border: var(--salt-border-default);
+  border-radius: var(--salt-radius-full);
+  background: var(--salt-color-surface);
+  font-size: var(--salt-type-size-xs);
+}
+
+.generationStepActive {
+  color: var(--salt-color-text-strong) !important;
+}
+
+.generationStepActive > span {
+  border-color: var(--salt-color-action);
+  color: var(--salt-color-action);
+}
+
+.builderConfiguration {
+  --policy-builder-label-column: calc(var(--salt-space-20) * 2);
+
+  display: grid;
+  gap: var(--salt-space-5);
+}
+
+.builderField {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: var(--policy-builder-label-column) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--salt-space-4);
+}
+
+.builderField > span:first-child {
+  min-width: 0;
+  color: var(--salt-color-text-muted);
+  font-size: var(--salt-type-size-sm);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.builderField input {
+  width: 100%;
+  min-height: calc(var(--salt-control-height-xl) + var(--salt-space-2));
+  box-sizing: border-box;
+  padding: 0 var(--salt-space-4);
+  border: var(--salt-border-width) solid var(--salt-color-control-border);
+  border-radius: var(--salt-radius-md);
+  background: var(--salt-color-surface-subtle);
+  color: var(--salt-color-text-strong);
+  font: inherit;
+  font-size: var(--salt-type-size-ui);
+  line-height: var(--salt-type-line-ui);
+  transition: border-color var(--salt-motion-fast) var(--salt-ease-standard), box-shadow var(--salt-motion-fast) var(--salt-ease-standard);
+}
+
+.builderField input:hover {
+  border-color: var(--salt-color-border);
+  background: var(--salt-color-surface);
+}
+
+.builderField input:focus {
+  border-color: var(--salt-color-focus);
+  background: var(--salt-color-surface);
+  outline: 0;
+  box-shadow: var(--salt-shadow-focus);
+}
+
+.conditionEditor {
+  display: grid;
+  gap: var(--salt-space-3);
+  padding-top: var(--salt-space-4);
+  border-top: var(--salt-border-subtle);
+}
+
+.conditionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--salt-space-4);
+  margin-bottom: var(--salt-space-1);
+}
+
+.conditionHeader > div {
+  min-width: 0;
+  display: grid;
+  gap: var(--salt-space-1);
+}
+
+.conditionHeader strong {
+  color: var(--salt-color-text-strong);
+  font-size: var(--salt-type-size-sm);
+  font-weight: var(--salt-type-weight-medium);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.conditionHeader small {
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.conditionHeader > svg {
+  flex: 0 0 auto;
+  color: var(--salt-color-text-muted);
+}
+
+.builderField input[aria-invalid="true"] {
+  border-color: var(--salt-color-danger-text);
+}
+
+.inputStack {
+  min-width: 0;
+  display: grid;
+  gap: var(--salt-space-1);
+}
+
+.fieldError {
+  color: var(--salt-color-danger-text);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.inheritedPolicy {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: var(--salt-icon-sm) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--salt-space-3);
+  padding: var(--salt-space-3) var(--salt-space-4);
+  border-left: var(--salt-space-1) solid var(--salt-color-action-border-subtle);
+  border-radius: var(--salt-radius-sm);
+  background: var(--salt-color-surface-subtle);
+  color: var(--salt-color-text-muted);
+}
+
+.inheritedPolicy > svg {
+  margin-top: var(--salt-space-0-5);
+}
+
+.inheritedPolicy > div {
+  min-width: 0;
+  display: grid;
+  gap: var(--salt-space-1);
+}
+
+.inheritedPolicy strong,
+.inheritedPolicy span,
+.inheritedPolicy small {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.inheritedPolicy strong {
+  color: var(--salt-color-text-strong);
+  font-size: var(--salt-type-size-sm);
+  font-weight: var(--salt-type-weight-medium);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.inheritedPolicy span {
+  color: var(--salt-color-text-muted);
+  font-size: var(--salt-type-size-sm);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.inheritedPolicy small {
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.builderBoundary {
+  display: grid;
+  grid-template-columns: var(--salt-icon-sm) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--salt-space-3);
+  padding: var(--salt-space-3) var(--salt-space-4);
+  border-radius: var(--salt-radius-sm);
+  background: var(--salt-color-surface-subtle);
+  color: var(--salt-color-text-muted);
+}
+
+.builderBoundary > span {
+  min-width: 0;
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.builderBoundary strong {
+  color: var(--salt-color-text-strong);
+  font-size: var(--salt-type-size-sm);
+  font-weight: var(--salt-type-weight-regular);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.builderBoundary small {
+  margin-left: var(--salt-space-2);
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.ruleReview {
+  display: grid;
+  gap: var(--salt-space-5);
+}
+
+.reviewSentence {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: var(--salt-icon-tile-size) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--salt-space-4);
+  padding: var(--salt-space-5);
+  border-radius: var(--salt-radius-lg);
+  background: var(--salt-color-surface-subtle);
+}
+
+.reviewSentence > div:last-child {
+  min-width: 0;
+  display: grid;
+  gap: var(--salt-space-2);
+}
+
+.reviewSentence span,
+.reviewDetails dt {
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-micro);
+}
+
+.reviewSentence strong {
+  color: var(--salt-color-text-strong);
+  font-size: var(--salt-type-size-ui);
+  font-weight: var(--salt-type-weight-regular);
+  line-height: var(--salt-type-line-ui);
+  overflow-wrap: anywhere;
+}
+
+.reviewDetails {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--salt-space-4) var(--salt-space-6);
+  margin: 0;
+}
+
+.reviewDetails > div {
+  min-width: 0;
+  display: grid;
+  gap: var(--salt-space-1);
+}
+
+.reviewDetails dd {
+  min-width: 0;
+  margin: 0;
+  color: var(--salt-color-text-strong);
+  font-size: var(--salt-type-size-ui-secondary);
+  line-height: var(--salt-type-line-ui-secondary);
+  overflow-wrap: anywhere;
+}
+
+.discardPrompt {
+  min-height: calc(var(--salt-space-20) * 2);
+  display: grid;
+  grid-template-columns: var(--salt-icon-tile-size) minmax(0, 1fr);
+  place-content: center;
+  align-items: center;
+  gap: var(--salt-space-4);
+}
+
+.discardPrompt p {
+  margin: 0;
+  color: var(--salt-color-text);
+  font-size: var(--salt-type-size-ui-secondary);
+  line-height: var(--salt-type-line-ui);
+  overflow-wrap: anywhere;
+}
+
+.builderSuccess {
+  min-height: calc(var(--salt-space-20) * 2);
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: var(--salt-space-3);
+  text-align: center;
+}
+
+.builderSuccess h3 {
+  max-width: 100%;
+  margin: 0;
+  color: var(--salt-color-text-strong);
+  font-family: var(--salt-type-family-display);
+  font-size: var(--salt-type-size-lg);
+  font-weight: var(--salt-type-weight-display);
+  line-height: var(--salt-type-line-section);
+  overflow-wrap: anywhere;
+}
+
+.builderSuccess p {
+  max-width: var(--salt-measure-copy);
+  margin: 0;
+  color: var(--salt-color-text-muted);
+  font-size: var(--salt-type-size-sm);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@keyframes policy-generation-pulse {
+  from { opacity: .55; transform: scale(.96); }
+}
+
+@media (max-width: 600px) {
+  .builderDialog {
+    --salt-dialog-max-height: 100dvh;
+    --salt-dialog-radius-mobile: 0;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+
+  .builderDialog > footer > button {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .builderField {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: var(--salt-space-2);
+  }
+
+  .builderField > span:first-child {
+    display: block;
+    min-height: 0;
+  }
+
+  .promptMeta {
+    flex-direction: column;
+    gap: var(--salt-space-1);
+  }
+
+  .promptMeta small:last-child {
+    white-space: normal;
+  }
+
+  .reviewDetails {
+    grid-template-columns: 1fr;
+  }
+
+  .builderGenerating ol {
+    grid-template-columns: 1fr;
+    gap: var(--salt-space-3);
+  }
+
+  .builderGenerating li {
+    grid-template-columns: var(--salt-space-6) minmax(0, 1fr);
+    justify-items: start;
+    text-align: left;
+  }
+
+  .builderGenerating li:not(:last-child)::after {
+    top: var(--salt-space-6);
+    bottom: calc(var(--salt-space-3) * -1);
+    left: calc(var(--salt-space-3) - var(--salt-border-width));
+    right: auto;
+    width: var(--salt-border-width);
+    height: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ruleTypeCard,
+  .promptField textarea,
+  .builderField input,
+  .builderGenerating li {
+    transition: none;
+  }
+
+  .builderGenerating > :first-child {
+    animation: none;
+  }
+}

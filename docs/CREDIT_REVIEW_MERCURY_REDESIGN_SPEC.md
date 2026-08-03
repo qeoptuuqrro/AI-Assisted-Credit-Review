@@ -133,7 +133,7 @@ States exercised: Activity, Portfolio, auto-transfer entry, portfolio edit entry
 
 States exercised: Expense details, Expense/Mileage switch, category menu, warning state, three receipt rows, and Review.
 
-- The workflow uses the same focused-shell principle as Send: a quiet left rail, a 424px reading/form column, and an open canvas.
+- The workflow uses the same focused-shell principle as Send: a quiet left rail, a responsive `clamp(424px, 42vw, 560px)` reading/form column, and an open canvas.
 - Form controls are about 40px high with 8px radii. The category warning is a 44px warm inset row with one 16px alert icon; it is not a full warning card.
 - Receipt files are stacked 40px rows within one shared attachment boundary. One icon and one trailing action support scanning.
 - Review replaces the form with a dominant amount, a simple two-column key/value ledger, the same compact attachment group, and Back/Submit actions. The content becomes calmer as the user approaches commitment.

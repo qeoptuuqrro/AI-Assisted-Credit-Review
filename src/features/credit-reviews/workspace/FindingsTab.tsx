@@ -10,14 +10,16 @@ import { findings, sources, type FindingDefinition, type FindingId, type Finding
 import { getSourceReviewPresentation } from "./sourceReviewData";
 import { AssessmentFlowV2 } from "./AssessmentFlowV2";
 import { evidenceRequirements, findingRequirementIds, type EvidenceIntakeState, type EvidenceRequestRecord, type EvidenceRequirementId } from "../workflow/evidenceWorkflow";
-import { currentJudgmentForFinding, isFindingAddressed, type JudgmentRecord } from "../workflow/creditReviewState";
+import { currentJudgmentForFinding, isFindingAddressed, type JudgmentRecord, type ReassessmentInput } from "../workflow/creditReviewState";
 import { getCreditFindingIcon, getCreditSourceIcon } from "../creditReviewPresentation";
 import { getFindingDisplayRisk, getFindingDisplaySummary, getFindingScanSummary, getFindingStatusPresentation } from "./findingJudgmentPresentation";
 import { getLearningTargetProps } from "../learning/MeridianLearningMode";
 import styles from "./MeridianReviewWorkspace.module.css";
 
+type FindingReviewVariant = "inline-dossier" | "focused-reassessment" | "insight-led-reassessment" | "breathable-judgment-reassessment" | "attributable-analysis-reassessment" | "attributable-insight-brief" | "attributable-decision-review" | "evidence-first-decision-review" | "verification-led-decision-review";
+
 type FindingsTabProps = {
-  variant?: "inline-dossier" | "focused-reassessment" | "insight-led-reassessment" | "breathable-judgment-reassessment" | "attributable-analysis-reassessment" | "attributable-insight-brief";
+  variant?: FindingReviewVariant;
   activeFindingId: FindingId | null;
   findingStates: Record<FindingId, FindingWorkflowState>;
   sourceReviewStates: Record<string, SourceReviewState>;
@@ -35,10 +37,13 @@ type FindingsTabProps = {
   onRejectEvidence: (id: FindingId, message: string) => void;
   onUseExistingEvidence: (id: FindingId) => void;
   onResetEvidence: (id: FindingId) => void;
+  onUpdateVerificationDraft: (id: FindingId, draft: { confirmedChecks: string[]; analystContext?: string }) => void;
   onVerifyEvidence: (id: FindingId) => void;
-  onReassess: (id: FindingId) => void;
+  onReassess: (id: FindingId, input?: ReassessmentInput) => void;
   onRecordJudgment: (id: FindingId, judgment: Omit<JudgmentRecord, "findingId" | "createdAt" | "author" | "reassessmentId">) => void;
-  onOpenSource: (sourceId?: string, fromFindingId?: FindingId) => void;
+  onOpenSource: (sourceId?: string, fromFindingId?: FindingId, resumeEvidenceStage?: "evidence" | "review") => void;
+  resumeEvidenceStage?: "evidence" | "review" | null;
+  onEvidenceResumeHandled?: () => void;
 };
 
 type FindingStage = "assessment" | "evidence" | "judgment";
@@ -49,11 +54,31 @@ const findingStages = [
   { id: "judgment", label: "Judgment" },
 ] satisfies Array<{ id: FindingStage; label: string }>;
 
+const findingFlowVariants = {
+  "focused-reassessment": { layout: "focused", judgmentLayout: "compact", language: "ai-explicit", reviewPresentation: "standard", workflowPresentation: "standard", verificationPolicy: "implicit" },
+  "insight-led-reassessment": { layout: "insight-led", judgmentLayout: "compact", language: "ai-explicit", reviewPresentation: "standard", workflowPresentation: "standard", verificationPolicy: "implicit" },
+  "breathable-judgment-reassessment": { layout: "focused", judgmentLayout: "breathable", language: "ai-explicit", reviewPresentation: "standard", workflowPresentation: "standard", verificationPolicy: "implicit" },
+  "attributable-analysis-reassessment": { layout: "focused", judgmentLayout: "breathable", language: "attributable", reviewPresentation: "standard", workflowPresentation: "standard", verificationPolicy: "implicit" },
+  "attributable-insight-brief": { layout: "insight-led", judgmentLayout: "breathable", language: "attributable", reviewPresentation: "standard", workflowPresentation: "standard", verificationPolicy: "implicit" },
+  "attributable-decision-review": { layout: "focused", judgmentLayout: "breathable", language: "attributable", reviewPresentation: "decision-led", workflowPresentation: "standard", verificationPolicy: "implicit" },
+  "evidence-first-decision-review": { layout: "focused", judgmentLayout: "editorial", language: "attributable", reviewPresentation: "decision-led", workflowPresentation: "editorial", verificationPolicy: "explicit-checklist" },
+  "verification-led-decision-review": { layout: "focused", judgmentLayout: "editorial", language: "attributable", reviewPresentation: "verification-led", workflowPresentation: "editorial", verificationPolicy: "explicit-checklist" },
+} as const satisfies Record<Exclude<FindingReviewVariant, "inline-dossier">, {
+  layout: "focused" | "insight-led";
+  judgmentLayout: "compact" | "breathable" | "editorial";
+  language: "ai-explicit" | "attributable";
+  reviewPresentation: "standard" | "decision-led" | "verification-led";
+  workflowPresentation: "standard" | "editorial";
+  verificationPolicy: "implicit" | "explicit-checklist";
+}>;
+
 export function FindingsTab(props: FindingsTabProps) {
   if (props.activeFindingId) {
     const finding = findings.find((item) => item.id === props.activeFindingId);
     if (finding && props.variant === "inline-dossier") return <FindingInvestigationV1 key={finding.id} finding={finding} {...props} />;
     if (finding) {
+      const variant = props.variant && props.variant !== "inline-dossier" ? props.variant : "focused-reassessment";
+      const flowVariant = findingFlowVariants[variant];
       return (
         <AssessmentFlowV2
           key={finding.id}
@@ -63,9 +88,9 @@ export function FindingsTab(props: FindingsTabProps) {
           evidenceState={props.evidenceStates[findingRequirementIds[finding.id]]}
           reassessed={props.reassessedFindings[finding.id]}
           judgment={currentJudgmentForFinding(props.judgments, finding.id)}
-          layout={props.variant === "insight-led-reassessment" || props.variant === "attributable-insight-brief" ? "insight-led" : "focused"}
-          judgmentLayout={props.variant === "breathable-judgment-reassessment" || props.variant === "attributable-analysis-reassessment" || props.variant === "attributable-insight-brief" ? "breathable" : "compact"}
-          language={props.variant === "attributable-analysis-reassessment" || props.variant === "attributable-insight-brief" ? "attributable" : "ai-explicit"}
+          {...flowVariant}
+          resumeEvidenceStage={props.resumeEvidenceStage}
+          onEvidenceResumeHandled={props.onEvidenceResumeHandled}
           learningMode={props.learningMode}
           onBack={props.onBack}
           onUploadEvidence={(file) => props.onUploadEvidence(finding.id, file)}
@@ -73,8 +98,9 @@ export function FindingsTab(props: FindingsTabProps) {
           onRejectEvidence={(message) => props.onRejectEvidence(finding.id, message)}
           onUseExistingEvidence={() => props.onUseExistingEvidence(finding.id)}
           onResetEvidence={() => props.onResetEvidence(finding.id)}
+          onUpdateVerificationDraft={(draft) => props.onUpdateVerificationDraft(finding.id, draft)}
           onVerifyEvidence={() => props.onVerifyEvidence(finding.id)}
-          onReassess={() => props.onReassess(finding.id)}
+          onReassess={(input) => props.onReassess(finding.id, input)}
           onRecordJudgment={(judgment) => props.onRecordJudgment(finding.id, judgment)}
           onOpenSource={props.onOpenSource}
         />
@@ -301,9 +327,9 @@ function FindingInvestigationV1({ finding, findingStates, sourceReviewStates = {
           </section>
 
           <section id={`${finding.id}-evidence`} className={styles.findingReviewSection}>
-            <SectionHeader title="Evidence used" description={`${findingSources.length} sources cited in this finding.`} actions={<Button size="sm" variant="quiet" onClick={() => onOpenSource()}>View all sources</Button>} />
+            <SectionHeader title="Evidence used" description={`${findingSources.length} sources cited in this finding.`} actions={<Button size="sm" variant="quiet" onClick={() => onOpenSource(undefined, finding.id)}>View all sources</Button>} />
             <div className={styles.evidenceDocumentList}>
-              {findingSources.map((source) => source && <DocumentRow key={source.id} name={source.name} meta={`${source.asOf} · ${getSourceReviewPresentation(source, sourceReviewStates[source.id], renewalLinked).label}`} icon={getCreditSourceIcon(source)} onOpen={() => onOpenSource(source.id)} />)}
+              {findingSources.map((source) => source && <DocumentRow key={source.id} name={source.name} meta={`${source.asOf} · ${getSourceReviewPresentation(source, sourceReviewStates[source.id], renewalLinked).label}`} icon={getCreditSourceIcon(source)} onOpen={() => onOpenSource(source.id, finding.id)} />)}
             </div>
             <p className={styles.evidenceSummary}>{findingSources.length} citations resolve to source documents. {finding.id === "customer-concentration" ? "Contract duration remains the open evidence question." : finding.id === "increasing-leverage" ? "Equipment classification must be verified before completion." : "Pricing execution remains the key forward-looking assumption."}</p>
           </section>

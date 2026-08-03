@@ -48,7 +48,7 @@ The `@` context model is the primary product adaptation. It makes retrieval scop
 
 - Reuse Salt canvas, surface, text, border, action, focus, status, spacing, radius, typography, control, motion, and z-index tokens.
 - New reusable `--salt-popover-*` tokens own floating surface width, height, padding, border, radius, background, shadow, motion, and stacking.
-- New `--salt-intelligence-*` component tokens own composer, context chips, message width, activity rows, sticky composer, and chart palette/geometry.
+- `--salt-intelligence-*` component tokens own composer, context chips, message width, activity-row timing and motion, sticky composer, and chart palette/geometry. Review context identity comes from the same circular `CompanyLogo` contract used by Credit Reviews; non-company contexts keep semantic icons.
 - No route-local color palette or typography scale.
 
 ### Interactions

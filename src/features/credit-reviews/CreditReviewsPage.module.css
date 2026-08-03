@@ -95,7 +95,7 @@
   gap: var(--salt-space-2);
 }
 
-.myFilterPopover {
+.filterPopover.myFilterPopover {
   right: 0;
   left: auto;
 }

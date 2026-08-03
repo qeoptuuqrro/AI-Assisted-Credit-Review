@@ -98,12 +98,13 @@ export function Drawer({
         ? Math.max(layoutRect.top + verticalInset, stickyTop)
         : drawer.getBoundingClientRect().top;
       const viewportAvailableHeight = window.innerHeight - panelTop - verticalInset;
-      const layoutAvailableHeight = inlineLayout && layoutRect
-        ? layoutRect.bottom - panelTop - verticalInset
-        : viewportAvailableHeight;
+      // An inline drawer is sticky within a page that may be taller than the
+      // viewport. Capping it to the parent's current bottom makes the panel
+      // shrink every time the document scrolls. Its body owns overflow, so the
+      // stable viewport measure should come from the visible window instead.
       const availableHeight = Math.max(
         minBodyHeight + headerHeight,
-        Math.min(viewportAvailableHeight, layoutAvailableHeight),
+        viewportAvailableHeight,
       );
       drawer.style.setProperty("--salt-drawer-responsive-available-height", `${Math.round(availableHeight)}px`);
     }
@@ -128,7 +129,9 @@ export function Drawer({
 
     returnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const focusFrame = window.requestAnimationFrame(() => {
-      drawerRef.current?.focus({ preventScroll: true });
+      const drawer = drawerRef.current;
+      const focusTarget = drawer?.querySelector<HTMLElement>("[data-drawer-close]") ?? drawer;
+      focusTarget?.focus({ preventScroll: true });
     });
 
     function closeOnEscape(event: KeyboardEvent) {

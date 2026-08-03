@@ -1,10 +1,12 @@
 # Senior queue mobile overflow cue — V1
 
-Status: current responsive refinement
+Status: archived with Senior review queue V1; preserved for comparison
 
 ## Decision
 
 Keep the senior-review stage tabs as a horizontally scrollable Mercury-style underline rail. At narrow widths, add a quiet right-edge surface fade only while more stages remain off-screen. The cue disappears when the rail reaches its end.
+
+This remains the frozen responsive contract for V1 `Submission queue`. V2 `Restrained decision inbox` is current and uses the shared Salt `Tabs` and responsive `Drawer` contracts instead of extending this page-owned cue.
 
 ## Why
 

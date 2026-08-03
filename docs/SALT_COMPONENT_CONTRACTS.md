@@ -1,6 +1,6 @@
 # Salt Component Contracts
 
-Last updated: July 27, 2026.
+Last updated: August 2, 2026.
 
 Salt follows an atomic composition model. Shared components stay low-domain and token-driven; credit-review workflow composition remains inside the Credit Reviews feature until reuse is proven.
 
@@ -20,13 +20,13 @@ Navigation and structure
   Tabs · WorkflowSteps · SectionHeader · ObjectHeader · ActivityLedger · Timeline
 
 Overlay primitives
-  Popover · Drawer · DocumentViewer · Toast · Notice
+  Popover · Drawer · Dialog · DocumentViewer · Toast · Notice
 
 Surface primitives
   Panel
 
 Workflow composition
-  ReviewRow · ReviewGroup · CreditReviewDrawer · CreditFindingsWorkspace
+  ReviewRow · ReviewGroup · CreditReviewDrawer · CreditFindingsWorkspace · evidence-first reassessment
 
 Template
   My Reviews grouped queue · All Reviews ledger
@@ -49,6 +49,7 @@ Rules:
 - Choose the variant by semantic role, not desired visual size.
 - Do not restyle Text variants inside page CSS.
 - Page titles use `h1`; grouped queue titles use `h2`.
+- Focused operational copy, selected-record titles, field values, and decision labels use the 15px / 24px body role. Explanatory workspace copy uses the 14px / 20px supporting role. Provenance, dates, status support, and other record metadata use the 13px / 20px metadata role. Metadata sizing must not be used to compress instructions or decision-critical copy.
 
 ## Icon
 
@@ -132,6 +133,12 @@ Variants:
 - `soft`: Mercury-style low-emphasis filled action, such as `Submit expense`.
 - `quiet`: text-led or icon-led action without persistent chrome.
 
+Sizes:
+
+- `sm`: 32px for dense toolbars and quiet inline actions.
+- `md`: 32px for standard product actions retained on the compact control rhythm.
+- `lg`: 40px for comfortable focused-workflow footers; it does not enlarge the 15px / 24px action type role.
+
 Rules:
 
 - Use short verb-led labels and keep one primary action per surface.
@@ -147,7 +154,7 @@ Purpose: compact semantic workflow, verification, decision, or risk state.
 
 Tones: neutral, info, success, warning, danger.
 
-Review status mapping:
+Finding and evidence workflow mapping:
 
 - `Needs judgment` → warning: trusted evidence still requires human interpretation.
 - `Needs verification` → danger: evidence cannot yet be trusted or reconciled.
@@ -180,7 +187,34 @@ Rules:
 - Keep row, drawer-header, and object-header status pills count-free. Put counts on aggregation surfaces such as group headings, tabs, and task-specific CTAs instead.
 - In a detail drawer, the header owns the review-level state. A child row renders a StatusPill only for a semantic exception or a meaningful human/terminal transition; it must not repeat the header state with shorter copy such as `Updated` beneath `Analysis updated`.
 - Workflow group and review status are separate dimensions. For example, an analyst may have an `Analysis updated` item in the `In progress` group.
+- Use `CaseStatusPill` instead of raw `StatusPill` for the case lifecycle shown in queues, bookmarks, previews, and case headers.
 - Badge remains a compatibility alias while existing consumers migrate to StatusPill.
+
+## CaseStatusPill
+
+Purpose: show the case-level lifecycle state based on the dominant next action.
+
+Statuses:
+
+- `Needs verification` → danger: required evidence is missing, conflicting, or untrusted and blocks the case.
+- `Analyst review` → neutral: evidence is usable and the analyst owns interpretation or judgment.
+- `Ready to recommend` → info: required findings are addressed and the analyst can prepare or submit the recommendation.
+- `Awaiting decision` → info: the analyst submitted the recommendation and senior credit owns the next action.
+- `Revision requested` → warning: senior credit returned the case and the analyst must revise it.
+- `Approved` → success: the final approval is recorded.
+- `Declined` → danger: the final decline is recorded.
+
+States: one typed lifecycle status. System events are intentionally outside this component.
+
+Tokens: visual treatment delegates to the semantic `--salt-status-pill-*` tokens.
+
+Rules:
+
+- Use one case status per row, header, preview, or bookmark. It answers “Who owns the next action?”
+- Do not append finding counts to the case-level pill. Counts belong inside a case, drawer, tab, or aggregation heading.
+- Do not promote system events such as `Analysis ready` or `Analysis updated` into lifecycle states.
+- Explain changed evidence or analysis inside the preview, case workspace, or Activity record rather than appending `Updated` to the lifecycle pill.
+- Finding-level workflow labels remain local to findings and evidence requirements.
 
 ## FilterChip
 
@@ -214,8 +248,8 @@ Rules:
 Adoption:
 
 - ActivityLedger uses a circular IconTile so chronology stays connected without introducing a second icon system.
-- Finding, financial-driver, evidence, source, and decision-option rows use IconTile instead of page-owned glyph boxes.
-- Decision-option icons remain neutral until selected; selection uses the info/action tone. Outcome color belongs to the recorded StatusPill after submission.
+- Finding, financial-driver, evidence, and source rows use IconTile instead of page-owned glyph boxes.
+- Senior Decision V1–V4 preserve their historical icon-led option treatments. V5 uses a compact native-radio decision segment with no icons; its workflow-specific labels and validation remain owned by Credit Reviews rather than becoming an IconTile variant.
 
 ## DocumentRow
 
@@ -303,6 +337,30 @@ Rules:
 - The trigger owns `aria-expanded` and `aria-controls` when a durable relationship is available; the consumer owns the correct role and accessible label for the content.
 - Keep product semantics, option filtering, selection logic, and grouping in the owning feature.
 - Do not mint page-local floating-surface borders, shadows, radii, or motion.
+
+## SelectMenu
+
+Purpose: Mercury-aligned single-choice form control whose option surface must remain visually consistent across browsers instead of falling back to an operating-system select menu.
+
+Anatomy:
+
+- Full-width combobox trigger with a single-line value and trailing chevron.
+- Trigger-width listbox anchored immediately above or below the field.
+- Compact option rows using the canonical Popover surface tokens.
+
+States and interactions:
+
+- Closed, hover, focus-visible, open, disabled, highlighted, and selected.
+- Open uses the shared action underline and rotates the chevron without resizing the field.
+- Arrow Up/Down moves the active option; Home/End moves to the list boundary; printable characters use typeahead; Enter/Space commits; Escape closes only the menu.
+- Pointer selection, outside-pointer dismissal, Tab dismissal, trigger focus retention, `aria-activedescendant`, and reduced motion are required.
+
+Rules:
+
+- Use for bounded, fixed single-select option sets. Searchable, grouped, multi-select, or remote-data pickers require a separate combobox contract.
+- Keep option values and product meaning in the owning feature; the shared component owns listbox behavior and visual geometry.
+- Keep the listbox the same width as its trigger. Choose upward placement near a clipped dialog footer.
+- Do not replace active-policy read-only disclosure with SelectMenu merely to suggest editability.
 
 ## ObjectHeader
 
@@ -414,10 +472,11 @@ States and interactions:
 
 - Closed and open.
 - Row-origin open with the selected row retained.
-- Opening focuses the drawer region without painting a pointer-origin focus ring; keyboard Tab moves to the close control and preserves visible focus.
+- Opening focuses the visible close control with `preventScroll`, avoiding a page jump when a tall responsive rail participates in the ledger. Pointer-origin focus remains visually quiet; keyboard focus stays explicit.
 - Icon-only close action with `Close detail panel` accessible name.
 - Escape closes and focus returns to the originating row.
 - Body scrolling stays inside the drawer.
+- A desktop responsive drawer measures its available height against the visible viewport and sticky top inset. A scrolling parent's moving bottom edge must never cap or collapse the drawer; the header and footer remain stable while only the body owns overflow.
 - Mobile occupies the viewport without a rounded floating shell.
 - A workflow handoff may use one sticky footer CTA when its destination is real.
 
@@ -425,7 +484,7 @@ Current V2 measured contract:
 
 - Full finance lane: 968px composed from a 544px ledger, 32px gap, and 392px drawer rail.
 - The rail participates in layout and enters from the right with 400ms transform/opacity motion after a 100ms delay.
-- The panel is sticky within the ledger context and is capped to the remaining viewport height with equal 16px top and bottom insets.
+- The panel is sticky within the ledger context and is capped to the remaining visible viewport height with equal 16px top and bottom insets. Scrolling the containing ledger may change its sticky position, but may not reduce the panel because the parent's bottom moved.
 - Header remains stable; body overflow scrolls internally.
 - Narrow layouts fall back to the V1 overlay/full-viewport mobile contract rather than forcing document-level horizontal overflow.
 - Credit Reviews preserves its existing feature-owned header and domain hierarchy while the shared shell owns responsive position, motion, height, scrolling, Escape, and focus return.
@@ -447,12 +506,35 @@ Rules:
 - Repeated rows draw dividers only between siblings, never below the heading or after a single or final row. The Credit Review outcome module uses whitespace—not a closing divider—before Sources.
 - Use two or three `DocumentRow` instances as evidence grounding, with a same-drawer disclosure for the remaining sources when needed.
 - Put contextual evidence access beside the finding or source it explains; reserve the footer for the overall next workflow step.
-- State-dependent Credit Review CTA labels are `Review findings`, `Verify information`, `Review analysis`, `Review changes`, and `View recommendation`; drawer action labels remain count-free.
-- A My Reviews preview has one footer action. Do not add a competing `Open overview` button; individual finding rows may deep-link when a real route exists.
+- State-dependent Credit Review CTA labels are `Review findings`, `Verify information`, `Review analysis`, `Review changes`, and `Open case overview`; drawer action labels remain count-free.
+- A My Reviews preview has one footer action. Completed standard cases use that one action for Overview; do not add a second competing action. Individual finding rows may still deep-link when a real route exists.
 - Do not place floating cards, charts, long AI explanations, editing forms, or a full document browser in a preview drawer.
 - Use the 424px Transactions drawer only for metadata-heavy editing workflows; it is not the default detail pattern.
 - Credit Review drawer composition stays feature-owned while the shell lives in shared Salt UI.
 - Replaced versions move into the quarantined Design history lane only after a new Current version is approved.
+
+## Dialog
+
+Purpose: contain a bounded creation, edit, or confirmation task that temporarily requires the user's full attention.
+
+Variants: small, medium, and large widths. The shell owns the labelled header, optional eyebrow, scroll-contained body, optional footer, close control, backdrop, and responsive mobile treatment.
+
+States and interactions:
+
+- Closed and open, with transform/opacity entrance removed under reduced motion.
+- Opening records the active trigger, locks document scrolling, and focuses an explicit initial target or the first available control.
+- Tab and Shift+Tab remain inside the open dialog.
+- Escape, the close control, and the backdrop dismiss; focus returns to the originating trigger.
+- Footer actions remain visible while a long body scrolls independently.
+- Mobile aligns the dialog to the viewport bottom with full available width and a bounded maximum height.
+
+Rules:
+
+- Use `Dialog` for focused modal work. Use `Drawer` when retaining ledger or page context is the primary interaction requirement, and `Popover` for compact transient controls.
+- Feature code owns form fields, validation, copy, and submit behavior; the shared dialog never imports product data or policy semantics.
+- Destructive or consequential actions require explicit labels. The close icon always has an accessible name.
+- Do not nest dialogs or place a page-sized workflow inside one.
+- Consume the `--salt-dialog-*` width, backdrop, spacing, radius, shadow, motion, and z-index tokens. Do not recreate modal geometry in feature CSS.
 
 ## Tabs
 
@@ -473,16 +555,18 @@ Purpose: compact process navigation inside a focused edit, review, or confirmati
 Contract:
 
 - Desktop uses a 152px vertical rail with a two-pixel active indicator and 48px minimum step rhythm.
-- At 860px and below, the rail becomes a horizontal three-step strip without changing the page width.
-- Labels name the durable stages; optional descriptions explain the task in one short phrase.
+- At 900px and below, the rail becomes a horizontal strip sized to its actual stage count. Four-stage flows keep a readable minimum label width and scroll inside the rail instead of overlapping or changing the page width.
+- Labels name the durable stages; optional descriptions explain the task in one short phrase. The current V9 credit-review flow uses labels only; archived V8 retains its descriptive comparison.
 - The current stage uses `aria-current="step"`; the parent owns navigation or scrolling behavior.
 - Hover, focus-visible, active, and prior-stage treatments consume `--salt-workflow-step-*` tokens.
+- The current reassessment editorial composition keeps the responsive Evidence/Review/Result content measure (`clamp(424px, 42vw, 560px)`) mathematically centered as the primary reading column. The 152px rail is peripheral to its left across the shared 64px editorial gap, so additional viewport width stays balanced around the task instead of accumulating on one side. At 900px and below the composition stacks, `WorkflowSteps` becomes a horizontal strip, and the bounded task remains centered until mobile gutters consume the available width.
 
 Rules:
 
 - Use for an ordered task such as Assessment → Evidence → Judgment, not as a substitute for durable page tabs.
 - Keep stage count small and stable. Do not add completion badges, percentages, AI animation, or decorative progress graphics.
 - WorkflowSteps supplies sequence and geometry only; domain state and submission logic stay feature-owned.
+- The current Credit Reviews reassessment uses Evidence → Review → Result. Processing remains a transient state associated with Review, not a fourth durable step.
 
 ## SectionHeader
 
@@ -562,7 +646,7 @@ Rules:
 
 ## Focused workflow shell
 
-Purpose: temporarily replace normal product navigation when one review task and one primary artifact must share the full application viewport.
+Purpose: temporarily replace normal product navigation when one accountable review task needs an uninterrupted full-viewport workspace, either beside a primary artifact or inside a bounded editorial measure.
 
 Ownership:
 
@@ -573,15 +657,44 @@ Ownership:
 Rules:
 
 - Keep the demo banner for environment context.
-- Desktop uses two stable zones: a quiet task pane and a dominant artifact stage. Do not add a third persistent rail.
-- Browse/select modes replace content within the task pane while the selected artifact remains visible.
+- Split-artifact workflows use two stable zones: a quiet task pane and a dominant artifact stage. Do not add a third persistent rail.
+- Split-artifact stages use the shared pale gray-violet canvas token, white artifact paper, and restrained border/shadow separation; do not add gradients or decorative background effects.
+- Editorial workflows use one bounded task measure and one peripheral `WorkflowSteps` rail. They do not add an empty artifact stage or stretch the form to the viewport.
+- Browse/select modes replace content within the task pane while the selected artifact remains visible in split-artifact workflows.
 - Consume the `--salt-focused-workflow-*` geometry and elevation tokens; do not reproduce viewport calculations with route-private negative margins.
+- Action footers align to the same inner reading measure as their task content. The standard contract remains 72px; the opt-in comfortable footer is 88px with 40px `lg` actions for split editors that need Mercury-style vertical breathing room.
 - Close returns to the originating finding when route context exists and otherwise returns to the case overview.
 - Mobile becomes one vertical flow with no page-level horizontal overflow and no restored global bottom navigation.
 
 QA:
 
-- Verify shell chrome absence, context-aware Close, source browsing, keyboard movement, viewer controls, task actions, and desktop/mobile recomposition.
+- Verify shell chrome absence, context-aware Close, keyboard movement, task actions, and desktop/mobile recomposition. Split-artifact workflows additionally verify source browsing and viewer controls; editorial workflows verify rail-to-content alignment and footer measure.
+
+## Evidence-first reassessment composition
+
+Purpose: let an analyst select evidence, verify its provenance and scope, observe the scoped automated update, and then make a separate accountable judgment without previewing an uncalculated result.
+
+Ownership:
+
+- Credit Reviews owns requirement language, evidence matching, borrower-request state, verification checks, reassessment timing, risk results, optional analyst context, and persistence.
+- The Credit Reviews borrower-request layer owns `BorrowerContactSelector`; Meridian and Northstar reuse it without promoting lending contact semantics into generic UI.
+- Salt owns `WorkflowSteps`, `FileDropzone`, buttons, status, notices, icons, focus treatment, editorial geometry, responsive behavior, and the typography tokens consumed by the borrower selector.
+- This is a feature composition selected through Design Tools metadata. Do not create a version-named shared component or move lending semantics into `src/shared/ui`.
+
+Contract:
+
+- Evidence leads with one flat, whole-row selectable matched record when a likely source exists. The current selected state remains white with a subtle indigo boundary, explicit success state, and quiet secondary preview surface; do not turn selection into a dark filled card. Document preview remains a secondary action inside the same record; do not split selection and preview into competing cards.
+- Direct upload and `Request from borrower` are explicit alternative paths. Do not use repeated `or` dividers or imply that a sent request, received file, or accepted upload is already verified.
+- Optional relationship or management context is progressively disclosed, persists with the reassessment record, and never substitutes for required evidence.
+- Review progress is resumable: persist confirmed verification checks and analyst context as a draft, restore ready evidence directly at Review, and return from source inspection to the appropriate Evidence or Review stage while preserving the active Design Tools selection.
+- Review shows the chosen file, provenance, current read-only assessment, saved context, and affected analysis scope. The updated risk is hidden and the result reads `Not calculated yet` until verification and processing complete. Keep explanatory copy to one concise line per object when labels, values, and state already communicate the relationship.
+- Every verification check uses a real native checkbox. The update action remains disabled until every required check is confirmed.
+- Processing identifies the scoped automated work and leaves unrelated findings and the final credit decision unchanged. Result is the first stage allowed to reveal the updated risk and changed/unchanged reasoning.
+- Operational body copy and record titles use the 15px / 24px role. Provenance, dates, counts, and secondary status copy use the 13px / 20px role.
+
+QA:
+
+- Verify matched-record selection, upload, borrower request, persisted checkbox/context drafts, ready-evidence and source-inspection resume, all-checkbox gating, absence of future-risk copy in Review, processing, Result disclosure, Close return, footer clearance, and 390px no-overflow behavior.
 
 ## Analyst judgment authoring
 
@@ -594,11 +707,15 @@ Ownership:
 
 Rules:
 
-- The AI assessment is a quiet, locked baseline. It remains visible for provenance but is never presented as the editable destination.
-- The analyst handoff explicitly states whether the risk is retained or changed.
-- Two mutually exclusive risk choices use native radio semantics, visible dots, labels, and one-line descriptions. Color reinforces the text and never carries meaning alone.
-- The selected analyst view is the value that enters Recommendation; the analyst conclusion remains a separate required field below it.
-- Use `--salt-judgment-workflow-content-width` for the wider authoring measure and `--salt-judgment-risk-toggle-min-height` for descriptive option targets. Do not replace these with route-private dimensions.
+- The system assessment is a quiet, locked baseline. It remains visible for provenance but is never presented as the editable destination.
+- The current editorial judgment starts with no selected outcome. Accept, Revise, and Escalate are stacked native-radio rows in the same narrow task measure; one dynamic line below the choices explains the selected outcome. Submission stays disabled until the analyst deliberately chooses one and supplies its required rationale.
+- Senior Decision V6 reuses this stacked choice grammar with senior-owned labels: Approve, Approve with conditions, Return to analyst, and Decline. It preserves native radio semantics, the `Decision / Required` header, and one dynamic explanation; per-option icons, indigo selected fills, horizontal segments, and mobile 2-by-2 recomposition are forbidden drift.
+- Do not place a redundant `Updated analysis reviewed` status banner above the decision choices. The task heading explains the handoff, and the selected choice reveals only the context needed to complete that outcome.
+- Accept, Revise, and Escalate reveal the same compact outcome-summary object so changing the decision never changes the page's component language. Because the current policy has exactly two severity values, Revise deterministically applies the only alternative; its outcome summary shows `Revised severity`, the new risk, and a `From {system value}` status. Do not ask the analyst to reselect the current value, render a one-option control, wrap the result in a comparison card, or repeat `Choose the analyst risk`, `Retain this risk`, or `Analyst-owned risk` headings.
+- `Material` and `Moderate` remain the current policy-backed finding-severity bands. Do not relabel this isolated control to High/Medium/Low or add a Low option without a product-wide taxonomy, threshold, recommendation, and learning-content migration.
+- Risk choices retain native radio semantics, explicit labels, visible selected state, and one dynamic description below the control. Color reinforces the text and never carries meaning alone.
+- The selected analyst view is the value that enters Recommendation; `Analyst conclusion` remains its own required, rule-separated section below the risk handoff.
+- Use `--salt-judgment-workflow-content-width-editorial` for the current responsive 424–560px authoring measure. The preserved breathable direction continues using `--salt-judgment-workflow-content-width` and may use `--salt-judgment-risk-toggle-min-height` for its wider descriptive option targets. Do not replace either contract with route-private dimensions.
 - The judgment content scrolls independently above the stable focused-workflow footer. Narrow widths preserve both options, allow description wrapping, and must not create document overflow.
 - Hover, selected, focus-visible, disabled submission, and reduced-motion states are required.
 
@@ -672,6 +789,7 @@ Rules:
 - `Ready for review` is not `Verified`. Verification is an explicit domain action owned by the evidence workflow.
 - Keep the surface flat, border-led, and restrained. Do not turn evidence intake into a colorful upload card or a separate product metaphor.
 - Replacement and failure recovery preserve the original requirement; they do not create a second workflow.
+- File titles use the 15px / 24px operational-body role; accepted formats, provenance, progress, and error support use the 13px / 20px metadata role.
 - Consume `--salt-file-dropzone-*` tokens and remove animation under reduced-motion preferences.
 
 ## Notice

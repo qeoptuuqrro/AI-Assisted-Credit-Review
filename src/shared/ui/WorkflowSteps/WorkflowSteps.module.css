@@ -1,4 +1,6 @@
 .steps {
+  --workflow-step-count: 3;
+
   width: var(--salt-workflow-steps-width);
 }
 
@@ -55,7 +57,7 @@
 .steps button > small {
   overflow: hidden;
   color: var(--salt-workflow-step-description);
-  font-size: var(--salt-type-size-xs);
+  font-size: var(--salt-workflow-step-description-size);
   line-height: var(--salt-type-line-ui-secondary);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -70,13 +72,22 @@
   color: var(--salt-workflow-step-text-active);
 }
 
-@media (max-width: 860px) {
+@media (max-width: 900px) {
   .steps {
     width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+  }
+
+  .steps::-webkit-scrollbar {
+    display: none;
   }
 
   .steps ol {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: max-content;
+    min-width: 100%;
+    grid-template-columns: repeat(var(--workflow-step-count), minmax(var(--salt-workflow-step-mobile-min-width), 1fr));
   }
 
   .steps button {
@@ -88,6 +99,54 @@
   }
 
   .steps .active button {
+    border-bottom-color: var(--salt-workflow-step-indicator);
+  }
+
+  .steps.collapseMobile {
+    width: var(--salt-workflow-steps-width);
+    overflow: visible;
+  }
+
+  .steps.collapseMobile ol {
+    width: auto;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .steps.collapseMobile button {
+    min-height: var(--salt-workflow-step-min-height);
+    padding: var(--salt-space-2) var(--salt-space-2) var(--salt-space-2) var(--salt-workflow-step-padding-inline);
+    border-bottom: 0;
+    border-left: var(--salt-workflow-step-rail-width) solid var(--salt-workflow-step-rail);
+    border-radius: 0 var(--salt-radius-sm) var(--salt-radius-sm) 0;
+  }
+
+  .steps.collapseMobile .active button {
+    border-left-color: var(--salt-workflow-step-indicator);
+  }
+}
+
+@media (max-width: 700px) {
+  .steps.collapseMobile {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .steps.collapseMobile ol {
+    width: max-content;
+    min-width: 100%;
+    grid-template-columns: repeat(var(--workflow-step-count), minmax(var(--salt-workflow-step-mobile-min-width), 1fr));
+  }
+
+  .steps.collapseMobile button {
+    min-height: var(--salt-control-height-lg);
+    padding: var(--salt-space-2);
+    border-left: 0;
+    border-bottom: var(--salt-workflow-step-rail-width) solid var(--salt-workflow-step-rail);
+    border-radius: var(--salt-radius-sm) var(--salt-radius-sm) 0 0;
+  }
+
+  .steps.collapseMobile .active button {
     border-bottom-color: var(--salt-workflow-step-indicator);
   }
 }

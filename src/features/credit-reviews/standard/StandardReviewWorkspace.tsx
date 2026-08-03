@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
-import { useRouter } from "../../../app/router";
+import { useMemo, useState, type CSSProperties } from "react";
+import { useRouter, type AppPath } from "../../../app/router";
 import { ActivityLedger, type ActivityLedgerItem } from "../../../shared/ui/ActivityLedger/ActivityLedger";
 import { Button } from "../../../shared/ui/Button/Button";
+import { CaseStatusPill } from "../../../shared/ui/CaseStatusPill/CaseStatusPill";
 import { CompanyLogo } from "../../../shared/ui/CompanyLogo/CompanyLogo";
 import { DesignVariantNotice } from "../../../shared/ui/DesignVariantNotice/DesignVariantNotice";
 import { DocumentRow } from "../../../shared/ui/DocumentRow/DocumentRow";
@@ -16,6 +17,7 @@ import { ObjectHeader } from "../../../shared/ui/ObjectHeader/ObjectHeader";
 import { Panel } from "../../../shared/ui/Panel/Panel";
 import { SectionHeader } from "../../../shared/ui/SectionHeader/SectionHeader";
 import { StatusPill } from "../../../shared/ui/StatusPill/StatusPill";
+import type { StatusPillTone } from "../../../shared/ui/StatusPill/StatusPill";
 import { Tabs } from "../../../shared/ui/Tabs/Tabs";
 import { Toast } from "../../../shared/ui/Toast/Toast";
 import { companyLogoDomains } from "../companyLogos";
@@ -27,19 +29,25 @@ import { ReviewWorkspaceHeader } from "../workspace-header/ReviewWorkspaceHeader
 import { getCreditActivityPresentation, getCreditFindingIcon, getCreditSourceIcon, type CreditActivityKind } from "../creditReviewPresentation";
 import { getDesignOption } from "../../design-tools/designOptions";
 import {
-  aiReviewStatus,
   getPrimaryReviewSection,
   getStandardReview,
   getStandardReviewPath,
   standardReviewSlugs,
   type ReviewActivity,
   type ReviewFinding,
+  type ReviewMetric,
   type StandardReviewSection,
   type StandardReviewSlug,
 } from "../reviewData";
+import type { CaseStatus } from "../../../shared/ui/CaseStatusPill/CaseStatusPill";
 import styles from "./StandardReviewWorkspace.module.css";
-import { usePersistentStandardReviewState } from "./standardReviewState";
-import { seniorDecisionLabel, type SeniorDecisionRecord } from "../workflow/creditReviewState";
+import { isStandardReviewRevisionInProgress, usePersistentStandardReviewState } from "./standardReviewState";
+import {
+  seniorDecisionLabel,
+  type AnalystRecommendationDraft,
+  type AnalystRecommendationRecord,
+  type SeniorDecisionRecord,
+} from "../workflow/creditReviewState";
 
 type StandardReviewTab = "overview" | StandardReviewSection;
 type DecisionChoice = "approve" | "approve-with-conditions" | "defer";
@@ -102,8 +110,32 @@ function StandardWorkspaceContent({ review, slug, activeTab, pathname, search, n
   const [decisionOpen, setDecisionOpen] = useState(false);
   const [decisionChoice, setDecisionChoice] = useState<DecisionChoice>("approve-with-conditions");
   const [decisionNote, setDecisionNote] = useState("");
-  const recordedDecision = workflowState.seniorDecision ? seniorDecisionLabel(workflowState.seniorDecision.decision) : null;
-  const recommendationSubmitted = workflowState.recommendationSubmitted || review.status === "ready-for-decision" || review.status === "completed";
+  const returnedToAnalyst = workflowState.seniorDecision?.decision === "return_to_analyst";
+  const returnedDecision = returnedToAnalyst
+    ? workflowState.seniorDecision
+    : workflowState.decisionHistory?.find((record) => record.decision === "return_to_analyst");
+  const finalSeniorDecision = workflowState.seniorDecision?.decision === "return_to_analyst" ? undefined : workflowState.seniorDecision;
+  const recordedDecision = finalSeniorDecision ? seniorDecisionLabel(finalSeniorDecision.decision) : null;
+  const revisionInProgress = isStandardReviewRevisionInProgress(workflowState);
+  const recommendationSubmitted = !returnedToAnalyst && (workflowState.recommendationSubmitted
+    || (!revisionInProgress && (review.status === "ready-for-decision" || review.status === "completed")));
+  const priorRecommendation = workflowState.recommendationHistory?.[0] ?? workflowState.recommendation;
+  const revisionDraft: AnalystRecommendationDraft = workflowState.recommendationDraft ?? {
+    decision: priorRecommendation?.decision ?? review.details.recommendation.title,
+    amount: priorRecommendation?.amount ?? review.request,
+    rationale: priorRecommendation?.rationale ?? review.details.recommendation.rationale,
+    conditions: [...(priorRecommendation?.conditions ?? review.details.recommendation.conditions)],
+    activeSection: 1,
+    updatedAt: priorRecommendation?.createdAt ?? new Date().toISOString(),
+  };
+  const displayedRecommendation = revisionInProgress
+    ? revisionDraft
+    : workflowState.recommendation ?? {
+      decision: review.details.recommendation.title,
+      amount: review.request,
+      rationale: review.details.recommendation.rationale,
+      conditions: review.details.recommendation.conditions,
+    };
   const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
 
   const reviewCompany = review.company;
@@ -152,18 +184,88 @@ function StandardWorkspaceContent({ review, slug, activeTab, pathname, search, n
   }
 
   function submitRecommendation() {
-    dispatchWorkflow({ type: "submit_recommendation", record: { decision: review.details.recommendation.title, amount: review.request, rationale: review.details.recommendation.rationale, conditions: review.details.recommendation.conditions, author: review.owner, createdAt: new Date().toISOString() } });
+    const recommendation = revisionInProgress ? revisionDraft : displayedRecommendation;
+    const record: AnalystRecommendationRecord = {
+      decision: recommendation.decision.trim(),
+      amount: recommendation.amount,
+      rationale: recommendation.rationale.trim(),
+      conditions: [...recommendation.conditions],
+      author: review.owner,
+      createdAt: new Date().toISOString(),
+    };
+    dispatchWorkflow({ type: "submit_recommendation", record });
     setToast({ title: "Recommendation submitted", message: `${reviewCompany} is now awaiting a senior credit decision. The analyst recommendation is preserved separately from the final outcome.` });
   }
 
+  function reopenReturnedRecommendation() {
+    dispatchWorkflow({ type: "reopen_returned_recommendation", at: new Date().toISOString() });
+    setToast({ title: "Recommendation reopened", message: "The senior return instructions remain in Activity while the analyst prepares a revision." });
+  }
+
+  function updateRevisionDraft(patch: Partial<Pick<AnalystRecommendationDraft, "decision" | "rationale" | "conditions">>) {
+    dispatchWorkflow({
+      type: "save_recommendation_draft",
+      draft: { ...revisionDraft, ...patch, updatedAt: new Date().toISOString() },
+    });
+  }
+
+  function toggleRevisionCondition(condition: string) {
+    updateRevisionDraft({
+      conditions: revisionDraft.conditions.includes(condition)
+        ? revisionDraft.conditions.filter((item) => item !== condition)
+        : [...revisionDraft.conditions, condition],
+    });
+  }
+
   const primarySection = getPrimaryReviewSection(review.aiReviewState);
-  const findingsReviewed = review.details.findings.every((finding) => reviewedFindingIds.includes(finding.id));
+  const findingsReviewed = review.details.findings.every((finding) => finding.status === "Complete" || reviewedFindingIds.includes(finding.id));
   const analysisReviewComplete = review.status === "ready-for-decision" || review.status === "completed" || review.aiReviewState === "review-complete" || findingsReviewed;
+  const openFindings = review.details.findings.filter((finding) => finding.status !== "Complete" && !reviewedFindingIds.includes(finding.id));
+  const addressedFindings = review.details.findings.filter((finding) => finding.status === "Complete" || reviewedFindingIds.includes(finding.id));
+  const decisionActivityRecords = [...(workflowState.decisionHistory ?? [])];
+  if (workflowState.seniorDecision && !decisionActivityRecords.some((record) => record.createdAt === workflowState.seniorDecision?.createdAt)) {
+    decisionActivityRecords.unshift(workflowState.seniorDecision);
+  }
+  const recommendationActivityRecords = [...(workflowState.recommendationHistory ?? [])];
+  if (workflowState.recommendation && !recommendationActivityRecords.some((record) => record.createdAt === workflowState.recommendation?.createdAt)) {
+    recommendationActivityRecords.unshift(workflowState.recommendation);
+  }
+  const workflowActivityItems = [
+    ...decisionActivityRecords.map((record) => ({ createdAt: record.createdAt, item: toSeniorDecisionActivityItem(record) })),
+    ...recommendationActivityRecords.map((record) => ({ createdAt: record.createdAt, item: toRecommendationActivityItem(record) })),
+  ].sort((left, right) => right.createdAt.localeCompare(left.createdAt)).map(({ item }) => item);
   const isRecommendationSubmitted = recommendationSubmitted;
-  const isDecisionRecorded = Boolean(workflowState.seniorDecision) || review.status === "completed";
+  const isDecisionRecorded = Boolean(finalSeniorDecision) || (!returnedToAnalyst && !revisionInProgress && review.status === "completed");
   const reviewNextActionLabel = review.aiReviewState === "needs-verification" ? "Resolve source verification" : review.aiReviewState === "needs-judgment" ? "Review open finding" : review.aiReviewState === "analysis-updated" ? "Review updated analysis" : "Review analysis";
-  const headerActionLabel = isDecisionRecorded ? "View decision record" : isRecommendationSubmitted ? "Review recommendation" : analysisReviewComplete ? "Prepare recommendation" : reviewNextActionLabel;
-  const headerActionTab: StandardReviewTab = isDecisionRecorded || isRecommendationSubmitted || analysisReviewComplete ? "recommendation" : primarySection ?? "findings";
+  const headerActionLabel = returnedToAnalyst
+    ? "Revise recommendation"
+    : revisionInProgress
+      ? "Continue revision"
+      : isDecisionRecorded
+        ? "View decision record"
+        : isRecommendationSubmitted
+          ? "Review decision"
+          : analysisReviewComplete
+            ? "Prepare recommendation"
+            : reviewNextActionLabel;
+  const headerActionTab: StandardReviewTab = returnedToAnalyst || revisionInProgress || analysisReviewComplete ? "recommendation" : primarySection ?? "findings";
+  const headerCaseStatus: CaseStatus = returnedToAnalyst
+    ? "revision-requested"
+    : revisionInProgress
+      ? "revision-requested"
+      : workflowState.seniorDecision
+        ? workflowState.seniorDecision.decision === "decline" ? "declined" : "approved"
+        : isRecommendationSubmitted
+          ? "awaiting-decision"
+          : review.caseStatus;
+
+  function openHeaderAction() {
+    if (isDecisionRecorded || isRecommendationSubmitted) {
+      navigate(`/credit-reviews/${slug}/senior-decision/review` as AppPath);
+      return;
+    }
+    navigateToTab(headerActionTab);
+  }
 
   return (
     <div className={styles.page}>
@@ -174,9 +276,9 @@ function StandardWorkspaceContent({ review, slug, activeTab, pathname, search, n
           logo={<CompanyLogo domain={companyLogoDomains[review.company]} name={review.company} size="lg" />}
           title={review.company}
           metadata={[review.request, review.details.term, review.owner, `Due ${review.due.toLowerCase()}`]}
-          status={<StatusPill tone={aiReviewStatus[review.aiReviewState].tone}>{aiReviewStatus[review.aiReviewState].label}</StatusPill>}
+          status={<CaseStatusPill status={headerCaseStatus} />}
           utilityAction={<ReviewBookmarkButton slug={review.slug} company={review.company} />}
-          action={activeTab === "overview" ? <Button variant={isRecommendationSubmitted || analysisReviewComplete ? "primary" : "secondary"} onClick={() => navigateToTab(headerActionTab)}>{headerActionLabel}</Button> : undefined}
+          action={activeTab === "overview" ? <Button variant={isRecommendationSubmitted || analysisReviewComplete ? "primary" : "secondary"} onClick={openHeaderAction}>{headerActionLabel}</Button> : undefined}
         /></div>
 
         <div {...getLearningTargetProps(enabled, "review-navigation")}><Tabs<StandardReviewTab>
@@ -184,7 +286,7 @@ function StandardWorkspaceContent({ review, slug, activeTab, pathname, search, n
           value={activeTab}
           onChange={navigateToTab}
           items={tabItems.map((item) => item.id === "findings"
-            ? { ...item, count: review.details.findings.filter((finding) => !reviewedFindingIds.includes(finding.id)).length }
+            ? { ...item, count: openFindings.length }
             : item.id === "sources"
               ? { ...item, count: review.details.sources.length }
               : item)}
@@ -209,7 +311,7 @@ function StandardWorkspaceContent({ review, slug, activeTab, pathname, search, n
             <Panel className={styles.posturePanel}>
               <div className={styles.postureHeader}>
                 <span>Initial view</span>
-                <StatusPill tone={review.details.recommendation.tone}>{aiReviewStatus[review.aiReviewState].label}</StatusPill>
+                <CaseStatusPill status={review.caseStatus} />
               </div>
               <strong>{review.details.posture}</strong>
               <p>{review.details.recommendation.rationale}</p>
@@ -223,12 +325,19 @@ function StandardWorkspaceContent({ review, slug, activeTab, pathname, search, n
             The analysis organizes evidence and calculations. The analyst owns the recommendation, and the credit approver owns the final decision.
           </Notice>
 
-          <section className={styles.section} aria-labelledby="case-metrics-title">
-            <SectionHeader headingId="case-metrics-title" title="Decision metrics" description="Current values from the evidence included in this review." />
-            <div className={styles.metricGrid}>
-              {review.details.metrics.map((metric) => <MetricCard key={metric.label} label={metric.label} value={metric.value} detail={metric.detail} detailTone={metric.detailTone} density="compact" />)}
-            </div>
-          </section>
+          {review.details.metrics.some((metric) => metric.policyComparison) ? (
+            <section className={styles.section} aria-labelledby="policy-headroom-title">
+            <SectionHeader headingId="policy-headroom-title" title="Policy headroom" description="Projected leverage and downside coverage compared with underwriting boundaries." />
+              <PolicyHeadroomProfile metrics={review.details.metrics} />
+            </section>
+          ) : (
+            <section className={styles.section} aria-labelledby="case-metrics-title">
+              <SectionHeader headingId="case-metrics-title" title="Decision metrics" description="Current values from the evidence included in this review." />
+              <div className={styles.metricGrid}>
+                {review.details.metrics.map((metric) => <MetricCard key={metric.label} label={metric.label} value={metric.value} detail={metric.detail} detailTone={metric.detailTone} density="compact" />)}
+              </div>
+            </section>
+          )}
 
           <section className={styles.section} aria-labelledby="key-findings-title">
             <SectionHeader headingId="key-findings-title" title="Key findings" description="Open a finding to review the underlying evidence and required next step." />
@@ -257,13 +366,13 @@ function StandardWorkspaceContent({ review, slug, activeTab, pathname, search, n
             <div className={`${styles.findingWorkspace} ${findingLayout === "cards" ? styles.findingWorkspaceCards : findingLayout === "queue" ? styles.findingWorkspaceQueue : styles.findingWorkspaceSplit}`}>
               <Panel elevation="flat" className={styles.findingList}>
                 <div className={styles.findingListHeader}>
-                  <span>Requires review</span>
-                  <small>{review.details.findings.length}</small>
+                  <span>Review status</span>
+                  <small>{openFindings.length} open</small>
                 </div>
                 {review.details.findings.map((finding) => (
                   <button key={finding.id} type="button" className={finding.id === selectedFinding.id ? styles.findingSelected : ""} aria-pressed={finding.id === selectedFinding.id} onClick={() => selectFinding(finding)}>
                     <span className={styles.findingIdentity}><IconTile size="sm"><Icon name={getCreditFindingIcon(finding)} size="sm" /></IconTile><span className={styles.findingRowCopy}><strong>{finding.title}</strong><small>{finding.description}</small></span></span>
-                    <span className={styles.findingRowMeta}><StatusPill tone={reviewedFindingIds.includes(finding.id) ? "success" : finding.tone}>{reviewedFindingIds.includes(finding.id) ? "Reviewed" : finding.status}</StatusPill><Icon name="chevronRight" size="sm" /></span>
+                    <span className={styles.findingRowMeta}><StatusPill tone={findingStatusTone(finding, reviewedFindingIds.includes(finding.id))}>{findingStatusLabel(finding, reviewedFindingIds.includes(finding.id))}</StatusPill><Icon name="chevronRight" size="sm" /></span>
                   </button>
                 ))}
               </Panel>
@@ -281,8 +390,8 @@ function StandardWorkspaceContent({ review, slug, activeTab, pathname, search, n
           ) : (
             <CreditFindingsWorkspace
               groups={[
-                { title: "Open findings", items: review.details.findings.filter((finding) => !reviewedFindingIds.includes(finding.id)).map((finding) => toWorkspaceFinding(finding, false)) },
-                ...(reviewedFindingIds.length > 0 ? [{ title: "Addressed findings", items: review.details.findings.filter((finding) => reviewedFindingIds.includes(finding.id)).map((finding) => toWorkspaceFinding(finding, true)) }] : []),
+                ...(openFindings.length > 0 ? [{ title: "Open findings", items: openFindings.map((finding) => toWorkspaceFinding(finding, false)) }] : []),
+                ...(addressedFindings.length > 0 ? [{ title: "Addressed findings", items: addressedFindings.map((finding) => toWorkspaceFinding(finding, reviewedFindingIds.includes(finding.id))) }] : []),
               ]}
               selectedId={selectedFinding.id}
               onSelect={(id) => {
@@ -329,8 +438,8 @@ function StandardWorkspaceContent({ review, slug, activeTab, pathname, search, n
           <ActivityLedger
             layout="timeline"
             items={[
-              ...(recordedDecision ? [{ id: "recorded-decision", title: `Decision recorded: ${recordedDecision}`, meta: "Just now", description: decisionNote || "Decision recorded from the review workspace.", tone: "success" as const, icon: "checkCircle" as const, details: "The recorded outcome remains attributed to the current credit approver." }] : []),
-              ...(recommendationSubmitted ? [{ id: "recommendation-submitted", title: "Analyst recommendation submitted for senior review", meta: "Just now", description: `${review.details.recommendation.title} · Prepared by ${review.owner}.`, tone: "human" as const, icon: "send" as const, details: review.details.recommendation.rationale }] : []),
+              ...workflowActivityItems,
+              ...(recommendationActivityRecords.length === 0 && recommendationSubmitted ? [{ id: "recommendation-submitted", title: "Analyst recommendation submitted for senior review", meta: "Submitted record", description: `${displayedRecommendation.decision} · Prepared by ${review.owner}.`, tone: "human" as const, icon: "send" as const, details: displayedRecommendation.rationale }] : []),
               ...review.details.activity.map(toActivityLedgerItem),
             ]}
             expandedId={expandedActivityId}
@@ -344,26 +453,54 @@ function StandardWorkspaceContent({ review, slug, activeTab, pathname, search, n
           <SectionHeader
             title="Recommendation"
             description="Turn completed analyst review into an attributable package for senior approval. This is a handoff stage—not the final credit decision."
-            actions={<StatusPill tone={recordedDecision || review.status === "completed" ? "success" : isRecommendationSubmitted ? "warning" : analysisReviewComplete ? "info" : "neutral"}>{recordedDecision ? "Decision recorded" : review.status === "completed" ? "Completed" : isRecommendationSubmitted ? "Awaiting senior decision" : analysisReviewComplete ? "Ready to prepare" : "Not ready"}</StatusPill>}
+            actions={<StatusPill tone={returnedToAnalyst ? "warning" : revisionInProgress ? "info" : isDecisionRecorded ? "success" : isRecommendationSubmitted ? "warning" : analysisReviewComplete ? "info" : "neutral"}>{returnedToAnalyst ? "Returned to analyst" : revisionInProgress ? "Revision in progress" : recordedDecision ? "Decision recorded" : isDecisionRecorded ? "Completed" : isRecommendationSubmitted ? "Awaiting senior decision" : analysisReviewComplete ? "Ready to prepare" : "Not ready"}</StatusPill>}
           />
           <div className={styles.recommendationChecklist} aria-label="Recommendation prerequisites">
             <div data-complete={review.aiReviewState !== "needs-verification"}><span><Icon name={review.aiReviewState !== "needs-verification" ? "check" : "lock"} size="xs" /></span><div><strong>Required sources verified</strong><small>{review.aiReviewState !== "needs-verification" ? "The cited evidence is available to the analysis." : "Resolve the source exception before relying on the affected calculation."}</small></div><StatusPill tone={review.aiReviewState !== "needs-verification" ? "success" : "neutral"}>{review.aiReviewState !== "needs-verification" ? "Complete" : "Required"}</StatusPill></div>
             <div data-complete={analysisReviewComplete}><span><Icon name={analysisReviewComplete ? "check" : "lock"} size="xs" /></span><div><strong>Analyst review complete</strong><small>{analysisReviewComplete ? "The updated analysis and findings have been reviewed." : "Open the affected finding and mark the updated analysis reviewed."}</small></div><StatusPill tone={analysisReviewComplete ? "success" : "neutral"}>{analysisReviewComplete ? "Complete" : "Required"}</StatusPill></div>
-            <div data-complete={isRecommendationSubmitted}><span><Icon name={isRecommendationSubmitted ? "check" : "lock"} size="xs" /></span><div><strong>Recommendation submitted</strong><small>{isRecommendationSubmitted ? "The analyst package is locked for senior review." : "Submission remains an analyst-owned action."}</small></div><StatusPill tone={isRecommendationSubmitted ? "success" : "neutral"}>{isRecommendationSubmitted ? "Complete" : "Required"}</StatusPill></div>
+            <div data-complete={isRecommendationSubmitted}><span><Icon name={returnedToAnalyst || revisionInProgress ? "refresh" : isRecommendationSubmitted ? "check" : "lock"} size="xs" /></span><div><strong>Recommendation handoff</strong><small>{returnedToAnalyst ? "Senior credit requested a revision before another decision." : revisionInProgress ? "The prior submission is preserved while you update the draft." : isRecommendationSubmitted ? "The analyst package is locked for senior review." : "Submission remains an analyst-owned action."}</small></div><StatusPill tone={returnedToAnalyst ? "warning" : revisionInProgress ? "info" : isRecommendationSubmitted ? "success" : "neutral"}>{returnedToAnalyst ? "Revision required" : revisionInProgress ? "In progress" : isRecommendationSubmitted ? "Complete" : "Required"}</StatusPill></div>
           </div>
           <Panel className={styles.recommendationPanel}>
-            <SectionHeader eyebrow={review.status === "completed" ? "Decision record" : isRecommendationSubmitted ? "Submitted analyst recommendation" : "AI-assisted draft · Analyst owned"} title={recordedDecision ?? review.details.recommendation.title} actions={<StatusPill tone={recordedDecision ? "success" : review.details.recommendation.tone}>{recordedDecision ? "Recorded" : isRecommendationSubmitted ? "Submitted" : "Draft"}</StatusPill>} />
-            <p className={styles.recommendationRationale}>{review.details.recommendation.rationale}</p>
-            <div className={styles.conditionList}>
-              <span>Proposed conditions</span>
-              {review.details.recommendation.conditions.map((condition) => <div key={condition}><Icon name="check" size="xs" /><span>{condition}</span></div>)}
-            </div>
-            <Notice tone={recordedDecision || review.status === "completed" ? "success" : isRecommendationSubmitted || analysisReviewComplete ? "info" : "warning"} title={recordedDecision ? "Decision recorded" : review.status === "completed" ? "Decision completed" : isRecommendationSubmitted ? "Awaiting senior decision" : analysisReviewComplete ? "Ready for analyst submission" : "Complete the analyst review first"}>
-              {recordedDecision ? `${recordedDecision}. The action is available in Activity.` : isRecommendationSubmitted ? "The recommendation is now a submitted record. A senior credit officer must approve, return, defer, or decline it." : analysisReviewComplete ? "Confirm the rationale and proposed conditions, then submit the package for senior review." : review.details.recommendation.nextStep}
-            </Notice>
+            <SectionHeader
+              eyebrow={returnedToAnalyst ? "Submitted analyst recommendation" : revisionInProgress ? "Analyst revision · Editable draft" : isDecisionRecorded ? "Decision record" : isRecommendationSubmitted ? "Submitted analyst recommendation" : "AI-assisted draft · Analyst owned"}
+              title={recordedDecision ?? displayedRecommendation.decision}
+              actions={<StatusPill tone={returnedToAnalyst ? "warning" : revisionInProgress ? "info" : recordedDecision ? "success" : review.details.recommendation.tone}>{returnedToAnalyst ? "Returned" : revisionInProgress ? "Editing" : recordedDecision ? "Recorded" : isRecommendationSubmitted ? "Submitted" : "Draft"}</StatusPill>}
+            />
+            {revisionInProgress ? (
+              <RecommendationRevisionEditor
+                draft={revisionDraft}
+                availableConditions={Array.from(new Set([...review.details.recommendation.conditions, ...revisionDraft.conditions]))}
+                onDecisionChange={(decision) => updateRevisionDraft({ decision })}
+                onRationaleChange={(rationale) => updateRevisionDraft({ rationale })}
+                onToggleCondition={toggleRevisionCondition}
+              />
+            ) : (
+              <>
+                <p className={styles.recommendationRationale}>{displayedRecommendation.rationale}</p>
+                <div className={styles.conditionList}>
+                  <span>Proposed conditions</span>
+                  {displayedRecommendation.conditions.map((condition) => <div key={condition}><Icon name="check" size="xs" /><span>{condition}</span></div>)}
+                </div>
+              </>
+            )}
+            {returnedToAnalyst ? (
+              <Notice tone="warning" title="Revision requested">
+                {returnedDecision?.rationale || "Senior credit returned the recommendation for analyst revision."} The submitted analyst record remains preserved in Activity.
+              </Notice>
+            ) : revisionInProgress ? (
+              <Notice tone="info" title="Revision in progress">Update the posture, rationale, and conditions, then submit a new attributable recommendation for senior review.</Notice>
+            ) : (
+              <Notice tone={isDecisionRecorded ? "success" : isRecommendationSubmitted || analysisReviewComplete ? "info" : "warning"} title={recordedDecision ? "Decision recorded" : isDecisionRecorded ? "Decision completed" : isRecommendationSubmitted ? "Awaiting senior decision" : analysisReviewComplete ? "Ready for analyst submission" : "Complete the analyst review first"}>
+                {recordedDecision ? `${recordedDecision}. The action is available in Activity.` : isRecommendationSubmitted ? "The recommendation is now a submitted record. A senior credit officer must approve, approve with conditions, return, or decline it." : analysisReviewComplete ? "Confirm the rationale and proposed conditions, then submit the package for senior review." : review.details.recommendation.nextStep}
+              </Notice>
+            )}
             <div className={styles.recommendationActions}>
-              {isDecisionRecorded
-                ? <Button variant="secondary" onClick={() => navigate(`/credit-reviews/${slug}/senior-decision/review` as import("../../../app/router").AppPath)}>View decision record</Button>
+              {returnedToAnalyst
+                ? <Button variant="primary" onClick={reopenReturnedRecommendation}>Revise recommendation</Button>
+                : revisionInProgress
+                  ? <Button variant="primary" disabled={!revisionDraft.decision.trim() || !revisionDraft.rationale.trim()} onClick={submitRecommendation}>Submit revised recommendation</Button>
+                : isDecisionRecorded
+                  ? <Button variant="secondary" onClick={() => navigate(`/credit-reviews/${slug}/senior-decision/review` as import("../../../app/router").AppPath)}>View decision record</Button>
                 : isRecommendationSubmitted
                   ? <Button variant="primary" onClick={() => navigate(`/credit-reviews/${slug}/senior-decision/review` as import("../../../app/router").AppPath)}>{recordedDecision ? "View decision record" : "Open senior review"}</Button>
                   : analysisReviewComplete
@@ -382,8 +519,8 @@ function StandardWorkspaceContent({ review, slug, activeTab, pathname, search, n
       {decisionOpen && !workflowState.recommendation && <LearningTarget topicId="standard-recommendation">
         <DecisionDrawer
           company={review.company}
-          completed={review.status === "completed" || Boolean(recordedDecision)}
-          currentDecision={recordedDecision ?? (review.status === "completed" ? review.details.recommendation.title : null)}
+          completed={isDecisionRecorded}
+          currentDecision={recordedDecision ?? (isDecisionRecorded ? review.details.recommendation.title : null)}
           choice={decisionChoice}
           note={decisionNote}
           conditions={review.details.recommendation.conditions}
@@ -397,6 +534,138 @@ function StandardWorkspaceContent({ review, slug, activeTab, pathname, search, n
       {toast && <Toast title={toast.title} message={toast.message} onClose={() => setToast(null)} />}
     </div>
   );
+}
+
+function PolicyHeadroomProfile({ metrics }: { metrics: ReviewMetric[] }) {
+  const comparedMetrics = metrics.filter((metric): metric is ReviewMetric & { policyComparison: NonNullable<ReviewMetric["policyComparison"]> } => Boolean(metric.policyComparison));
+  const supportingMetrics = metrics.filter((metric) => !metric.policyComparison);
+  const insidePolicy = comparedMetrics.every(({ policyComparison }) => policyComparison.direction === "minimum"
+    ? policyComparison.actual >= policyComparison.boundary
+    : policyComparison.actual <= policyComparison.boundary);
+
+  return (
+    <Panel elevation="flat" className={styles.policyProfile}>
+      <header className={styles.policyProfileHeader}>
+        <div>
+          <strong>{insidePolicy ? "Capacity remains inside policy" : "Policy exception requires review"}</strong>
+          <p>Scenario values and policy markers share the same scale for each measure.</p>
+        </div>
+        <StatusPill tone={insidePolicy ? "success" : "warning"}>{insidePolicy ? "Inside policy" : "Needs judgment"}</StatusPill>
+      </header>
+
+      <div className={styles.policyProfileBody}>
+        <div className={styles.policyMeasures}>
+          {comparedMetrics.map((metric) => <PolicyMeasure key={metric.label} metric={metric} />)}
+        </div>
+        {supportingMetrics.length > 0 && (
+          <dl className={styles.policySupport} aria-label="Supporting capacity facts">
+            {supportingMetrics.map((metric) => (
+              <div key={metric.label}>
+                <dt>{metric.label}</dt>
+                <dd>{metric.value}</dd>
+                <small>{metric.detail}</small>
+              </div>
+            ))}
+          </dl>
+        )}
+      </div>
+    </Panel>
+  );
+}
+
+function PolicyMeasure({ metric }: { metric: ReviewMetric & { policyComparison: NonNullable<ReviewMetric["policyComparison"]> } }) {
+  const { policyComparison } = metric;
+  const actualPosition = getScalePosition(policyComparison.actual, policyComparison.domain);
+  const boundaryPosition = getScalePosition(policyComparison.boundary, policyComparison.domain);
+  const trackStyle = {
+    "--policy-actual-position": `${actualPosition}%`,
+    "--policy-boundary-position": `${boundaryPosition}%`,
+  } as CSSProperties;
+  return (
+    <div className={styles.policyMeasure}>
+      <div className={styles.policyMeasureHeader}>
+        <span>{metric.label}</span>
+        <strong>{metric.value}</strong>
+      </div>
+      <div
+        className={styles.policyTrack}
+        style={trackStyle}
+        role="img"
+        aria-label={`${metric.label}: ${metric.value}. ${policyComparison.varianceLabel}. ${policyComparison.boundaryLabel}.`}
+      >
+        <span className={styles.policyActual} aria-hidden="true" />
+        <span className={styles.policyBoundary} aria-hidden="true" />
+        <span className={styles.policyPoint} aria-hidden="true" />
+      </div>
+      <div className={styles.policyMeasureMeta}>
+        <span>{policyComparison.varianceLabel}</span>
+        <span>{policyComparison.boundaryLabel}</span>
+      </div>
+    </div>
+  );
+}
+
+function getScalePosition(value: number, domain: readonly [number, number]) {
+  const [minimum, maximum] = domain;
+  if (maximum <= minimum) return 0;
+  return Math.min(100, Math.max(0, ((value - minimum) / (maximum - minimum)) * 100));
+}
+
+function RecommendationRevisionEditor({ draft, availableConditions, onDecisionChange, onRationaleChange, onToggleCondition }: {
+  draft: AnalystRecommendationDraft;
+  availableConditions: string[];
+  onDecisionChange: (decision: string) => void;
+  onRationaleChange: (rationale: string) => void;
+  onToggleCondition: (condition: string) => void;
+}) {
+  return (
+    <div className={styles.revisionEditor}>
+      <label className={styles.revisionField}>
+        <span>Recommendation posture <small>Required</small></span>
+        <input value={draft.decision} onChange={(event) => onDecisionChange(event.target.value)} />
+      </label>
+      <label className={styles.revisionField}>
+        <span>Analyst rationale <small>Required</small></span>
+        <textarea value={draft.rationale} onChange={(event) => onRationaleChange(event.target.value)} />
+      </label>
+      <fieldset className={styles.revisionConditions}>
+        <legend>Proposed conditions <small>Select the protections that should travel with the revised recommendation.</small></legend>
+        {availableConditions.map((condition) => (
+          <label key={condition}>
+            <input type="checkbox" checked={draft.conditions.includes(condition)} onChange={() => onToggleCondition(condition)} />
+            <span>{condition}</span>
+          </label>
+        ))}
+      </fieldset>
+    </div>
+  );
+}
+
+function toSeniorDecisionActivityItem(record: SeniorDecisionRecord): ActivityLedgerItem {
+  const returned = record.decision === "return_to_analyst";
+  const declined = record.decision === "decline";
+  const label = seniorDecisionLabel(record.decision);
+  return {
+    id: `senior-decision-${record.createdAt}`,
+    title: returned ? `${record.decisionMaker} returned the recommendation to the analyst` : `${record.decisionMaker} recorded a senior credit decision`,
+    meta: "Senior decision record",
+    description: `${label}${record.rationale ? ` · ${record.rationale}` : ""}`,
+    details: record.rationale || "Decision recorded from the reviewed case record.",
+    icon: returned || declined ? "alertCircle" : "checkCircle",
+    tone: returned ? "warning" : declined ? "danger" : "success",
+  };
+}
+
+function toRecommendationActivityItem(record: AnalystRecommendationRecord): ActivityLedgerItem {
+  return {
+    id: `recommendation-${record.createdAt}`,
+    title: `${record.author} submitted a recommendation for senior review`,
+    meta: "Analyst submission",
+    description: `${record.decision} · ${record.amount}`,
+    details: record.rationale,
+    icon: "send",
+    tone: "human",
+  };
 }
 
 function toActivityLedgerItem(event: ReviewActivity): ActivityLedgerItem {
@@ -427,7 +696,7 @@ function FindingRow({ finding, reviewed, onOpen }: { finding: ReviewFinding; rev
   return (
     <button type="button" className={styles.ledgerRow} onClick={onOpen}>
       <span className={styles.findingIdentity}><IconTile size="sm"><Icon name={getCreditFindingIcon(finding)} size="sm" /></IconTile><span className={styles.findingRowCopy}><strong>{finding.title}</strong><small>{finding.description}</small></span></span>
-      <span><StatusPill tone={reviewed ? "success" : finding.tone}>{reviewed ? "Reviewed" : finding.status}</StatusPill><Icon name="chevronRight" size="sm" /></span>
+      <span><StatusPill tone={findingStatusTone(finding, reviewed)}>{findingStatusLabel(finding, reviewed)}</StatusPill><Icon name="chevronRight" size="sm" /></span>
     </button>
   );
 }
@@ -439,8 +708,17 @@ function toWorkspaceFinding(finding: ReviewFinding, reviewed: boolean): CreditFi
     summary: finding.description,
     icon: getCreditFindingIcon(finding),
     risk: { label: `${finding.risk} risk`, level: finding.risk.toLowerCase() as CreditFindingListItem["risk"]["level"] },
-    status: { label: reviewed ? "Reviewed in this session" : finding.status, tone: reviewed ? "success" : finding.tone },
+    status: { label: findingStatusLabel(finding, reviewed), tone: findingStatusTone(finding, reviewed) },
   };
+}
+
+function findingStatusLabel(finding: ReviewFinding, reviewed: boolean) {
+  if (finding.status === "Complete") return "Complete";
+  return reviewed ? "Reviewed in this session" : finding.status;
+}
+
+function findingStatusTone(finding: ReviewFinding, reviewed: boolean): StatusPillTone {
+  return finding.status === "Complete" || reviewed ? "success" : finding.tone;
 }
 
 function StandardFindingDetail({ finding, reviewed, sources, onOpenSource, onToggleReview, onViewActivity, showRisk = false }: {
@@ -458,7 +736,7 @@ function StandardFindingDetail({ finding, reviewed, sources, onOpenSource, onTog
         {showRisk
           ? <span className={styles.findingRisk} data-risk={finding.risk.toLowerCase()}>{finding.risk} risk</span>
           : <span className={styles.eyebrow}>Finding review</span>}
-        <StatusPill tone={reviewed ? "success" : finding.tone}>{reviewed ? "Reviewed in this session" : finding.status}</StatusPill>
+        <StatusPill tone={findingStatusTone(finding, reviewed)}>{findingStatusLabel(finding, reviewed)}</StatusPill>
       </div>
       <h2>{finding.title}</h2>
       <p className={styles.findingLead}>{finding.description}</p>
@@ -473,7 +751,7 @@ function StandardFindingDetail({ finding, reviewed, sources, onOpenSource, onTog
         {sources.filter((source) => source.id === finding.sourceId).map((source) => <DocumentRow key={source.id} name={source.name} meta={source.meta} icon={getCreditSourceIcon(source)} onOpen={() => onOpenSource(source.id)} />)}
       </div>
       <div className={styles.detailActions}>
-        <Button variant={reviewed ? "secondary" : "primary"} onClick={onToggleReview}>{reviewed ? "Remove review mark" : "Mark reviewed"}</Button>
+        {finding.status !== "Complete" && <Button variant={reviewed ? "secondary" : "primary"} onClick={onToggleReview}>{reviewed ? "Remove review mark" : "Mark reviewed"}</Button>}
         <Button variant="quiet" onClick={onViewActivity}>View activity</Button>
       </div>
     </>

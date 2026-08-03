@@ -60,7 +60,7 @@ export function getLearningTopicIdsForScope(scope: LearningSurfaceScope): Meridi
  * It owns the same interception contract as the Meridian workspace while
  * leaving page layout and workflow state in the route owner.
  */
-export function LearningModeSurface({ scope, children, inlineToggle = false }: { scope: LearningSurfaceScope; children: ReactNode; inlineToggle?: boolean }) {
+export function LearningModeSurface({ scope, children, inlineToggle = false, className = "" }: { scope: LearningSurfaceScope; children: ReactNode; inlineToggle?: boolean; className?: string }) {
   const topicIds = getLearningTopicIdsForScope(scope);
   const [enabled, setEnabled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -138,7 +138,7 @@ export function LearningModeSurface({ scope, children, inlineToggle = false }: {
 
   return (
     <LearningModeContext.Provider value={{ enabled }}>
-      <div className={styles.learningSurface} data-learning-mode={enabled || undefined} onClickCapture={inspectClick} onKeyDownCapture={inspectKey}>
+      <div className={`${styles.learningSurface} ${className}`} data-learning-mode={enabled || undefined} onClickCapture={inspectClick} onKeyDownCapture={inspectKey}>
         {inlineToggle && <div className={styles.inlineToggle}><MeridianLearningToggle enabled={enabled} onToggle={toggle} /></div>}
         {children}
         <AppUtilityAction><MeridianLearningToggle enabled={enabled} onToggle={toggle} /></AppUtilityAction>
@@ -156,6 +156,7 @@ export function MeridianLearningToggle({ enabled, onToggle }: { enabled: boolean
       className={styles.toggle}
       icon={<Icon name={enabled ? "cursor" : "help"} size="sm" />}
       iconPosition="start"
+      aria-label="Learning mode"
       aria-pressed={enabled}
       data-learning-control
       onClick={onToggle}
@@ -235,8 +236,8 @@ export function MeridianLearningPanel({ open, topicId, topicIds, onSelectTopic, 
         </DrawerSection>
 
         <DrawerSection>
-          <span className={styles.sectionLabel}>Say it in the presentation</span>
-          <blockquote>“{topic.presenterLine}”</blockquote>
+          <span className={styles.sectionLabel}>Key takeaway</span>
+          <p className={styles.takeaway}>{topic.presenterLine}</p>
         </DrawerSection>
 
         <DrawerSection>

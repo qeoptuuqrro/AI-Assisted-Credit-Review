@@ -46,6 +46,101 @@ describe("Meridian review reducer", () => {
     expect(state.activity[0].detail).toContain("Analyst judgment is still required");
   });
 
+  it("persists analyst context and verification attribution on the reassessment record", () => {
+    const confirmedChecks = [
+      "Executed by both parties",
+      "Term extends through March 2030",
+      "Minimum-purchase provisions remain in effect",
+    ];
+    let state = createInitialMeridianState();
+    state = meridianReviewReducer(state, {
+      type: "evidence_transition",
+      id: "customer-renewal",
+      action: { type: "existing-source-selected", fileName: "Customer A Renewal Agreement.pdf" },
+    });
+    state = meridianReviewReducer(state, {
+      type: "evidence_transition",
+      id: "customer-renewal",
+      action: {
+        type: "verification-progress-updated",
+        confirmedChecks,
+        updatedBy: "Alex Kim",
+        updatedAt: at,
+      },
+    });
+    state = meridianReviewReducer(state, {
+      type: "evidence_transition",
+      id: "customer-renewal",
+      action: { type: "verification-complete" },
+    });
+    state = meridianReviewReducer(state, {
+      type: "analysis_completed",
+      record: {
+        id: "reassessment-with-context",
+        findingId: "customer-concentration",
+        evidenceRequirementId: "customer-renewal",
+        analystContext: "Relationship history supports confidence in the executed renewal.",
+        verification: {
+          confirmedChecks,
+          verifiedBy: "Alex Kim",
+          verifiedAt: at,
+        },
+        createdAt: at,
+        status: "current",
+      },
+    });
+
+    expect(state.evidenceStates["customer-renewal"].verificationProgress).toEqual({
+      confirmedChecks,
+      analystContext: undefined,
+      updatedBy: "Alex Kim",
+      updatedAt: at,
+    });
+    expect(state.reassessments[0]).toMatchObject({
+      id: "reassessment-with-context",
+      analystContext: "Relationship history supports confidence in the executed renewal.",
+      verification: {
+        confirmedChecks,
+        verifiedBy: "Alex Kim",
+        verifiedAt: at,
+      },
+      status: "current",
+    });
+  });
+
+  it("persists the verification draft and preserves it when evidence is verified", () => {
+    const verificationDraft = {
+      confirmedChecks: ["Executed by both parties"],
+      analystContext: "The relationship team reconfirmed the signed renewal.",
+      updatedBy: "Alex Kim",
+      updatedAt: at,
+    };
+    let state = createInitialMeridianState();
+    state = meridianReviewReducer(state, {
+      type: "evidence_transition",
+      id: "customer-renewal",
+      action: { type: "existing-source-selected", fileName: "Customer A Renewal Agreement.pdf" },
+    });
+    state = meridianReviewReducer(state, {
+      type: "evidence_transition",
+      id: "customer-renewal",
+      action: { type: "verification-progress-updated", ...verificationDraft },
+    });
+
+    expect(state.evidenceStates["customer-renewal"].verificationProgress).toEqual(verificationDraft);
+
+    state = meridianReviewReducer(state, {
+      type: "evidence_transition",
+      id: "customer-renewal",
+      action: { type: "verification-complete" },
+    });
+
+    expect(state.evidenceStates["customer-renewal"]).toMatchObject({
+      status: "verified",
+      verificationProgress: verificationDraft,
+    });
+  });
+
   it("replaces matched-source provenance when the analyst supplies a different document", () => {
     let state = createInitialMeridianState();
     state = meridianReviewReducer(state, { type: "evidence_transition", id: "customer-renewal", action: { type: "existing-source-selected", fileName: "Customer A Renewal Agreement.pdf" } });
@@ -329,6 +424,22 @@ describe("Northstar request reducer", () => {
     expect(state.analysisUpdated).toBe(true);
   });
 
+  it("advances a sent prototype request to an attributable received response", () => {
+    let state = createInitialNorthstarState();
+    state = northstarReviewReducer(state, { type: "send_request", at, recipient: "Marcus Reed · VP, Finance", dueDate: "Aug 2, 2026", message: "Please upload the approved forecast." });
+    state = northstarReviewReducer(state, { type: "preview_received_response", at: "2026-08-01T14:42:00.000Z" });
+
+    expect(state.request).toMatchObject({
+      status: "ready",
+      fileName: "2027 Operating Forecast.xlsx",
+      provenance: "borrower-upload",
+      suppliedBy: "Marcus Reed · VP, Finance",
+      receivedAt: "2026-08-01T14:42:00.000Z",
+    });
+    expect(state.evidenceReviewState).toBe("needs_verification");
+    expect(state.analysisUpdated).toBe(false);
+  });
+
   it.each([
     "Missing required forecast tabs",
     "Duplicate of an existing upload",
@@ -344,6 +455,26 @@ describe("Northstar request reducer", () => {
     expect(state.request.error).toBe(message);
     state = northstarReviewReducer(state, { type: "retry" });
     expect(state.request.status).toBe("received");
+  });
+
+  it("replaces an unreadable file while preserving the borrower request", () => {
+    let state = createInitialNorthstarState();
+    state = northstarReviewReducer(state, { type: "send_request", at, recipient: "Sarah Lee · CFO", dueDate: "Aug 2, 2026", message: "Please upload the approved forecast." });
+    state = northstarReviewReducer(state, { type: "receive_document", fileName: "Unreadable scan.pdf", provenance: "borrower-upload", suppliedBy: "Sarah Lee · CFO", at });
+    state = northstarReviewReducer(state, { type: "start_processing" });
+    state = northstarReviewReducer(state, { type: "processing_failed", message: "The file could not be read." });
+    state = northstarReviewReducer(state, { type: "replace_document" });
+
+    expect(state.request).toMatchObject({
+      status: "sent",
+      recipient: "Sarah Lee · CFO",
+      dueDate: "Aug 2, 2026",
+      message: "Please upload the approved forecast.",
+      sentAt: at,
+    });
+    expect(state.request.fileName).toBeUndefined();
+    expect(state.request.error).toBeUndefined();
+    expect(state.evidenceReviewState).toBe("ready");
   });
 
   it("supports cancellation without conflating it with completion", () => {

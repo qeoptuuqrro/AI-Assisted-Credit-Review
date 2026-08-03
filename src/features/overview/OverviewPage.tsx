@@ -1,13 +1,13 @@
 import { useMemo, useState } from "react";
 import { AppLink, useRouter, type AppPath } from "../../app/router";
-import { aiReviewStatus, reviews, type CreditReview } from "../credit-reviews/reviewData";
+import { reviews, type CreditReview } from "../credit-reviews/reviewData";
 import { companyLogoDomains } from "../credit-reviews/companyLogos";
 import { getDesignOption } from "../design-tools/designOptions";
 import { CompanyLogo } from "../../shared/ui/CompanyLogo/CompanyLogo";
+import { CaseStatusPill, caseStatusPresentation } from "../../shared/ui/CaseStatusPill/CaseStatusPill";
 import { DesignVariantNotice } from "../../shared/ui/DesignVariantNotice/DesignVariantNotice";
 import { Icon, type IconName } from "../../shared/ui/Icon/Icon";
 import { Panel } from "../../shared/ui/Panel/Panel";
-import { StatusPill } from "../../shared/ui/StatusPill/StatusPill";
 import { Tabs, type TabItem } from "../../shared/ui/Tabs/Tabs";
 import styles from "./OverviewPage.module.css";
 import { getLearningTargetProps, LearningModeSurface, useLearningMode } from "../credit-reviews/learning/MeridianLearningMode";
@@ -103,9 +103,9 @@ function OverviewPageContent() {
   const showTrendFlowV3 = selectedDesign?.renderKey === "workspace-trend-flow-dashboard";
   const showRefinedMomentumV4 = selectedDesign?.renderKey === "workspace-refined-momentum-dashboard";
   const myReviews = useMemo(() => reviews.filter((review) => review.owner === "Alex Kim"), []);
-  const needsJudgment = myReviews.filter((review) => review.aiReviewState === "needs-judgment");
-  const needsVerification = myReviews.filter((review) => review.aiReviewState === "needs-verification");
-  const awaitingDecision = myReviews.filter((review) => review.status === "ready-for-decision");
+  const analystReview = myReviews.filter((review) => review.caseStatus === "analyst-review");
+  const needsVerification = myReviews.filter((review) => review.caseStatus === "needs-verification");
+  const awaitingDecision = myReviews.filter((review) => review.caseStatus === "awaiting-decision");
 
   const focusReviews = useMemo(() => myReviews
     .filter((review) => review.status === "needs-attention")
@@ -114,7 +114,7 @@ function OverviewPageContent() {
 
   const queueReviews = useMemo(() => {
     if (queueView === "updated") {
-      return myReviews.filter((review) => review.aiReviewState === "analysis-updated" || review.aiReviewState === "analysis-ready").slice(0, 5);
+      return myReviews.filter((review) => review.hasUpdates).slice(0, 5);
     }
     if (queueView === "decision") {
       return reviews.filter((review) => review.status === "ready-for-decision" || review.status === "completed").slice(0, 5);
@@ -126,9 +126,9 @@ function OverviewPageContent() {
   }, [myReviews, queueView]);
 
   const operationalCards: Array<{ label: string; value: number; description: string; icon: IconName; tone: string; search: string }> = [
-    { label: "Needs judgment", value: needsJudgment.length, description: "Analyst decisions are holding the review.", icon: "scale", tone: "judgment", search: "?focus=needs-judgment" },
+    { label: "Analyst review", value: analystReview.length, description: "Usable analysis is ready for human interpretation.", icon: "scale", tone: "judgment", search: "?focus=analyst-review" },
     { label: "Evidence outstanding", value: needsVerification.length, description: "Source verification or new evidence is required.", icon: "fileCheck", tone: "evidence", search: "?focus=needs-verification" },
-    { label: "Awaiting decision", value: awaitingDecision.length, description: "Recommendations are ready for approver review.", icon: "checkCircle", tone: "decision", search: "?focus=ready-for-decision" },
+    { label: "Awaiting decision", value: awaitingDecision.length, description: "Recommendations are ready for approver review.", icon: "checkCircle", tone: "decision", search: "?focus=awaiting-decision" },
   ];
 
   return (
@@ -150,7 +150,7 @@ function OverviewPageContent() {
 
       <nav className={styles.quickActions} aria-label="Quick actions">
         <AppLink className={styles.primaryQuickAction} to="/credit-reviews"><span><Icon name="clipboard" size="sm" /></span>Open review queue</AppLink>
-        <AppLink to="/credit-reviews" search="?focus=needs-judgment"><span><Icon name="scale" size="sm" /></span>Needs judgment</AppLink>
+        <AppLink to="/credit-reviews" search="?focus=analyst-review"><span><Icon name="scale" size="sm" /></span>Analyst review</AppLink>
         <AppLink to="/credit-reviews" search="?focus=needs-verification"><span><Icon name="fileCheck" size="sm" /></span>Evidence requests</AppLink>
       </nav>
 
@@ -198,13 +198,13 @@ function OverviewPageContent() {
                 <button
                   type="button"
                   key={review.slug}
-                  aria-label={`${review.company}, ${aiReviewStatus[review.aiReviewState].label}, due ${review.due}`}
+                  aria-label={`${review.company}, ${caseStatusPresentation[review.caseStatus].label}, due ${review.due}`}
                   onClick={() => navigate(reviewPath(review))}
                 >
                   <CompanyLogo domain={companyLogoDomains[review.company]} name={review.company} />
                   <span>
                     <strong>{review.company}</strong>
-                    <small>{aiReviewStatus[review.aiReviewState].label}</small>
+                    <small>{caseStatusPresentation[review.caseStatus].label}</small>
                   </span>
                   <span className={review.dueGroup === "urgent" ? styles.focusDueUrgent : styles.focusDue}>{review.due}</span>
                   <Icon name="chevronRight" size="sm" />
@@ -214,7 +214,7 @@ function OverviewPageContent() {
 
             <div className={styles.focusFooter}>
               <span><Icon name="checkCircle" size="sm" /> {awaitingDecision.length} recommendations ready</span>
-              <AppLink to="/credit-reviews" search="?focus=ready-for-decision">Review decisions</AppLink>
+              <AppLink to="/credit-reviews" search="?focus=awaiting-decision">Review decisions</AppLink>
             </div>
           </Panel>
         </section>
@@ -242,7 +242,7 @@ function OverviewPageContent() {
                 <span><strong>{review.company}</strong><small>{review.facilityType}</small></span>
               </span>
               <span className={styles.requestCell}>{review.request}</span>
-              <span><StatusPill tone={aiReviewStatus[review.aiReviewState].tone}>{aiReviewStatus[review.aiReviewState].label}</StatusPill></span>
+              <span><CaseStatusPill status={review.caseStatus} /></span>
               <span className={review.dueGroup === "urgent" ? styles.dueUrgent : styles.due}>{review.due}<Icon name="chevronRight" size="sm" /></span>
             </button>
           ))}

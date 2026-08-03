@@ -3,7 +3,7 @@ import { useRouter, type AppPath } from "../../../app/router";
 import { CompanyLogo } from "../../../shared/ui/CompanyLogo/CompanyLogo";
 import { companyLogoDomains } from "../companyLogos";
 import { getStandardReview, standardReviewSlugs, type StandardReviewSlug } from "../reviewData";
-import { createInitialStandardReviewState, usePersistentStandardReviewState } from "../standard/standardReviewState";
+import { createInitialStandardReviewState, isStandardReviewRevisionInProgress, usePersistentStandardReviewState, type StandardReviewWorkflowState } from "../standard/standardReviewState";
 import { type SeniorDecisionDraft, type SeniorDecisionRecord } from "../workflow/creditReviewState";
 import { SeniorReviewPackage, type SeniorReviewPackageFinding } from "./SeniorReviewPackage";
 
@@ -20,7 +20,12 @@ export function StandardSeniorReviewPage() {
     author: review.owner,
     createdAt: new Date().toISOString(),
   } : undefined);
-  const canOpenSenior = Boolean(review && (workflowState.recommendationSubmitted || review.status === "ready-for-decision" || review.status === "completed"));
+  const revisionInProgress = isStandardReviewRevisionInProgress(workflowState);
+  const canOpenSenior = Boolean(review && (
+    workflowState.recommendationSubmitted
+    || workflowState.seniorDecision
+    || (!revisionInProgress && (review.status === "ready-for-decision" || review.status === "completed"))
+  ));
 
   useEffect(() => {
     if (!review) return;
@@ -40,7 +45,7 @@ export function StandardSeniorReviewPage() {
   }, [canOpenSenior, dispatchWorkflow, navigate, review, slug, workflowState.recommendationSubmitted]);
 
   useEffect(() => {
-    if (!review || review.status !== "completed" || !workflowState.recommendationSubmitted || workflowState.seniorDecision) return;
+    if (!review || !shouldSeedCompletedStandardDecision(review.status, workflowState)) return;
     dispatchWorkflow({ type: "record_senior_decision", record: {
       decision: "approve_with_conditions",
       rationale: review.details.recommendation.rationale,
@@ -48,7 +53,7 @@ export function StandardSeniorReviewPage() {
       decisionMaker: "Morgan Lee",
       createdAt: "2026-07-25T15:16:00.000Z",
     } });
-  }, [dispatchWorkflow, review, workflowState.recommendationSubmitted, workflowState.seniorDecision]);
+  }, [dispatchWorkflow, review, workflowState]);
 
   const findings = useMemo<SeniorReviewPackageFinding[]>(() => review?.details.findings.map((finding) => ({
     id: finding.id,
@@ -66,18 +71,33 @@ export function StandardSeniorReviewPage() {
     logoDomain={companyLogoDomains[review.company]}
     request={review.request}
     facilityType={`${review.details.term} · ${review.facilityType}`}
+    decisionQuestion={review.details.decisionQuestion}
     recommendation={recommendation}
     findings={findings}
+    decisionSignals={review.details.metrics}
     sourcesCount={review.details.sources.length}
     draft={workflowState.seniorDecisionDraft}
     existingDecision={workflowState.seniorDecision}
     onDraftChange={(draft: SeniorDecisionDraft) => dispatchWorkflow({ type: "save_senior_decision_draft", draft })}
-    onExit={() => navigate(`/credit-reviews/${slug}/recommendation`)}
-    onOpenRecord={(tab) => navigate(`/credit-reviews/${slug}/${tab}`)}
+    onExit={() => navigate("/credit-reviews/senior")}
+    onOpenRecord={(tab) => navigate(
+      tab === "overview"
+        ? `/credit-reviews/${slug}`
+        : `/credit-reviews/${slug}/${tab}`,
+    )}
     onSubmit={(record) => {
       const seniorDecision: SeniorDecisionRecord = { ...record, decisionMaker: "Morgan Lee", createdAt: new Date().toISOString() };
       dispatchWorkflow({ type: "record_senior_decision", record: seniorDecision });
-      navigate(`/credit-reviews/${slug}/recommendation`);
     }}
   />;
+}
+
+export function shouldSeedCompletedStandardDecision(
+  reviewStatus: "completed" | "ready-for-decision" | "needs-attention" | "in-review",
+  state: StandardReviewWorkflowState,
+) {
+  return reviewStatus === "completed"
+    && state.recommendationSubmitted
+    && !state.seniorDecision
+    && !state.decisionHistory?.length;
 }

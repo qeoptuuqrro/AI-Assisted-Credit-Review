@@ -1,4 +1,34 @@
-.toggle[aria-pressed="true"] {
+.toggle[data-learning-control] {
+  min-width: var(--salt-button-height-sm);
+  gap: 0;
+  overflow: hidden;
+  padding-inline: calc((var(--salt-button-height-sm) - var(--salt-button-icon-size)) / 2);
+}
+
+.toggle[data-learning-control] > span {
+  min-width: 0;
+  max-width: 0;
+  overflow: hidden;
+  margin-inline-start: 0;
+  opacity: 0;
+  transition: max-width var(--salt-motion-fast) var(--salt-ease-standard), margin-inline-start var(--salt-motion-fast) var(--salt-ease-standard), opacity var(--salt-motion-fast) var(--salt-ease-standard);
+}
+
+.toggle[data-learning-control]:focus-visible > span {
+  max-width: 9rem;
+  margin-inline-start: var(--salt-button-gap);
+  opacity: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .toggle[data-learning-control]:hover > span {
+    max-width: 9rem;
+    margin-inline-start: var(--salt-button-gap);
+    opacity: 1;
+  }
+}
+
+.toggle[data-learning-control][aria-pressed="true"] {
   background: var(--salt-color-indigo-100);
   color: var(--salt-color-indigo-700);
   box-shadow: inset 0 0 0 var(--salt-border-width) var(--salt-color-action-border-subtle);
@@ -206,12 +236,9 @@
   line-height: var(--salt-type-line-none);
 }
 
-.drawer blockquote {
-  margin: var(--salt-space-3) 0 0;
-  padding-left: var(--salt-space-4);
-  border-left: 2px solid var(--salt-color-action);
+.drawer .takeaway {
+  margin: var(--salt-space-2) 0 0;
   color: var(--salt-color-text-strong);
-  font-family: var(--salt-type-family-display);
   font-size: var(--salt-type-size-ui-secondary);
   line-height: var(--salt-type-line-ui);
 }
@@ -283,6 +310,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .toggle,
+  .toggle[data-learning-control] > span,
   .learningSurface[data-learning-mode="true"] [data-learning-target],
   .learningSurface[data-learning-mode="true"] [data-learning-target]::after {
     transition: none;

@@ -17,8 +17,7 @@
 .filterGroup,
 .tableTools,
 .drawerTitleRow,
-.drawerFooter,
-.dialogFooter {
+.drawerFooter {
   display: flex;
   align-items: center;
 }
@@ -500,82 +499,9 @@
   width: 100%;
 }
 
-.dialogLayer {
-  position: fixed;
-  z-index: var(--salt-z-document-viewer);
-  inset: 0;
-  display: grid;
-  place-items: center;
-  padding: var(--salt-space-4);
-}
-
-.dialogBackdrop {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  padding: 0;
-  border: 0;
-  background: var(--salt-color-overlay);
-  cursor: default;
-}
-
-.dialog {
-  position: relative;
-  width: min(520px, 100%);
-  max-height: calc(100dvh - (var(--salt-space-8) * 2));
-  overflow: auto;
-  border-radius: var(--salt-radius-lg);
-  background: var(--salt-color-surface);
-  box-shadow: var(--salt-shadow-raised);
-}
-
-.dialogHeader {
-  min-height: var(--salt-space-16);
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--salt-space-4);
-  padding: var(--salt-space-5) var(--salt-space-6) var(--salt-space-4);
-  border-bottom: var(--salt-border-subtle);
-}
-
-.dialogHeader span {
-  color: var(--salt-color-text-subtle);
-  font-size: var(--salt-type-size-xs);
-  line-height: var(--salt-type-line-ui-secondary);
-}
-
-.dialogHeader h2 {
-  margin: var(--salt-space-1) 0 0;
-  color: var(--salt-color-text-strong);
-  font-family: var(--salt-type-family-display);
-  font-size: var(--salt-type-size-lg);
-  font-weight: var(--salt-type-weight-display);
-  line-height: var(--salt-type-line-section);
-}
-
-.dialogHeader > button {
-  width: var(--salt-control-height-sm);
-  height: var(--salt-control-height-sm);
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: 0;
-  border-radius: var(--salt-radius-md);
-  background: transparent;
-  color: var(--salt-color-text-muted);
-  cursor: pointer;
-}
-
-.dialogHeader > button:hover {
-  background: var(--salt-color-surface-hover);
-}
-
-.dialogBody {
+.dialogForm {
   display: grid;
   gap: var(--salt-space-4);
-  padding: var(--salt-space-6);
 }
 
 .formGrid {
@@ -652,13 +578,6 @@
   border-style: solid;
   background: var(--salt-color-success-surface);
   color: var(--salt-color-success-text);
-}
-
-.dialogFooter {
-  justify-content: flex-end;
-  gap: var(--salt-space-2);
-  padding: var(--salt-space-4) var(--salt-space-6);
-  border-top: var(--salt-border-subtle);
 }
 
 @container (max-width: 760px) {
@@ -796,22 +715,4 @@
     grid-template-columns: 1fr;
   }
 
-  .dialogLayer {
-    padding: 0;
-  }
-
-  .dialog {
-    width: 100%;
-    height: 100dvh;
-    max-height: none;
-    border-radius: 0;
-  }
-
-  .dialogBody {
-    padding: var(--salt-space-5) var(--salt-space-4);
-  }
-
-  .dialogFooter {
-    padding-inline: var(--salt-space-4);
-  }
 }

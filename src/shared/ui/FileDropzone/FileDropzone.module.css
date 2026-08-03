@@ -48,9 +48,9 @@
 .dropCopy,
 .fileCopy { min-width: 0; display: grid; gap: var(--salt-space-1); }
 .dropCopy strong,
-.fileCopy strong { overflow: hidden; color: var(--salt-color-text-strong); font-size: var(--salt-type-size-ui-secondary); font-weight: var(--salt-type-weight-regular); text-overflow: ellipsis; white-space: nowrap; }
+.fileCopy strong { overflow: hidden; color: var(--salt-color-text-strong); font-size: var(--salt-file-dropzone-title-size); font-weight: var(--salt-type-weight-regular); line-height: var(--salt-file-dropzone-title-line); text-overflow: ellipsis; white-space: nowrap; }
 .dropCopy small,
-.fileCopy small { color: var(--salt-color-text-subtle); font-size: var(--salt-type-size-xs); line-height: var(--salt-type-line-ui-secondary); }
+.fileCopy small { color: var(--salt-color-text-subtle); font-size: var(--salt-file-dropzone-meta-size); line-height: var(--salt-file-dropzone-meta-line); }
 
 .fileRow {
   display: grid;

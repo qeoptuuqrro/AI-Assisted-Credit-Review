@@ -50,17 +50,18 @@ describe("Design Tools credit decision screens", () => {
     expect(getDesignAreaForPath("/design-system")).toBe("utility-bar");
   });
 
-  it("preserves V1–V5 while making the attributable insight brief current", () => {
+  it("preserves V1–V8 while making the capacity-first verification brief current", () => {
     const reassessmentOptions = designOptions.filter((option) => option.area === "reassessment");
     const current = getCurrentDesignOption("reassessment");
     const candidate = reassessmentOptions.find((option) => option.id === "reassessment-v3-insight-brief");
     const focused = reassessmentOptions.find((option) => option.id === "reassessment-v2-focused-change");
     const breathable = reassessmentOptions.find((option) => option.id === "reassessment-v4-breathable-judgment");
 
-    expect(reassessmentOptions).toHaveLength(6);
-    expect(current?.id).toBe("reassessment-v6-attributable-insight-brief");
-    expect(current?.renderKey).toBe("attributable-insight-brief");
-    expect(current?.preset).toBe("meridian-reassessment-ready");
+    expect(reassessmentOptions).toHaveLength(9);
+    expect(reassessmentOptions.map((option) => option.version)).toEqual(["V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9"]);
+    expect(current?.id).toBe("reassessment-v9-verification-led-brief");
+    expect(current?.renderKey).toBe("verification-led-decision-review");
+    expect(current?.preset).toBe("meridian-start");
     expect(focused?.status).toBe("archived");
     expect(breathable?.status).toBe("archived");
     expect(candidate?.status).toBe("candidate");
@@ -68,6 +69,16 @@ describe("Design Tools credit decision screens", () => {
     expect(candidate?.route).toBe("/credit-reviews/meridian-foods/findings/declining-margins");
     expect(candidate?.preset).toBe("meridian-margin-reassessment-ready");
     expect(designOptions.find((option) => option.id === "reassessment-v5-attributable-analysis")?.status).toBe("archived");
+    expect(designOptions.find((option) => option.id === "reassessment-v6-attributable-insight-brief")?.status).toBe("archived");
+    expect(designOptions.find((option) => option.id === "reassessment-v7-attributable-decision-review")?.status).toBe("archived");
+    expect(designOptions.find((option) => option.id === "reassessment-v8-evidence-first-decision-review")?.status).toBe("archived");
+    expect(getActiveDesignOption(
+      "/credit-reviews/meridian-foods/findings/customer-concentration",
+      "reassessment-v7-attributable-decision-review",
+    )).toMatchObject({
+      renderKey: "attributable-decision-review",
+      status: "archived",
+    });
   });
 
   it("keeps analyst recommendation and senior decision as separate screen areas", () => {
@@ -76,20 +87,24 @@ describe("Design Tools credit decision screens", () => {
 
     expect(analystOptions).toHaveLength(5);
     expect(analystOptions.every((option) => option.preset === "meridian-recommendation-ready")).toBe(true);
-    expect(seniorOptions).toHaveLength(4);
+    expect(seniorOptions).toHaveLength(6);
     expect(seniorOptions.every((option) => option.preset === "senior-review-ready")).toBe(true);
   });
 
-  it("adds a versioned senior submission queue before the decision workspace", () => {
+  it("preserves the submission queue while making the restrained senior inbox current", () => {
+    const queueOptions = designOptions.filter((option) => option.area === "senior-review-queue");
     const current = getCurrentDesignOption("senior-review-queue");
+    const archived = queueOptions.find((option) => option.id === "senior-review-queue-v1-submissions");
 
+    expect(queueOptions).toHaveLength(2);
     expect(current).toMatchObject({
-      id: "senior-review-queue-v1-submissions",
+      id: "senior-review-queue-v2-decision-inbox",
       route: "/credit-reviews/senior",
-      renderKey: "senior-review-submission-queue",
+      renderKey: "senior-review-decision-inbox",
       preset: "senior-review-ready",
       status: "current",
     });
+    expect(archived).toMatchObject({ status: "archived", renderKey: "senior-review-submission-queue" });
     expect(getDesignAreaForPath("/credit-reviews/senior")).toBe("senior-review-queue");
   });
 
@@ -107,18 +122,22 @@ describe("Design Tools credit decision screens", () => {
     });
   });
 
-  it("preserves V1–V3 while making the decision command center V4 current", () => {
+  it("preserves V1–V5 while making the aligned decision workflow V6 current", () => {
     const current = getCurrentDesignOption("senior-decision");
     const archived = designOptions.find((option) => option.id === "senior-decision-v1-dense-brief");
     const focused = designOptions.find((option) => option.id === "senior-decision-v2-focused-layer");
     const fullScreen = designOptions.find((option) => option.id === "senior-decision-v3-full-screen-review");
+    const commandCenter = designOptions.find((option) => option.id === "senior-decision-v4-command-center");
+    const unifiedBrief = designOptions.find((option) => option.id === "senior-decision-v5-unified-brief");
 
-    expect(current?.id).toBe("senior-decision-v4-command-center");
-    expect(current?.renderKey).toBe("senior-decision-command-center");
+    expect(current?.id).toBe("senior-decision-v6-aligned-workflow");
+    expect(current?.renderKey).toBe("senior-decision-aligned-workflow");
     expect(current?.route).toBe("/credit-reviews/meridian-foods/senior-decision/review");
     expect(archived?.status).toBe("archived");
     expect(focused?.status).toBe("candidate");
     expect(fullScreen?.status).toBe("archived");
+    expect(commandCenter?.status).toBe("archived");
+    expect(unifiedBrief?.status).toBe("archived");
   });
 
   it.each([
@@ -127,7 +146,7 @@ describe("Design Tools credit decision screens", () => {
     "/credit-reviews/meridian-foods/findings/increasing-leverage",
   ] as const)("maps the finding detail route %s to the shared reassessment screen", (pathname) => {
     expect(getDesignAreaForPath(pathname)).toBe("reassessment");
-    expect(getActiveDesignOption(pathname)?.id).toBe("reassessment-v6-attributable-insight-brief");
+    expect(getActiveDesignOption(pathname)?.id).toBe("reassessment-v9-verification-led-brief");
   });
 
   it("preserves Northstar V2 while making coherent finding states current across the workspace", () => {
@@ -154,6 +173,9 @@ describe("Design Tools credit decision screens", () => {
     expect(getDesignAreaForPath("/credit-reviews/meridian-foods/recommendation/draft")).toBe("recommendation-decision");
     expect(getDesignAreaForPath("/credit-reviews/meridian-foods/senior-decision")).toBe("senior-decision");
     expect(getDesignAreaForPath("/credit-reviews/meridian-foods/senior-decision/review")).toBe("senior-decision");
+    expect(getDesignAreaForPath("/credit-reviews/northstar-health/senior-decision/review")).toBe("senior-decision");
+    expect(getDesignAreaForPath("/credit-reviews/apex-manufacturing/senior-decision/review")).toBe("senior-decision");
+    expect(getActiveDesignOption("/credit-reviews/apex-manufacturing/senior-decision/review")?.id).toBe("senior-decision-v6-aligned-workflow");
   });
 
   it("lets an explicit saved direction override the route's current direction", () => {

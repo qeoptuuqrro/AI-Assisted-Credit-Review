@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createInitialNorthstarState, createMeridianPreset, createNorthstarPreset, meridianReviewReducer } from "../workflow/creditReviewState";
-import { buildSeniorQueueItems, getStageTabsScrollCue } from "./SeniorReviewsPage";
+import { buildSeniorQueueItems, compactRecommendationLabel, compactRecommendationTone, getStageTabsScrollCue, matchesSeniorQueueSearch } from "./SeniorReviewsPage";
 
 describe("senior review queue projection", () => {
   it("moves returned decisions to Waiting on analyst instead of Decided", () => {
@@ -61,5 +61,26 @@ describe("senior review queue projection", () => {
     expect(getStageTabsScrollCue({ clientWidth: 358, scrollWidth: 388, scrollLeft: 0 })).toEqual({ overflow: true, atEnd: false });
     expect(getStageTabsScrollCue({ clientWidth: 358, scrollWidth: 388, scrollLeft: 30 })).toEqual({ overflow: true, atEnd: true });
     expect(getStageTabsScrollCue({ clientWidth: 968, scrollWidth: 968, scrollLeft: 0 })).toEqual({ overflow: false, atEnd: true });
+  });
+
+  it("keeps recommendation tags concise while preserving unfamiliar copy", () => {
+    expect(compactRecommendationLabel("Approve with conditions")).toBe("Conditional");
+    expect(compactRecommendationLabel("Approve with concentration reporting")).toBe("Monitoring");
+    expect(compactRecommendationLabel("Proceed with standard protections")).toBe("Standard");
+    expect(compactRecommendationLabel("Decision recorded")).toBe("Decision recorded");
+    expect(compactRecommendationTone("Approve with conditions")).toBe("warning");
+    expect(compactRecommendationTone("Approve with concentration reporting")).toBe("info");
+    expect(compactRecommendationTone("Proceed with standard protections")).toBe("success");
+    expect(compactRecommendationLabel("Approved with conditions")).toBe("Approved");
+    expect(compactRecommendationTone("Approved with conditions")).toBe("success");
+    expect(compactRecommendationTone("Decision recorded")).toBe("neutral");
+  });
+
+  it("keeps the hidden facility type available to queue search", () => {
+    const meridian = buildSeniorQueueItems(createMeridianPreset("senior-review-ready"), createInitialNorthstarState())
+      .find((item) => item.id === "meridian-foods");
+
+    expect(meridian).toBeDefined();
+    expect(matchesSeniorQueueSearch({ ...meridian!, request: "$18M" }, "revolving line")).toBe(true);
   });
 });

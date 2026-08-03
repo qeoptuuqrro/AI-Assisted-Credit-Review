@@ -280,6 +280,10 @@
   color: var(--salt-color-text-muted);
 }
 
+.contextCompanyLogo {
+  justify-self: center;
+}
+
 .contextOptionCopy {
   min-width: 0;
   display: grid;
@@ -416,8 +420,12 @@
   padding: var(--salt-space-10) 0 var(--salt-space-16);
 }
 
-.turn + .turn {
-  margin-top: var(--salt-space-12);
+.turn {
+  scroll-margin-top: calc(var(--salt-shell-banner-height) + var(--salt-shell-utility-height) + var(--salt-control-height-lg) + var(--salt-space-4));
+}
+
+.turn:not(:last-of-type) {
+  margin-bottom: var(--salt-space-12);
 }
 
 .userMessage {
@@ -450,86 +458,137 @@
 }
 
 .workTrace {
-  margin-top: var(--salt-space-8);
-  padding-left: var(--salt-space-1);
+  width: min(100%, calc(var(--salt-intelligence-content-width) - var(--salt-space-16)));
+  min-height: calc((var(--salt-intelligence-work-row-height) * 3) + var(--salt-space-10));
+  margin: var(--salt-space-8) auto 0;
+  padding: var(--salt-space-5) 0 var(--salt-space-4);
 }
 
 .workHeader {
-  display: flex;
-  align-items: center;
+  min-height: calc(var(--salt-intelligence-work-row-height) * 2);
+  display: grid;
+  justify-items: center;
+  align-content: start;
   gap: var(--salt-space-3);
+  text-align: center;
 }
 
-.workHeader > span:last-child,
-.workStep > span:last-child {
+.workHeaderCopy,
+.workStepCopy {
+  min-width: 0;
   display: grid;
   gap: var(--salt-space-0-5);
 }
 
-.workHeader strong,
-.workStep strong {
-  color: var(--salt-color-text-strong);
-  font-size: var(--salt-type-size-ui-secondary);
-  font-weight: var(--salt-type-weight-regular);
-  line-height: var(--salt-type-line-ui-secondary);
+.workHeaderCopy {
+  max-width: var(--salt-intelligence-message-width);
+  animation: intelligenceCopyEnter var(--salt-intelligence-step-transition) var(--salt-ease-standard) both;
 }
 
-.workHeader small,
-.workStep small {
+.workHeader strong {
+  color: var(--salt-color-text-strong);
+  font-size: var(--salt-type-size-ui);
+  font-weight: var(--salt-type-weight-regular);
+  line-height: var(--salt-type-line-ui);
+}
+
+.workHeader small {
   color: var(--salt-color-text-muted);
   font-size: var(--salt-type-size-sm);
   line-height: var(--salt-type-line-ui-secondary);
 }
 
 .activityOrb {
-  width: var(--salt-intelligence-work-dot);
-  height: var(--salt-intelligence-work-dot);
-  flex: 0 0 auto;
-  border: var(--salt-intelligence-activity-border-width) solid var(--salt-color-border);
-  border-top-color: var(--salt-color-action);
+  position: relative;
+  width: var(--salt-space-8);
+  height: var(--salt-space-8);
+  border: var(--salt-border-width) solid var(--salt-color-action-border-subtle);
   border-radius: var(--salt-radius-full);
+  background: var(--salt-color-surface-selected);
+}
+
+.activityOrb::before {
+  position: absolute;
+  inset: var(--salt-space-1);
+  border: var(--salt-intelligence-activity-border-width) solid transparent;
+  border-top-color: var(--salt-color-action);
+  border-right-color: var(--salt-color-action-border-subtle);
+  border-radius: inherit;
+  content: "";
   animation: intelligenceSpin var(--salt-intelligence-activity-duration) linear infinite;
 }
 
+.activityOrb::after {
+  position: absolute;
+  inset: 0;
+  width: var(--salt-space-1);
+  height: var(--salt-space-1);
+  margin: auto;
+  border-radius: var(--salt-radius-full);
+  background: var(--salt-color-action);
+  content: "";
+}
+
 .workSteps {
-  margin-top: var(--salt-space-5);
-  padding-left: var(--salt-space-1);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: var(--salt-space-6) 0 0;
+  padding: 0;
+  list-style: none;
 }
 
 .workStep {
   position: relative;
-  min-height: var(--salt-intelligence-work-row-height);
+  min-width: 0;
   display: grid;
-  grid-template-columns: var(--salt-intelligence-work-dot) minmax(0, 1fr);
-  align-items: start;
-  gap: var(--salt-space-3);
-  opacity: var(--salt-opacity-disabled);
+  justify-items: center;
+  align-content: start;
+  gap: var(--salt-space-2);
+  padding-inline: var(--salt-space-1);
+  transform: translateY(var(--salt-space-0-5));
+  transition: transform var(--salt-intelligence-step-transition) var(--salt-ease-standard);
 }
 
-.workStep::before {
+.workStep::before,
+.workStep::after {
   position: absolute;
-  top: var(--salt-intelligence-work-dot);
-  bottom: 0;
-  left: calc(var(--salt-intelligence-work-dot) / 2);
-  width: var(--salt-border-width);
+  top: calc(var(--salt-space-6) / 2);
+  right: -50%;
+  left: 50%;
+  height: var(--salt-border-width);
   background: var(--salt-color-border-subtle);
   content: "";
 }
 
-.workStep:last-child::before {
+.workStep::after {
+  background: var(--salt-color-action-border-subtle);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.workStep:last-child::before,
+.workStep:last-child::after {
   display: none;
 }
 
-.workStepActive,
-.workStepComplete {
-  opacity: 1;
+.workStep[data-state="active"],
+.workStep[data-state="complete"] {
+  transform: translateY(0);
+}
+
+.workStep[data-state="complete"]::after {
+  transform: scaleX(1);
+}
+
+.workStep[data-state="active"]::after {
+  animation: intelligenceConnectorFill var(--salt-intelligence-stage-progress-duration) linear both;
 }
 
 .workStepMark {
   position: relative;
   z-index: var(--salt-z-base);
-  width: var(--salt-intelligence-work-dot);
-  height: var(--salt-intelligence-work-dot);
+  width: var(--salt-space-6);
+  height: var(--salt-space-6);
   display: grid;
   place-items: center;
   border: var(--salt-border-default);
@@ -537,18 +596,65 @@
   background: var(--salt-color-surface);
   color: var(--salt-color-text-subtle);
   font-size: var(--salt-type-size-xs);
+  transition: border-color var(--salt-intelligence-step-transition) var(--salt-ease-standard), background-color var(--salt-intelligence-step-transition) var(--salt-ease-standard), color var(--salt-intelligence-step-transition) var(--salt-ease-standard);
 }
 
-.workStepActive .workStepMark {
+.workStepCopy {
+  min-height: calc(var(--salt-space-4) + var(--salt-space-2));
+  justify-items: center;
+  text-align: center;
+}
+
+.workStep strong {
+  color: var(--salt-color-text-muted);
+  font-size: var(--salt-type-size-xs);
+  font-weight: var(--salt-type-weight-regular);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.workStep[data-state="active"] strong {
+  color: var(--salt-color-text-strong);
+}
+
+.workStep[data-state="active"] .workStepMark {
   border-color: var(--salt-color-action);
+  background: var(--salt-color-surface-selected);
   color: var(--salt-color-action);
-  box-shadow: var(--salt-intelligence-work-ring);
 }
 
-.workStepComplete .workStepMark {
+.workStep[data-state="complete"] .workStepMark {
   border-color: var(--salt-color-success-text);
   background: var(--salt-color-success-surface);
   color: var(--salt-color-success-text);
+}
+
+.workStep[data-state="active"] .workStepCopy {
+  animation: intelligenceCopyEnter var(--salt-intelligence-step-transition) var(--salt-ease-standard) both;
+}
+
+.workStepCheck {
+  display: grid;
+  place-items: center;
+  animation: intelligenceCheckEnter var(--salt-motion-fast) var(--salt-ease-standard) both;
+}
+
+.answerReveal {
+  --intelligence-answer-reveal-order: 0;
+
+  animation: intelligenceAnswerEnter var(--salt-intelligence-answer-transition) var(--salt-ease-standard) both;
+  animation-delay: calc(var(--salt-intelligence-answer-stagger) * var(--intelligence-answer-reveal-order));
+}
+
+.answerRevealLead {
+  --intelligence-answer-reveal-order: 1;
+}
+
+.answerRevealArtifact {
+  --intelligence-answer-reveal-order: 2;
+}
+
+.answerRevealSupporting {
+  --intelligence-answer-reveal-order: 3;
 }
 
 .workDisclosure {
@@ -600,19 +706,20 @@
   margin-top: var(--salt-space-3);
 }
 
-.answer > p {
+.answerLead > p,
+.answerArtifact > p {
   margin: 0;
   color: var(--salt-color-text);
   font-size: var(--salt-type-size-ui);
   line-height: var(--salt-type-line-ui);
 }
 
-.answer > p + p,
-.answer figure + p {
+.answerLead > p + p,
+.answerArtifact figure + p {
   margin-top: var(--salt-space-4);
 }
 
-.answer > p strong {
+.answerLead > p strong {
   color: var(--salt-color-text-strong);
   font-weight: var(--salt-type-weight-regular);
 }
@@ -803,6 +910,10 @@
   font-size: var(--salt-type-size-xs);
 }
 
+.threadEnd {
+  height: calc(var(--salt-intelligence-composer-min-height) + var(--salt-space-6));
+}
+
 .composerDock {
   position: sticky;
   bottom: 0;
@@ -831,6 +942,26 @@
 
 @keyframes intelligenceSpin {
   to { transform: rotate(360deg); }
+}
+
+@keyframes intelligenceCopyEnter {
+  from { opacity: var(--salt-opacity-disabled); transform: translateY(var(--salt-space-0-5)); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes intelligenceConnectorFill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes intelligenceCheckEnter {
+  from { opacity: 0; transform: scale(0.72); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes intelligenceAnswerEnter {
+  from { visibility: hidden; opacity: 0; transform: translateY(var(--salt-space-1)); }
+  to { visibility: visible; opacity: 1; transform: translateY(0); }
 }
 
 @keyframes sourceEnter {
@@ -929,7 +1060,34 @@
     width: 100%;
   }
 
+  .contextPopover:not(.contextPopoverAbove) {
+    position: fixed;
+    inset: auto var(--salt-space-4) calc(var(--salt-shell-mobile-nav-height) + var(--salt-space-2));
+    width: auto;
+    max-height: var(--salt-intelligence-mobile-picker-max-height);
+  }
+
   .pickerHeader kbd {
     display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .activityOrb::before,
+  .workHeaderCopy,
+  .workStep[data-state="active"]::after,
+  .workStep[data-state="active"] .workStepCopy,
+  .workStepCheck,
+  .answerReveal {
+    animation: none;
+  }
+
+  .workStep,
+  .workStepMark {
+    transition: none;
+  }
+
+  .workStep[data-state="active"]::after {
+    transform: scaleX(1);
   }
 }

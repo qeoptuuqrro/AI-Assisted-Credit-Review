@@ -5,7 +5,7 @@ import { Icon } from "../../../shared/ui/Icon/Icon";
 import { IconTile } from "../../../shared/ui/IconTile/IconTile";
 import { KeyValueGrid } from "../../../shared/ui/KeyValueGrid/KeyValueGrid";
 import { StatusPill } from "../../../shared/ui/StatusPill/StatusPill";
-import { findings, sources, type SourceRecord, type SourceReviewState } from "./meridianData";
+import { findings, sources, type FindingId, type SourceRecord, type SourceReviewState } from "./meridianData";
 import { getSourceExtractionFields, getSourceReviewPresentation, relatedSourceIds } from "./sourceReviewData";
 import { getCreditSourceIcon } from "../creditReviewPresentation";
 import { companyLogoDomains } from "../companyLogos";
@@ -19,17 +19,17 @@ type SourceReviewDetailProps = {
   sourceIndex: number;
   sourceCount: number;
   unresolvedCount: number;
+  contextFindingId?: FindingId | null;
+  resumeEvidenceStage?: "evidence" | "review" | null;
   onBrowseSources: () => void;
   onSelectSource: (id: string) => void;
   onPrevious: () => void;
   onNext: () => void;
-  onFlag: () => void;
-  onComplete: () => void;
   learningMode?: boolean;
 };
 
-export function SourceReviewDetail({ source, reviewState, renewalLinked, sourceIndex, sourceCount, unresolvedCount, onBrowseSources, onSelectSource, onPrevious, onNext, onFlag, onComplete, learningMode = false }: SourceReviewDetailProps) {
-  const learn = (topicId: "source-verification" | "source-provenance" | "source-review-actions") => getLearningTargetProps(learningMode, topicId);
+export function SourceReviewDetail({ source, reviewState, renewalLinked, sourceIndex, sourceCount, unresolvedCount, contextFindingId = null, resumeEvidenceStage = null, onBrowseSources, onSelectSource, onPrevious, onNext, learningMode = false }: SourceReviewDetailProps) {
+  const learn = (topicId: "source-verification" | "source-provenance") => getLearningTargetProps(learningMode, topicId);
   const presentation = getSourceReviewPresentation(source, reviewState, renewalLinked);
   const fields = getSourceExtractionFields(source);
   const relatedSourceId = relatedSourceIds[source.id];
@@ -38,40 +38,44 @@ export function SourceReviewDetail({ source, reviewState, renewalLinked, sourceI
   const relevantFindingIds = linkedRenewal ? ["customer-concentration" as const, ...source.usedIn] : source.usedIn;
   const relevantFindings = [...new Set(relevantFindingIds)].map((id) => findings.find((finding) => finding.id === id)).filter(Boolean);
   const complete = reviewState === "verified" || linkedRenewal;
-  const blocked = reviewState === "flagged";
   const reviewedLabel = complete ? "Just now" : source.reviewed;
-  const primaryLabel = complete
-    ? linkedRenewal ? "Current evidence" : "Verified"
-    : blocked
-      ? "Resolve discrepancy first"
-      : source.id === "customer-a-renewal"
-        ? "Use as current evidence"
-        : source.freshness === "Attention"
-          ? "Mark exception reviewed"
-          : "Confirm source";
+  const previousSource = sources[(sourceIndex - 1 + sourceCount) % sourceCount];
+  const nextSource = sources[(sourceIndex + 1) % sourceCount];
+  const reviewQueueLabel = unresolvedCount === 0 ? "All sources reviewed" : `${unresolvedCount} require review`;
+  const contextFinding = contextFindingId ? findings.find((finding) => finding.id === contextFindingId) : undefined;
+  const contextualInspection = Boolean(contextFinding);
+  const returnsToVerification = Boolean(resumeEvidenceStage);
 
   return (
     <section className={styles.reviewDetail} aria-labelledby="selected-source-title">
       <header className={styles.reviewIntro}>
-        <div className={styles.reviewEyebrow}><span>{source.type}</span><StatusPill tone={presentation.tone}>{presentation.label}</StatusPill></div>
-        <h1 id="selected-source-title">Verify {source.name}</h1>
-        <p>Compare the extracted values with the source document before relying on them in the credit decision.</p>
+        {contextualInspection && <span className={styles.inspectionContext}><Icon name="link" size="xs" />Evidence for {contextFinding?.title}</span>}
+        <h1 id="selected-source-title">{contextualInspection ? "Review" : "Verify"} {source.name}</h1>
+        <p>{contextualInspection ? returnsToVerification ? "Inspect the highlighted clauses, then return to the verification checklist. Nothing is verified on this page." : "Inspect the highlighted source, then return to the finding. Nothing changes on this page." : "Compare the extracted values with the source document before relying on them in the credit decision."}</p>
       </header>
 
-      <div className={styles.sourceNavigator}>
-        <button type="button" className={styles.sourcePicker} onClick={onBrowseSources}>
+      {contextualInspection ? (
+        <div className={styles.inspectionSource} aria-label={`Inspecting ${source.name}`}>
           <IconTile><Icon name={getCreditSourceIcon(source)} size="sm" /></IconTile>
-          <span><small>Source {sourceIndex + 1} of {sourceCount}</small><strong>{source.name}</strong><em>{unresolvedCount} require review</em></span>
-          <Icon name="chevronDown" size="sm" />
-        </button>
-        <div className={styles.navigatorPaging} aria-label="Move between sources">
-          <button type="button" aria-label="Previous source" onClick={onPrevious}><Icon name="arrowLeft" size="sm" /></button>
-          <button type="button" aria-label="Next source" onClick={onNext}><Icon name="arrowRight" size="sm" /></button>
+          <span><strong>{source.name}</strong><small>{source.type} · {source.asOf}</small></span>
+          <StatusPill tone="info">Document open</StatusPill>
         </div>
-      </div>
+      ) : (
+        <div className={styles.sourceNavigator} role="group" aria-label="Source navigation">
+          <span className={styles.sourceNavigatorLabel}>Source {sourceIndex + 1} of {sourceCount}</span>
+          <button type="button" className={styles.sourceNavButton} aria-label={`Previous source: ${previousSource.name}`} onClick={onPrevious}><Icon name="arrowLeft" size="sm" /></button>
+          <button type="button" className={styles.sourcePicker} onClick={onBrowseSources}>
+            <IconTile><Icon name={getCreditSourceIcon(source)} size="sm" /></IconTile>
+            <span><strong>{source.name}</strong><small>{source.type} · {reviewQueueLabel}</small></span>
+            <span className={styles.sourcePickerStatus}><StatusPill tone={presentation.tone}>{presentation.label}</StatusPill></span>
+            <Icon name="chevronDown" size="sm" />
+          </button>
+          <button type="button" className={styles.sourceNavButton} aria-label={`Next source: ${nextSource.name}`} onClick={onNext}><Icon name="arrowRight" size="sm" /></button>
+        </div>
+      )}
 
       <section className={styles.verificationCard} aria-labelledby="extracted-values-heading" {...learn("source-verification")}>
-        <header><div><h2 id="extracted-values-heading">Extracted values</h2><p>Values highlighted on the document at right.</p></div><span>{fields.length} values</span></header>
+        <header><div><h2 id="extracted-values-heading">{contextualInspection ? "What to confirm" : "Extracted values"}</h2><p>{contextualInspection ? "Highlighted clauses in the document at right." : "Values highlighted on the document at right."}</p></div><span>{fields.length} values</span></header>
         <dl className={styles.extractedValues}>
           {fields.map((field) => (
             <div key={field.label} data-attention={field.attention || undefined}>
@@ -91,7 +95,7 @@ export function SourceReviewDetail({ source, reviewState, renewalLinked, sourceI
 
       {relatedSource && (
         <section className={styles.relatedSection}>
-          <div><h2>{source.id === "customer-a-contract" ? "Newer evidence available" : "Compared with"}</h2><p>Open the related agreement without leaving this review.</p></div>
+          <div><h2>{contextualInspection && source.id === "customer-a-renewal" ? "Previous evidence" : source.id === "customer-a-contract" ? "Newer evidence available" : "Compared with"}</h2><p>{contextualInspection && source.id === "customer-a-renewal" ? "Kept for audit history; it does not replace the selected renewal." : "Open the related agreement without leaving this review."}</p></div>
           <button type="button" className={styles.relatedSource} onClick={() => onSelectSource(relatedSource.id)}>
             <IconTile className={styles.relatedSourceIcon} size="sm"><Icon name={getCreditSourceIcon(relatedSource)} size="sm" /></IconTile>
             <span><strong>{relatedSource.name}</strong><small>{relatedSource.asOf} · {relatedSource.id === "customer-a-renewal" ? "Extends term through Mar 2030" : "Original agreement"}</small></span>
@@ -100,7 +104,19 @@ export function SourceReviewDetail({ source, reviewState, renewalLinked, sourceI
         </section>
       )}
 
-      {source.id === "customer-a-renewal" && (
+      {source.id === "customer-a-renewal" && contextualInspection && (
+        <section className={styles.inspectionImpact} aria-labelledby="inspection-impact-title">
+          <header><IconTile tone="info"><Icon name="branch" size="sm" /></IconTile><span><small>What this evidence may change</small><h2 id="inspection-impact-title">Contract term only</h2></span></header>
+          <div className={styles.inspectionChangeTrack}>
+            <span><small>Current assumption</small><strong>Mar 2027</strong></span>
+            <Icon name="arrowRight" size="sm" />
+            <span><small>After verification</small><strong>Mar 2030</strong></span>
+          </div>
+          <footer><span><Icon name="lock" size="xs" />Concentration remains 61%</span><span><Icon name="history" size="xs" />Original agreement stays in history</span></footer>
+        </section>
+      )}
+
+      {source.id === "customer-a-renewal" && !contextualInspection && (
         <section className={styles.supersessionRecord} aria-labelledby="supersession-title">
           <header><div><span>Evidence supersession</span><h2 id="supersession-title">Replace the expired contract assumption</h2></div><StatusPill tone={linkedRenewal ? "success" : "warning"}>{linkedRenewal ? "Current evidence" : "Analyst action required"}</StatusPill></header>
           <dl>
@@ -131,12 +147,45 @@ export function SourceReviewDetail({ source, reviewState, renewalLinked, sourceI
           )}
         </div>
       </details>
-
-      <footer className={styles.reviewActions} {...learn("source-review-actions")}>
-        <Button className={styles.primaryReviewAction} size="md" variant="primary" disabled={complete || blocked} icon={<Icon name={source.id === "customer-a-renewal" ? "link" : "check"} size="xs" />} iconPosition="start" onClick={onComplete}>{primaryLabel}</Button>
-        <Button className={styles.secondaryReviewAction} size="sm" variant="quiet" onClick={onFlag}>{blocked ? "Clear discrepancy" : "Flag a discrepancy"}</Button>
-      </footer>
     </section>
+  );
+}
+
+type SourceReviewActionsProps = {
+  source: SourceRecord;
+  reviewState: SourceReviewState;
+  renewalLinked: boolean;
+  contextFindingId?: FindingId | null;
+  resumeEvidenceStage?: "evidence" | "review" | null;
+  onFlag: () => void;
+  onComplete: () => void;
+  onReturn?: () => void;
+  learningMode?: boolean;
+};
+
+export function SourceReviewActions({ source, reviewState, renewalLinked, contextFindingId = null, resumeEvidenceStage = null, onFlag, onComplete, onReturn, learningMode = false }: SourceReviewActionsProps) {
+  const contextualInspection = Boolean(contextFindingId && onReturn);
+  const returnLabel = resumeEvidenceStage ? "Return to evidence" : "Return to finding";
+  const linkedRenewal = source.id === "customer-a-renewal" && renewalLinked;
+  const complete = reviewState === "verified" || linkedRenewal;
+  const blocked = reviewState === "flagged";
+  const primaryLabel = complete
+    ? linkedRenewal ? "Current evidence" : "Verified"
+    : blocked
+      ? "Resolve discrepancy first"
+      : source.id === "customer-a-renewal"
+        ? "Use as current evidence"
+        : source.freshness === "Attention"
+          ? "Mark exception reviewed"
+          : "Confirm source";
+
+  return (
+    <footer className={styles.reviewActions} {...getLearningTargetProps(learningMode, "source-review-actions")}>
+      <div className={styles.reviewActionsInner}>
+        <Button className={styles.secondaryReviewAction} size="lg" variant="quiet" onClick={onFlag}>{blocked ? "Clear discrepancy" : "Flag a discrepancy"}</Button>
+        <Button className={styles.primaryReviewAction} size="lg" variant="primary" disabled={!contextualInspection && (complete || blocked)} icon={<Icon name={contextualInspection ? "arrowLeft" : source.id === "customer-a-renewal" ? "link" : "check"} size="xs" />} iconPosition="start" onClick={contextualInspection ? onReturn : onComplete}>{contextualInspection ? returnLabel : primaryLabel}</Button>
+      </div>
+    </footer>
   );
 }
 

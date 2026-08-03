@@ -3,6 +3,7 @@ import { Button } from "../../../shared/ui/Button/Button";
 import { Drawer, DrawerBody, DrawerFooter, DrawerHeader, DrawerSection } from "../../../shared/ui/Drawer/Drawer";
 import { Icon } from "../../../shared/ui/Icon/Icon";
 import { Notice } from "../../../shared/ui/Notice/Notice";
+import { Panel } from "../../../shared/ui/Panel/Panel";
 import { SectionHeader } from "../../../shared/ui/SectionHeader/SectionHeader";
 import { StatusPill } from "../../../shared/ui/StatusPill/StatusPill";
 import {
@@ -37,23 +38,44 @@ export function NorthstarRecommendation({ reviewState, onNavigate, onSubmit, onS
   const analysisReviewed = reviewState.analysisReviewState === "completed";
   const recommendation = reviewState.recommendation;
   const seniorDecision = reviewState.seniorDecision;
+  const completedHandoffSteps = [verified, analysisReviewed, Boolean(recommendation)].filter(Boolean).length;
+  const recommendationRationale = seniorDecision
+    ? seniorDecision.rationale.trim() || "No additional senior rationale was recorded."
+    : recommendation?.rationale || "Verified downside coverage remains 0.09x above policy. The proposed facility is supportable with ongoing coverage reporting and annual forecast delivery.";
+  const displayedConditions = seniorDecision ? seniorDecision.conditions : recommendation?.conditions ?? proposedConditions;
+  const noConditionsMessage = seniorDecision?.decision === "decline"
+    ? "No approval conditions recorded for a declined request."
+    : seniorDecision?.decision === "return_to_analyst"
+      ? "No approval conditions recorded; the recommendation was returned for revision."
+      : "No additional conditions recorded.";
+  const recommendationAction = !verified
+    ? <Button variant="primary" onClick={() => onNavigate("sources")}>Resolve source verification</Button>
+    : !analysisReviewed
+      ? <Button variant="primary" onClick={() => onNavigate("financials")}>Review updated analysis</Button>
+      : !recommendation
+        ? <Button variant="primary" onClick={() => setRecommendationOpen(true)}>Prepare recommendation</Button>
+        : !seniorDecision
+          ? <Button variant="primary" onClick={() => onOpenSeniorReview?.()}>Open senior review</Button>
+          : seniorDecision.decision === "return_to_analyst"
+            ? <Button variant="primary" onClick={onReopenReturnedRecommendation}>Revise recommendation</Button>
+            : <Button variant="secondary" onClick={() => onNavigate("activity")}>View decision history</Button>;
 
   return (
-    <section id="recommendation-panel" role="tabpanel" className={styles.flatSection} aria-labelledby="northstar-recommendation-title" {...getLearningTargetProps(enabled, "northstar-recommendation")}>
+    <section id="recommendation-panel" role="tabpanel" className={styles.flatSection} aria-labelledby="recommendation-tab" {...getLearningTargetProps(enabled, "northstar-recommendation")}>
       <SectionHeader
         headingId="northstar-recommendation-title"
         title="Recommendation"
-        description="Convert the completed analyst review into an attributable package for senior credit approval. AI can draft it; people submit and decide."
+        description="Package the verified analysis into an attributable recommendation for senior credit. Alex Kim submits; senior credit decides."
         actions={<StatusPill tone={seniorDecision ? (seniorDecision.decision === "decline" ? "danger" : seniorDecision.decision === "return_to_analyst" ? "warning" : "success") : recommendation ? "warning" : analysisReviewed ? "info" : "neutral"}>{recommendationStatus(reviewState)}</StatusPill>}
       />
 
       {!seniorDecision && (
-        <div className={styles.recommendationChecklist} aria-label="Recommendation prerequisites">
-          <header><span>Required handoff</span><strong>{recommendation ? "Submitted to senior credit" : analysisReviewed ? "Ready to prepare" : "Complete analyst review first"}</strong></header>
+        <section className={styles.recommendationChecklist} aria-labelledby="northstar-handoff-title">
+          <header><span id="northstar-handoff-title">Handoff readiness</span><strong>{completedHandoffSteps} of 3 complete</strong></header>
           <ChecklistRow complete={verified} label="Forecast verified" detail={verified ? "Alex Kim verified the approved 2027 forecast." : "Supply and verify the missing forecast."} />
           <ChecklistRow complete={analysisReviewed} label="Updated analysis reviewed" detail={analysisReviewed ? "Alex Kim confirmed the 1.29x downside result and policy comparison." : "The recalculated result still needs analyst sign-off."} />
           <ChecklistRow complete={Boolean(recommendation)} label="Recommendation submitted" detail={recommendation ? `${recommendation.author} submitted the package for senior decision.` : "Submission remains an analyst-owned action."} />
-        </div>
+        </section>
       )}
 
       {!verified && (
@@ -73,33 +95,33 @@ export function NorthstarRecommendation({ reviewState, onNavigate, onSubmit, onS
       )}
 
       {analysisReviewed && (
-        <div className={styles.recommendationRecord}>
-          <div>
-            <span>{seniorDecision ? "Final decision" : recommendation ? "Submitted recommendation" : "AI-assisted draft · Analyst editable"}</span>
-            <h3>{seniorDecision ? seniorDecisionLabel(seniorDecision.decision) : recommendation?.decision ?? "Proceed with conditions"}</h3>
-            <p>{seniorDecision?.rationale || recommendation?.rationale || "Verified downside coverage remains 0.09x above policy. The proposed facility is supportable with ongoing coverage reporting and annual forecast delivery."}</p>
+        <Panel className={styles.recommendationSurface} elevation="flat" role="region" aria-labelledby="northstar-recommendation-record-title">
+          <div className={styles.recommendationRecord}>
+            <div>
+              <span>{seniorDecision ? "Final decision" : recommendation ? "Submitted recommendation" : "Draft recommendation · Analyst editable"}</span>
+              <h3 id="northstar-recommendation-record-title">{seniorDecision ? seniorDecisionLabel(seniorDecision.decision) : recommendation?.decision ?? "Proceed with conditions"}</h3>
+              <p>{recommendationRationale}</p>
+            </div>
+            <dl>
+              <div><dt>Facility</dt><dd>{recommendation?.amount ?? "$15,000,000"}</dd></div>
+              <div><dt>Downside FCCR</dt><dd>1.29x</dd></div>
+              <div><dt>Policy floor</dt><dd>1.20x</dd></div>
+              <div><dt>{seniorDecision ? "Decision maker" : recommendation ? "Prepared by" : "Owner"}</dt><dd>{seniorDecision?.decisionMaker ?? recommendation?.author ?? "Alex Kim"}</dd></div>
+            </dl>
+            <div className={styles.recommendationConditions}>
+              <span>{seniorDecision ? "Decision conditions" : "Proposed conditions"}</span>
+              {displayedConditions.length > 0
+                ? displayedConditions.map((condition) => <div key={condition}><Icon name="check" size="xs" /><span>{condition}</span></div>)
+                : <div className={styles.conditionEmpty}><Icon name="document" size="xs" /><span>{noConditionsMessage}</span></div>}
+            </div>
           </div>
-          <dl>
-            <div><dt>Facility</dt><dd>{recommendation?.amount ?? "$15,000,000"}</dd></div>
-            <div><dt>Downside FCCR</dt><dd>1.29x</dd></div>
-            <div><dt>Policy floor</dt><dd>1.20x</dd></div>
-            <div><dt>{seniorDecision ? "Decision maker" : recommendation ? "Prepared by" : "Owner"}</dt><dd>{seniorDecision?.decisionMaker ?? recommendation?.author ?? "Alex Kim"}</dd></div>
-          </dl>
-          <div className={styles.recommendationConditions}>
-            <span>{seniorDecision ? seniorDecision.conditions.length ? "Decision conditions" : "Submitted conditions · Not approved" : "Proposed conditions"}</span>
-            {(seniorDecision?.conditions.length ? seniorDecision.conditions : recommendation?.conditions ?? proposedConditions).map((condition) => <div key={condition}><Icon name="check" size="xs" /><span>{condition}</span></div>)}
-          </div>
-        </div>
+          <footer className={`${styles.recommendationActions} ${styles.recommendationSurfaceActions}`}>
+            {recommendationAction}
+          </footer>
+        </Panel>
       )}
 
-      <div className={styles.recommendationActions}>
-        {!verified && <Button variant="primary" onClick={() => onNavigate("sources")}>Resolve source verification</Button>}
-        {verified && !analysisReviewed && <Button variant="primary" onClick={() => onNavigate("financials")}>Review updated analysis</Button>}
-        {analysisReviewed && !recommendation && <Button variant="primary" onClick={() => setRecommendationOpen(true)}>Prepare recommendation</Button>}
-        {recommendation && !seniorDecision && <Button variant="primary" onClick={() => onOpenSeniorReview?.()}>Open senior review</Button>}
-        {seniorDecision?.decision === "return_to_analyst" && <Button variant="primary" onClick={onReopenReturnedRecommendation}>Revise recommendation</Button>}
-        {seniorDecision && seniorDecision.decision !== "return_to_analyst" && <Button variant="secondary" onClick={() => onNavigate("activity")}>View decision history</Button>}
-      </div>
+      {!analysisReviewed && <div className={styles.recommendationActions}>{recommendationAction}</div>}
 
       <LearningTarget topicId="northstar-recommendation"><RecommendationDrawer open={recommendationOpen} onClose={() => setRecommendationOpen(false)} onSubmit={(record) => { onSubmit(record); setRecommendationOpen(false); }} /></LearningTarget>
       {recommendation && <LearningTarget topicId="northstar-recommendation"><SeniorDecisionDrawer open={decisionOpen} recommendation={recommendation} onClose={() => setDecisionOpen(false)} onSubmit={(record) => { onSeniorDecision(record); setDecisionOpen(false); }} /></LearningTarget>}

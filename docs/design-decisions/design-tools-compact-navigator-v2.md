@@ -27,7 +27,14 @@ Replace the stacked inventory with a fixed-height master-detail navigator organi
 - Selecting a version or workflow state closes the panel and navigates to the live route.
 - The body is the only scrolling region; the title, mode tabs, search, and footer remain stable.
 - Escape and outside click close the panel, while the launcher remains the focus-return target.
-- At mobile widths, the launcher remains available and the panel becomes a bounded sheet above the product navigation.
+- At mobile widths, the launcher remains available as an icon-only control in a tokenized, reserved slot inside the fixed product-navigation band. It never floats over finding copy, charts, or status content; opening it produces a bounded sheet above that navigation band.
+
+## Responsive geometry
+
+- `--salt-design-tools-mobile-nav-slot-width` reserves the launcher lane in the app shell so primary-navigation links and the launcher cannot collide.
+- `--salt-design-tools-mobile-nav-inset` aligns the launcher inside the 64px mobile-navigation band.
+- `--salt-design-tools-mobile-panel-bottom` keeps the open sheet one spacing step above navigation while preserving the existing banner offset.
+- The desktop launcher remains a bottom-right floating utility; this docking behavior follows the app shell's existing 720px mobile-navigation breakpoint so intermediate tablet widths cannot regress to an overlapping hybrid state.
 
 ## Design-history contract
 

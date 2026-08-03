@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getAIReviewLabel, getAIReviewTone, reviews } from "./reviewData";
+import { reviews } from "./reviewData";
 import { CreditReviewDrawer } from "./CreditReviewDrawer";
 import { createInitialMeridianState } from "./workflow/creditReviewState";
 
@@ -12,6 +12,7 @@ const northstar = reviews.find((review) => review.slug === "northstar-health")!;
 const brightline = reviews.find((review) => review.slug === "brightline-energy")!;
 const lakeview = reviews.find((review) => review.slug === "lakeview-medical")!;
 const atlas = reviews.find((review) => review.slug === "atlas-logistics")!;
+const pioneer = reviews.find((review) => review.slug === "pioneer-components")!;
 const apex = reviews.find((review) => review.slug === "apex-manufacturing")!;
 
 function renderDrawer(
@@ -21,7 +22,6 @@ function renderDrawer(
   return render(
     <CreditReviewDrawer
       review={review}
-      status={{ label: getAIReviewLabel(review), tone: getAIReviewTone(review) }}
       presentation="outcome"
       meridianState={createInitialMeridianState()}
       onClose={vi.fn()}
@@ -51,12 +51,13 @@ describe("CreditReviewDrawer outcome preview", () => {
     expect(screen.queryByText(/AI paused/i)).toBeNull();
   });
 
-  it("does not repeat Brightline's review status inside its single finding row", () => {
+  it("keeps Brightline's finding state implicit beneath the case-level analyst status", () => {
     renderDrawer(brightline);
 
     expect(screen.getByRole("heading", { name: "Review focus" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Merchant-price exposure" })).toBeTruthy();
-    expect(screen.getAllByText("Needs judgment")).toHaveLength(1);
+    expect(screen.getByText("Analyst review")).toBeTruthy();
+    expect(screen.queryByText("Needs judgment")).toBeNull();
   });
 
   it("projects persisted analyst completion into the queue preview", () => {
@@ -78,7 +79,7 @@ describe("CreditReviewDrawer outcome preview", () => {
   });
 
   it("presents Northstar's missing forecast as an evidence prerequisite, not a finding", () => {
-    renderDrawer(northstar, { status: { label: "Needs verification", tone: "danger" } });
+    renderDrawer(northstar);
 
     expect(screen.getByRole("heading", { name: "Required evidence" })).toBeTruthy();
     expect(screen.getByText("2027 operating forecast")).toBeTruthy();
@@ -92,15 +93,14 @@ describe("CreditReviewDrawer outcome preview", () => {
   });
 
   it("shows the verified Northstar zero-finding outcome", () => {
-    renderDrawer({ ...northstar, aiReviewState: "analysis-updated", aiReviewDetail: undefined }, {
-      status: { label: "Analysis updated", tone: "info" },
-    });
+    renderDrawer({ ...northstar, aiReviewState: "analysis-updated", aiReviewDetail: undefined, caseStatus: "analyst-review", hasUpdates: true });
 
     expect(screen.getByRole("heading", { name: "What changed" })).toBeTruthy();
     expect(screen.getByLabelText("Evidence review status").getAttribute("data-variant")).toBe("change");
     expect(screen.getByText("Coverage update")).toBeTruthy();
     expect(screen.getByText(/1.29x downside FCCR vs 1.20x policy floor/)).toBeTruthy();
-    expect(screen.getAllByText("Analysis updated")).toHaveLength(1);
+    expect(screen.queryByText("Analysis updated")).toBeNull();
+    expect(screen.queryByText("Updated", { exact: true })).toBeNull();
     expect(screen.queryByText("2027 operating forecast", { exact: true })).toBeNull();
   });
 
@@ -111,18 +111,28 @@ describe("CreditReviewDrawer outcome preview", () => {
     expect(screen.getByLabelText("Finding review status").getAttribute("data-variant")).toBe("change");
     expect(screen.getByRole("button", { name: "Reimbursement evidence" })).toBeTruthy();
     expect(screen.getByLabelText("Assessment changed from Moderate to Low")).toBeTruthy();
-    expect(screen.getAllByText("Analysis updated")).toHaveLength(1);
+    expect(screen.queryByText("Analysis updated")).toBeNull();
     expect(screen.queryByText("Updated", { exact: true })).toBeNull();
   });
 
   it("gives an analysis-ready review its own concise AI signal treatment", () => {
-    renderDrawer(atlas);
+    renderDrawer(pioneer);
 
     expect(screen.getByRole("heading", { name: "Ready for review" })).toBeTruthy();
     expect(screen.getByLabelText("Finding review status").getAttribute("data-variant")).toBe("analysis");
     expect(screen.getByText("AI signal")).toBeTruthy();
-    expect(screen.getByText("Fleet renewal capacity")).toBeTruthy();
-    expect(screen.getAllByText("Analysis ready")).toHaveLength(1);
+    expect(screen.getByText("Customer and program concentration")).toBeTruthy();
+    expect(screen.getByText("Analyst review")).toBeTruthy();
+    expect(screen.queryByText("Analysis ready")).toBeNull();
+  });
+
+  it("previews Atlas as genuinely ready to recommend after analyst review", () => {
+    renderDrawer(atlas);
+
+    expect(screen.getByText("Ready to recommend")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Recommendation" })).toBeTruthy();
+    expect(screen.getByLabelText("Analyst recommendation: Proceed with standard protections")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Open case overview" })).toBeTruthy();
   });
 
   it("previews the analyst recommendation without repeating the source summary", () => {
@@ -133,6 +143,7 @@ describe("CreditReviewDrawer outcome preview", () => {
     expect(screen.getByLabelText("Analyst recommendation: Approve with conditions")).toBeTruthy();
     expect(screen.getByText("3 conditions proposed")).toBeTruthy();
     expect(screen.getAllByText("4 sources reviewed")).toHaveLength(1);
+    expect(screen.getByRole("button", { name: "Open case overview" })).toBeTruthy();
     expect(screen.queryByText("Findings resolution")).toBeNull();
   });
 

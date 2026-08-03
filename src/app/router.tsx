@@ -15,6 +15,8 @@ export type AppPath =
   | "/intelligence"
   | "/reimbursements"
   | "/credit-reviews"
+  | "/policy-rules"
+  | "/policy-rules/leverage-ceiling"
   | "/credit-reviews/senior"
   | "/credit-reviews/northstar-health"
   | "/credit-reviews/northstar-health/findings"
@@ -108,6 +110,7 @@ function readBrowserLocation() {
 function resolvePathname(pathname: string): AppPath {
   if (creditReviewPaths.includes(pathname as AppPath)) return pathname as AppPath;
   if (pathname === "/credit-reviews") return "/credit-reviews";
+  if (pathname === "/policy-rules" || pathname === "/policy-rules/leverage-ceiling") return pathname;
   if (pathname === "/intelligence") return "/intelligence";
   if (pathname === "/reimbursements") return "/reimbursements";
   if (pathname === "/overview") return "/overview";
@@ -151,17 +154,33 @@ type AppLinkProps = {
   to: AppPath;
   search?: string;
   className?: string;
+  "aria-current"?: "page";
+  "aria-label"?: string;
+  onClick?: (event: MouseEvent<HTMLAnchorElement>) => void;
   children: ReactNode;
 };
 
-export function AppLink({ to, search = "", className, children }: AppLinkProps) {
+export function AppLink(props: AppLinkProps) {
+  const { to, search = "", className, children } = props;
   const { navigate } = useRouter();
 
   function handleClick(event: MouseEvent<HTMLAnchorElement>) {
+    props.onClick?.(event);
+    if (event.defaultPrevented) return;
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     event.preventDefault();
     navigate(to, { search });
   }
 
-  return <a href={createAppHref(to, search)} className={className} onClick={handleClick}>{children}</a>;
+  return (
+    <a
+      href={createAppHref(to, search)}
+      className={className}
+      aria-current={props["aria-current"]}
+      aria-label={props["aria-label"]}
+      onClick={handleClick}
+    >
+      {children}
+    </a>
+  );
 }

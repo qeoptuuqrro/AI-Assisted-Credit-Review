@@ -17,7 +17,7 @@
   --salt-color-ink-950: #1e1e2a;
   --salt-color-ink-800: #363644;
   --salt-color-ink-600: #666676;
-  --salt-color-ink-500: #858593;
+  --salt-color-ink-500: #70707d;
   --salt-color-ink-100: #ededf2;
   --salt-color-indigo-700: #4354d8;
   --salt-color-indigo-600: #5266eb;
@@ -90,6 +90,7 @@
   --salt-control-height-sm: 32px;
   --salt-control-height-md: 32px;
   --salt-control-height-lg: 36px;
+  --salt-control-height-xl: 40px;
   --salt-opacity-disabled: 0.48;
   --salt-motion-fast: 140ms;
   --salt-motion-press-offset: 1px;
@@ -102,6 +103,7 @@
   --salt-z-drawer: 50;
   --salt-z-toast: 55;
   --salt-z-inspector: 60;
+  --salt-z-dialog: 65;
   --salt-z-document-viewer: 70;
   --salt-shadow-raised: 0 1px 2px rgb(30 30 42 / 8%), 0 12px 32px rgb(30 30 42 / 8%);
   --salt-shadow-focus: 0 0 0 3px rgb(82 102 235 / 20%);
@@ -111,10 +113,22 @@
   --salt-shell-content-max: 968px;
   --salt-shell-mobile-nav-height: 64px;
   --salt-shell-page-gutter: 32px;
-  --salt-shell-sidebar-row-height: 36px;
+  --salt-shell-sidebar-row-height: var(--salt-control-height-md);
   --salt-shell-sidebar-pad: 8px;
   --salt-shell-sidebar-help-icon-size: var(--salt-space-3);
   --salt-shell-avatar-size: 32px;
+  /* Shell type: navigation is a primary reading surface, while bookmark
+     metadata stays quieter without dropping below legibility. */
+  --salt-shell-brand-size: var(--salt-type-size-ui-secondary);
+  --salt-shell-navigation-size: var(--salt-type-size-ui-secondary);
+  --salt-shell-navigation-line: var(--salt-type-line-ui-secondary);
+  --salt-shell-bookmark-title-size: var(--salt-type-size-ui-secondary);
+  --salt-shell-bookmark-title-line: var(--salt-type-line-ui-secondary);
+  --salt-shell-bookmark-meta-size: var(--salt-type-size-sm);
+  --salt-shell-bookmark-meta-line: var(--salt-type-line-ui-secondary);
+  --salt-shell-search-size: var(--salt-type-size-ui);
+  --salt-shell-profile-size: var(--salt-type-size-sm);
+  --salt-shell-profile-line: var(--salt-type-line-ui-secondary);
 
   /* Salt semantic roles. */
   --salt-color-canvas: var(--salt-color-paper-0);
@@ -176,8 +190,10 @@
   /* Salt component contracts. */
   --salt-button-height-sm: var(--salt-control-height-sm);
   --salt-button-height-md: var(--salt-control-height-md);
+  --salt-button-height-lg: var(--salt-control-height-xl);
   --salt-button-padding-sm: var(--salt-space-3);
   --salt-button-padding-md: var(--salt-space-4);
+  --salt-button-padding-lg: var(--salt-space-5);
   --salt-button-gap: var(--salt-space-2);
   --salt-button-icon-size: 16px;
   --salt-button-radius: var(--salt-radius-control);
@@ -393,6 +409,47 @@
   --salt-drawer-responsive-delay: 100ms;
   --salt-drawer-responsive-min-body-height: 100px;
 
+  --salt-dialog-width-sm: 420px;
+  --salt-dialog-width-md: 520px;
+  --salt-dialog-width-lg: 720px;
+  --salt-dialog-max-height: calc(100dvh - (var(--salt-space-8) * 2));
+  --salt-dialog-max-height-mobile: calc(100dvh - var(--salt-space-8));
+  --salt-dialog-layer-padding: var(--salt-space-4);
+  --salt-dialog-layer-padding-mobile: 0;
+  --salt-dialog-border: var(--salt-border-default);
+  --salt-dialog-radius: var(--salt-radius-lg);
+  --salt-dialog-radius-mobile: var(--salt-radius-lg);
+  --salt-dialog-background: var(--salt-color-surface);
+  --salt-dialog-backdrop: var(--salt-color-overlay);
+  --salt-dialog-shadow: var(--salt-shadow-raised);
+  --salt-dialog-z-index: var(--salt-z-dialog);
+  --salt-dialog-enter-offset: var(--salt-space-3);
+  --salt-dialog-header-min-height: var(--salt-space-16);
+  --salt-dialog-header-gap: var(--salt-space-4);
+  --salt-dialog-header-padding: var(--salt-space-5) var(--salt-space-6) var(--salt-space-4);
+  --salt-dialog-header-padding-mobile: var(--salt-space-5) var(--salt-space-4) var(--salt-space-4);
+  --salt-dialog-heading-gap: var(--salt-space-1);
+  --salt-dialog-eyebrow-color: var(--salt-color-text-subtle);
+  --salt-dialog-eyebrow-size: var(--salt-type-size-xs);
+  --salt-dialog-eyebrow-line: var(--salt-type-line-ui-secondary);
+  --salt-dialog-title-color: var(--salt-color-text-strong);
+  --salt-dialog-title-family: var(--salt-type-family-display);
+  --salt-dialog-title-size: var(--salt-type-size-lg);
+  --salt-dialog-title-weight: var(--salt-type-weight-display);
+  --salt-dialog-title-line: var(--salt-type-line-section);
+  --salt-dialog-close-size: var(--salt-control-height-sm);
+  --salt-dialog-close-radius: var(--salt-radius-md);
+  --salt-dialog-close-color: var(--salt-color-text-muted);
+  --salt-dialog-close-background-hover: var(--salt-color-surface-hover);
+  --salt-dialog-divider: var(--salt-border-subtle);
+  --salt-dialog-body-gap: var(--salt-space-4);
+  --salt-dialog-body-padding: var(--salt-space-6);
+  --salt-dialog-body-padding-mobile: var(--salt-space-5) var(--salt-space-4);
+  --salt-dialog-footer-min-height: var(--salt-space-16);
+  --salt-dialog-footer-gap: var(--salt-space-2);
+  --salt-dialog-footer-padding: var(--salt-space-4) var(--salt-space-6);
+  --salt-dialog-footer-padding-mobile: var(--salt-space-4);
+
   --salt-design-tools-width: 432px;
   --salt-design-tools-panel-height: 720px;
   --salt-design-tools-launcher-size: var(--salt-space-10);
@@ -406,7 +463,13 @@
   --salt-design-tools-group-shadow: 0 2px 8px rgb(30 30 42 / 4%);
   --salt-design-tools-option-shadow: 0 4px 12px rgb(30 30 42 / 7%);
   --salt-design-tools-z-index: 39;
-  --salt-design-tools-mobile-bottom: calc(var(--salt-shell-mobile-nav-height) + var(--salt-space-4));
+  /* On narrow screens the launcher occupies a reserved slot in the fixed
+     primary-navigation chrome. Keeping this geometry token-owned prevents a
+     floating control from covering the last readable line of a finding. */
+  --salt-design-tools-mobile-nav-slot-width: var(--salt-space-16);
+  --salt-design-tools-mobile-nav-inset: var(--salt-space-3);
+  --salt-design-tools-mobile-panel-gap: var(--salt-space-2);
+  --salt-design-tools-mobile-panel-bottom: calc(var(--salt-shell-mobile-nav-height) + var(--salt-design-tools-mobile-panel-gap));
 
   --salt-filter-chip-height: var(--salt-control-height-sm);
   --salt-filter-chip-padding: var(--salt-space-3);
@@ -457,8 +520,10 @@
   --salt-workflow-step-text-complete: var(--salt-color-text-muted);
   --salt-workflow-step-text-active: var(--salt-color-text-strong);
   --salt-workflow-step-description: var(--salt-color-text-subtle);
-  --salt-workflow-step-label-size: var(--salt-type-size-sm);
+  --salt-workflow-step-label-size: var(--salt-type-size-ui-secondary);
   --salt-workflow-step-label-line: var(--salt-type-line-ui-secondary);
+  --salt-workflow-step-description-size: var(--salt-type-size-sm);
+  --salt-workflow-step-mobile-min-width: calc(var(--salt-space-20) + var(--salt-space-12));
 
   --salt-file-dropzone-min-height: 92px;
   --salt-file-dropzone-compact-min-height: 68px;
@@ -471,6 +536,15 @@
   --salt-file-dropzone-active-border: var(--salt-color-focus);
   --salt-file-dropzone-active-background: var(--salt-color-surface-subtle);
   --salt-file-dropzone-spinner-duration: var(--salt-motion-processing-spin);
+  --salt-file-dropzone-title-size: var(--salt-type-size-ui);
+  --salt-file-dropzone-title-line: var(--salt-type-line-ui);
+  --salt-file-dropzone-meta-size: var(--salt-type-size-sm);
+  --salt-file-dropzone-meta-line: var(--salt-type-line-ui-secondary);
+
+  --salt-borrower-contact-title-size: var(--salt-type-size-ui);
+  --salt-borrower-contact-title-line: var(--salt-type-line-ui);
+  --salt-borrower-contact-meta-size: var(--salt-type-size-sm);
+  --salt-borrower-contact-meta-line: var(--salt-type-line-ui-secondary);
 
   --salt-section-header-gap: var(--salt-space-4);
   --salt-section-header-description-gap: var(--salt-space-1);
@@ -531,6 +605,10 @@
   --salt-workspace-header-tabs-gap: var(--salt-space-5);
   --salt-workspace-section-gap: var(--salt-space-5);
   --salt-workspace-panel-padding: var(--salt-space-6);
+  --salt-workspace-supporting-size: var(--salt-type-size-ui-secondary);
+  --salt-workspace-supporting-line: var(--salt-type-line-ui-secondary);
+  --salt-workspace-meta-size: var(--salt-type-size-sm);
+  --salt-workspace-meta-line: var(--salt-type-line-ui-secondary);
   --salt-workspace-summary-rail: 296px;
   --salt-workspace-finding-row-min-height: 72px;
   --salt-workspace-findings-min-height: 540px;
@@ -550,10 +628,17 @@
   --salt-recommendation-composer-width: 360px;
   --salt-recommendation-rationale-min-height: 168px;
   --salt-recommendation-sticky-offset: var(--salt-space-4);
+  --salt-recommendation-editor-rail-width: var(--salt-workflow-steps-width);
+  --salt-recommendation-editor-rail-gap: var(--salt-focused-workflow-rail-gap-editorial);
+  --salt-recommendation-editor-content-width: var(--salt-focused-workflow-content-width-editorial);
+  --salt-recommendation-editor-taskbar-height: var(--salt-space-16);
+  --salt-recommendation-editor-footer-height: var(--salt-focused-workflow-footer-height-comfortable);
   --salt-layout-senior-decision-max: 1120px;
   --salt-layout-senior-decision-outer-max: calc(var(--salt-layout-senior-decision-max) + (var(--salt-layout-page-gutter-fluid) * 2));
+  --salt-senior-decision-review-width: 512px;
   --salt-senior-decision-composer-width: 360px;
   --salt-senior-decision-rationale-min-height: 112px;
+  --salt-senior-decision-note-min-height: var(--salt-space-20);
   --salt-senior-decision-sticky-offset: var(--salt-space-4);
   --salt-product-object-shadow: 0 10px 28px rgb(30 30 42 / 10%);
   --salt-product-object-shadow-subtle: 0 1px 3px rgb(30 30 42 / 5%);
@@ -624,17 +709,34 @@
   --salt-focused-workflow-pane-width: 50%;
   --salt-focused-workflow-pane-min: 480px;
   --salt-focused-workflow-header-height: 72px;
+  --salt-focused-workflow-header-height-editorial: 128px;
   --salt-focused-workflow-footer-height: 72px;
+  --salt-focused-workflow-footer-height-comfortable: 88px;
+  --salt-focused-workflow-footer-shadow: 0 6px 12px rgb(4 4 52 / 2%), 0 4px 8px rgb(4 4 52 / 5%), 0 0 3px rgb(4 4 52 / 9%);
   --salt-focused-workflow-footer-gutter: var(--salt-space-4);
   --salt-focused-workflow-footer-action-gap: var(--salt-space-6);
   --salt-focused-workflow-footer-action-gap-compact: var(--salt-space-3);
   --salt-focused-workflow-content-width: 552px;
+  /* Focused editorial workflows keep a narrow starting measure while widening
+     on larger desktop canvases so evidence copy can breathe. The workflow
+     still stacks before this measure becomes a constraint. */
+  --salt-focused-workflow-content-width-editorial: clamp(424px, 42vw, 560px);
   --salt-judgment-workflow-content-width: 640px;
+  --salt-judgment-workflow-content-width-editorial: var(--salt-focused-workflow-content-width-editorial);
   --salt-judgment-risk-toggle-min-height: 88px;
-  --salt-focused-workflow-step-rail-width: 152px;
+  --salt-focused-workflow-step-rail-width: var(--salt-workflow-steps-width);
+  --salt-focused-workflow-shell-gutter-editorial: var(--salt-space-12);
+  --salt-focused-workflow-rail-gap-editorial: var(--salt-space-16);
   --salt-focused-workflow-choice-min-height: 72px;
+  --salt-focused-workflow-choice-min-height-editorial: 96px;
+  --salt-focused-workflow-body-size: var(--salt-type-size-ui);
+  --salt-focused-workflow-body-line: var(--salt-type-line-ui);
+  --salt-focused-workflow-supporting-size: var(--salt-type-size-ui-secondary);
+  --salt-focused-workflow-supporting-line: var(--salt-type-line-ui-secondary);
+  --salt-focused-workflow-meta-size: var(--salt-type-size-sm);
+  --salt-focused-workflow-meta-line: var(--salt-type-line-ui-secondary);
   --salt-focused-workflow-content-gutter: clamp(var(--salt-space-5), 4vw, var(--salt-space-12));
-  --salt-focused-workflow-stage-background: var(--salt-color-paper-100);
+  --salt-focused-workflow-stage-background: var(--salt-color-ink-100);
   --salt-focused-workflow-paper-width: 600px;
   --salt-focused-workflow-paper-min-height: 760px;
   --salt-focused-workflow-paper-margin: var(--salt-space-12);
@@ -642,6 +744,7 @@
   --salt-focused-workflow-paper-shadow: 0 1px 4px rgb(30 30 42 / 12%);
   --salt-focused-workflow-toolbar-shadow: 0 2px 12px rgb(30 30 42 / 12%);
   --salt-focused-workflow-extraction-row-height: 54px;
+  --salt-focused-workflow-extraction-field-min-height: 92px;
   --salt-focused-workflow-related-row-height: 58px;
   --salt-focused-workflow-document-row-height: 46px;
   --salt-focused-workflow-document-title-size: 36px;
@@ -666,6 +769,7 @@
   --salt-table-checkbox-size: var(--salt-space-4);
   --salt-review-row-company-min: 180px;
   --salt-review-row-status-min: 220px;
+  --salt-review-row-recommendation-min: 136px;
   --salt-review-row-owner-min: 140px;
   --salt-review-row-due-min: 96px;
   --salt-layout-standard-max: 968px;
@@ -709,14 +813,19 @@
   --salt-intelligence-context-background: var(--salt-color-indigo-100);
   --salt-intelligence-context-text: var(--salt-color-indigo-700);
   --salt-intelligence-context-hover: rgb(82 102 235 / 10%);
+  --salt-intelligence-mobile-picker-max-height: 320px;
   --salt-intelligence-prompt-background: var(--salt-color-paper-100);
   --salt-intelligence-prompt-hover: var(--salt-color-paper-200);
   --salt-intelligence-user-background: var(--salt-color-paper-200);
   --salt-intelligence-work-row-height: 42px;
   --salt-intelligence-work-dot: 20px;
   --salt-intelligence-activity-border-width: 2px;
-  --salt-intelligence-activity-duration: 900ms;
-  --salt-intelligence-work-ring: 0 0 0 3px rgb(82 102 235 / 10%);
+  --salt-intelligence-activity-duration: 1000ms;
+  --salt-intelligence-step-transition: 240ms;
+  --salt-intelligence-answer-transition: 420ms;
+  --salt-intelligence-answer-stagger: 80ms;
+  --salt-intelligence-stage-progress-duration: 800ms;
+  --salt-intelligence-work-pulse-duration: 1400ms;
   --salt-intelligence-chart-height: 286px;
   --salt-intelligence-chart-radius: var(--salt-radius-lg);
   --salt-intelligence-chart-background: var(--salt-color-paper-50);
@@ -835,7 +944,9 @@
   --toast-max-width: 420px;
   --section-tab-padding-y: 10px;
   --design-system-intro-label-width: 120px;
-  --design-system-board-header-height: 84px;
+  --design-system-catalog-search-width: 320px;
+  --design-system-dropzone-primary-min-width: 240px;
+  --design-system-component-frame-min-height: 180px;
   --design-system-matrix-label-width: 112px;
   --design-system-panel-height: 220px;
   --design-system-type-sample-height: 220px;
@@ -859,6 +970,7 @@
   --z-drawer: var(--salt-z-drawer);
   --z-toast: var(--salt-z-toast);
   --z-inspector: var(--salt-z-inspector);
+  --z-dialog: var(--salt-z-dialog);
   --z-document-viewer: var(--salt-z-document-viewer);
   --salt-color-overlay: rgb(30 30 42 / 24%);
 
@@ -920,9 +1032,11 @@
   /* Foundational component contracts. */
   --button-height-sm: var(--salt-button-height-sm);
   --button-height-md: var(--salt-button-height-md);
+  --button-height-lg: var(--salt-button-height-lg);
   --button-radius: var(--salt-button-radius);
   --button-padding-sm: var(--salt-button-padding-sm);
   --button-padding-md: var(--salt-button-padding-md);
+  --button-padding-lg: var(--salt-button-padding-lg);
   --button-label-family: var(--salt-button-font-family);
   --button-label-size: var(--salt-button-font-size);
   --button-label-weight: var(--salt-button-font-weight);

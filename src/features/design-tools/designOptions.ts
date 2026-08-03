@@ -36,7 +36,7 @@ export type DesignOption = {
   status: DesignOptionStatus;
   route: AppPath;
   preset?: DemoPresetId;
-  renderKey: "workspace-balanced-dashboard" | "workspace-operating-dashboard" | "workspace-trend-flow-dashboard" | "workspace-refined-momentum-dashboard" | "account-view" | "object-led" | "signature" | "card-stack" | "treasury" | "card-grid" | "timeline" | "activity-ledger" | "activity-connected-timeline" | "ledger" | "focused" | "compact-blocker" | "stateful-review" | "coherent-finding-states" | "finding-layout-lab" | "finding-decision-workspace" | "inline-dossier" | "focused-reassessment" | "insight-led-reassessment" | "attributable-insight-brief" | "breathable-judgment-reassessment" | "attributable-analysis-reassessment" | "recommendation-current" | "recommendation-open-canvas" | "recommendation-icon-led" | "recommendation-focused-lifecycle" | "recommendation-full-screen-lifecycle" | "senior-review-submission-queue" | "senior-decision-dense-brief" | "senior-decision-focused-layer" | "senior-decision-full-screen-review" | "senior-decision-command-center" | "credit-review-overlay-drawer" | "credit-review-responsive-drawer" | "credit-review-outcome-drawer" | "design-tools-stacked-accordion" | "design-tools-navigator" | "utility-documentation-label" | "utility-rationale-control" | "reimbursements-ledger" | "reimbursements-responsive-drawer";
+  renderKey: "workspace-balanced-dashboard" | "workspace-operating-dashboard" | "workspace-trend-flow-dashboard" | "workspace-refined-momentum-dashboard" | "account-view" | "object-led" | "signature" | "card-stack" | "treasury" | "card-grid" | "timeline" | "activity-ledger" | "activity-connected-timeline" | "ledger" | "focused" | "compact-blocker" | "stateful-review" | "coherent-finding-states" | "finding-layout-lab" | "finding-decision-workspace" | "inline-dossier" | "focused-reassessment" | "insight-led-reassessment" | "attributable-insight-brief" | "breathable-judgment-reassessment" | "attributable-analysis-reassessment" | "attributable-decision-review" | "evidence-first-decision-review" | "verification-led-decision-review" | "recommendation-current" | "recommendation-open-canvas" | "recommendation-icon-led" | "recommendation-focused-lifecycle" | "recommendation-full-screen-lifecycle" | "senior-review-submission-queue" | "senior-review-decision-inbox" | "senior-decision-dense-brief" | "senior-decision-focused-layer" | "senior-decision-full-screen-review" | "senior-decision-command-center" | "senior-decision-unified-brief" | "senior-decision-aligned-workflow" | "credit-review-overlay-drawer" | "credit-review-responsive-drawer" | "credit-review-outcome-drawer" | "design-tools-stacked-accordion" | "design-tools-navigator" | "utility-documentation-label" | "utility-rationale-control" | "reimbursements-ledger" | "reimbursements-responsive-drawer";
   hypothesis: string;
 };
 
@@ -402,11 +402,47 @@ export const designOptions = [
     areaLabel: "Finding review",
     version: "V6",
     name: "Attributable insight brief",
-    status: "current",
+    status: "archived",
     route: "/credit-reviews/meridian-foods/findings/customer-concentration",
     preset: "meridian-reassessment-ready",
     renderKey: "attributable-insight-brief",
     hypothesis: "A single insight brief leads with the verified change, residual exposure, and system conclusion, then hands the analyst one clear judgment action without repeating the same risk in stacked cards.",
+  },
+  {
+    id: "reassessment-v7-attributable-decision-review",
+    area: "reassessment",
+    areaLabel: "Finding review",
+    version: "V7",
+    name: "Structured decision review",
+    status: "archived",
+    route: "/credit-reviews/meridian-foods/findings/customer-concentration",
+    preset: "meridian-reassessment-ready",
+    renderKey: "attributable-decision-review",
+    hypothesis: "A contained before-and-after decision band, one rule-separated change ledger, and one credible analytical object preserve V5's scan path while removing repeated risk labels and excess card chrome.",
+  },
+  {
+    id: "reassessment-v8-evidence-first-decision-review",
+    area: "reassessment",
+    areaLabel: "Finding review",
+    version: "V8",
+    name: "Evidence-first decision review",
+    status: "archived",
+    route: "/credit-reviews/meridian-foods/findings/customer-concentration",
+    preset: "meridian-start",
+    renderKey: "evidence-first-decision-review",
+    hypothesis: "One coherent evidence record, explicit intake alternatives, a scoped pre-analysis review, and an analyst-owned judgment surface make verification, reassessment, and human decision ownership clear in sequence.",
+  },
+  {
+    id: "reassessment-v9-verification-led-brief",
+    area: "reassessment",
+    areaLabel: "Finding review",
+    version: "V9",
+    name: "Capacity-first verification brief",
+    status: "current",
+    route: "/credit-reviews/meridian-foods/findings/increasing-leverage",
+    preset: "meridian-start",
+    renderKey: "verification-led-decision-review",
+    hypothesis: "A dominant leverage position beside one explicit evidence gate makes capacity, covenant headroom, and the next analyst action scannable without repeating the same blocker in a notice and sticky footer.",
   },
   {
     id: "recommendation-decision-v1-credit-memo",
@@ -474,11 +510,23 @@ export const designOptions = [
     areaLabel: "Senior review queue",
     version: "V1",
     name: "Submission queue",
-    status: "current",
+    status: "archived",
     route: "/credit-reviews/senior",
     preset: "senior-review-ready",
     renderKey: "senior-review-submission-queue",
     hypothesis: "A category queue and selected-review rail let senior credit triage submitted recommendations before entering the focused decision workspace.",
+  },
+  {
+    id: "senior-review-queue-v2-decision-inbox",
+    area: "senior-review-queue",
+    areaLabel: "Senior review queue",
+    version: "V2",
+    name: "Restrained decision inbox",
+    status: "current",
+    route: "/credit-reviews/senior",
+    preset: "senior-review-ready",
+    renderKey: "senior-review-decision-inbox",
+    hypothesis: "A flat stage-led ledger stays quiet until a reviewer selects a case, then opens one concise responsive decision preview with no redundant KPI tile, decorative facility card, or repeated evidence summary.",
   },
   {
     id: "senior-decision-v1-dense-brief",
@@ -522,11 +570,35 @@ export const designOptions = [
     areaLabel: "Senior decision",
     version: "V4",
     name: "Decision command center",
-    status: "current",
+    status: "archived",
     route: "/credit-reviews/meridian-foods/senior-decision/review",
     preset: "senior-review-ready",
     renderKey: "senior-decision-command-center",
     hypothesis: "A quiet decision brief makes the facility and analyst recommendation the protagonist, keeps finding outcomes in a flat ledger, and reserves one compact composer for the accountable senior action.",
+  },
+  {
+    id: "senior-decision-v5-unified-brief",
+    area: "senior-decision",
+    areaLabel: "Senior decision",
+    version: "V5",
+    name: "Reference-aligned review flow",
+    status: "archived",
+    route: "/credit-reviews/meridian-foods/senior-decision/review",
+    preset: "senior-review-ready",
+    renderKey: "senior-decision-unified-brief",
+    hypothesis: "A quiet identity bar, centered narrow review measure, flat decision rows, and content-aligned actions make the senior task feel deliberate without dashboard scaffolding.",
+  },
+  {
+    id: "senior-decision-v6-aligned-workflow",
+    area: "senior-decision",
+    areaLabel: "Senior decision",
+    version: "V6",
+    name: "Aligned decision workflow",
+    status: "current",
+    route: "/credit-reviews/meridian-foods/senior-decision/review",
+    preset: "senior-review-ready",
+    renderKey: "senior-decision-aligned-workflow",
+    hypothesis: "A compact ruled identity bar, peripheral short rail, centered judgment measure, matched detail ledgers, and action-only footer make the senior decision feel continuous and deliberate.",
   },
   {
     id: "product-reference-v1-reimbursements",
@@ -566,6 +638,7 @@ export function getDesignAreaForPath(pathname: AppPath): ActiveDesignOptionArea 
   if (pathname === "/credit-reviews") return "credit-review-queue";
   if (pathname === "/credit-reviews/senior") return "senior-review-queue";
   if (pathname === "/reimbursements") return "product-reference";
+  if (pathname.includes("/senior-decision/review")) return "senior-decision";
 
   if (pathname.startsWith("/credit-reviews/northstar-health")) {
     return "case-workspace";

@@ -1,4 +1,5 @@
 import type { StatusPillTone } from "../../shared/ui/StatusPill/StatusPill";
+import type { CaseStatus } from "../../shared/ui/CaseStatusPill/CaseStatusPill";
 import type { TimelineTone } from "../../shared/ui/Timeline/Timeline";
 import type { ReviewCompanyName } from "./companyLogos";
 
@@ -55,6 +56,14 @@ export type ReviewMetric = {
   value: string;
   detail: string;
   detailTone?: "neutral" | "positive" | "negative";
+  policyComparison?: {
+    actual: number;
+    boundary: number;
+    domain: readonly [minimum: number, maximum: number];
+    direction: "minimum" | "maximum";
+    boundaryLabel: string;
+    varianceLabel: string;
+  };
 };
 
 export type ReviewActivity = {
@@ -94,30 +103,14 @@ export type CreditReview = {
   facilityType: ReviewFacilityType;
   aiReviewState: AIReviewState;
   aiReviewDetail?: string;
-  statusLabel?: string;
-  statusTone?: StatusPillTone;
+  caseStatus: CaseStatus;
+  hasUpdates?: boolean;
   owner: "Alex Kim" | "Jordan Lee";
   due: string;
   dueGroup: "urgent" | "this-week";
   status: ReviewStatus;
   details?: StandardReviewDetails;
 };
-
-export const aiReviewStatus: Record<AIReviewState, { label: string; tone: StatusPillTone }> = {
-  "needs-judgment": { label: "Needs judgment", tone: "warning" },
-  "needs-verification": { label: "Needs verification", tone: "danger" },
-  "analysis-ready": { label: "Analysis ready", tone: "neutral" },
-  "analysis-updated": { label: "Analysis updated", tone: "info" },
-  "review-complete": { label: "Review complete", tone: "success" },
-};
-
-export function getAIReviewLabel(review: Pick<CreditReview, "aiReviewState" | "statusLabel">) {
-  return review.statusLabel ?? aiReviewStatus[review.aiReviewState].label;
-}
-
-export function getAIReviewTone(review: Pick<CreditReview, "aiReviewState" | "statusTone">) {
-  return review.statusTone ?? aiReviewStatus[review.aiReviewState].tone;
-}
 
 export function isStandardReview(review: CreditReview): review is CreditReview & { slug: StandardReviewSlug; details: StandardReviewDetails } {
   return Boolean(review.details);
@@ -160,15 +153,15 @@ function activity(company: string, analysisEvent: string, evidenceEvent: string)
 export const reviews: CreditReview[] = [
   {
     company: "Meridian Foods", slug: "meridian-foods", request: "$18M working-capital line", facilityType: "Revolving line",
-    aiReviewState: "needs-judgment", aiReviewDetail: "3 open", statusLabel: "Analyst review", owner: "Alex Kim", due: "Today", dueGroup: "urgent", status: "needs-attention",
+    aiReviewState: "needs-judgment", aiReviewDetail: "3 open", caseStatus: "analyst-review", owner: "Alex Kim", due: "Today", dueGroup: "urgent", status: "needs-attention",
   },
   {
     company: "Northstar Health", slug: "northstar-health", request: "$15M revolving line", facilityType: "Revolving line",
-    aiReviewState: "needs-verification", aiReviewDetail: "1 item", owner: "Alex Kim", due: "Tomorrow", dueGroup: "urgent", status: "needs-attention",
+    aiReviewState: "needs-verification", aiReviewDetail: "1 item", caseStatus: "needs-verification", owner: "Alex Kim", due: "Tomorrow", dueGroup: "urgent", status: "needs-attention",
   },
   {
     company: "Brightline Energy", slug: "brightline-energy", request: "$11M revolving line", facilityType: "Revolving line",
-    aiReviewState: "needs-judgment", aiReviewDetail: "1 finding", owner: "Alex Kim", due: "Jul 29", dueGroup: "this-week", status: "needs-attention",
+    aiReviewState: "needs-judgment", aiReviewDetail: "1 finding", caseStatus: "analyst-review", owner: "Alex Kim", due: "Jul 29", dueGroup: "this-week", status: "needs-attention",
     details: {
       decisionQuestion: "Does contracted cash flow sufficiently protect an $11M liquidity line from merchant-power volatility?",
       assessment: "Contracted revenue supports the request, but the unhedged merchant tail creates a judgment point around advance availability and covenant headroom.",
@@ -186,7 +179,7 @@ export const reviews: CreditReview[] = [
   },
   {
     company: "Lakeview Medical", slug: "lakeview-medical", request: "$7.5M revolving line", facilityType: "Revolving line",
-    aiReviewState: "analysis-updated", owner: "Alex Kim", due: "Jul 29", dueGroup: "this-week", status: "needs-attention",
+    aiReviewState: "analysis-updated", caseStatus: "analyst-review", hasUpdates: true, owner: "Alex Kim", due: "Jul 29", dueGroup: "this-week", status: "needs-attention",
     details: {
       decisionQuestion: "Do updated reimbursement records resolve the receivables uncertainty in Lakeview's liquidity request?",
       assessment: "New payer evidence reduced the modeled denial rate and improved availability, while collection timing remains modestly slower than peers.",
@@ -204,7 +197,7 @@ export const reviews: CreditReview[] = [
   },
   {
     company: "Cedar Ridge Packaging", slug: "cedar-ridge-packaging", request: "$14M term loan", facilityType: "Term loan",
-    aiReviewState: "needs-judgment", aiReviewDetail: "1 finding", owner: "Alex Kim", due: "Jul 30", dueGroup: "this-week", status: "needs-attention",
+    aiReviewState: "needs-judgment", aiReviewDetail: "1 finding", caseStatus: "analyst-review", owner: "Alex Kim", due: "Jul 30", dueGroup: "this-week", status: "needs-attention",
     details: {
       decisionQuestion: "Can Cedar Ridge fund acquisition integration without weakening debt-service capacity below policy?",
       assessment: "The combined company supports the loan in the base case, but management's integration savings and near-term capex overlap require structural judgment.",
@@ -222,25 +215,28 @@ export const reviews: CreditReview[] = [
   },
   {
     company: "Atlas Logistics", slug: "atlas-logistics", request: "$8.5M term loan", facilityType: "Term loan",
-    aiReviewState: "analysis-ready", owner: "Alex Kim", due: "Jul 29", dueGroup: "this-week", status: "in-review",
+    aiReviewState: "review-complete", caseStatus: "ready-to-recommend", owner: "Alex Kim", due: "Jul 29", dueGroup: "this-week", status: "in-review",
     details: {
       decisionQuestion: "Does fleet-renewal cash flow support the requested term debt through a softer freight cycle?",
       assessment: "Normalized cash flow covers the fleet program with adequate downside headroom and no unresolved evidence gaps.",
-      posture: "Analysis ready for analyst review", term: "4 years", purpose: "Fleet replacement",
+      posture: "Analyst review complete; ready to recommend", term: "4 years", purpose: "Fleet replacement",
       metrics: [
         { label: "Downside DSCR", value: "1.31x", detail: "+0.11x to policy", detailTone: "positive" },
         { label: "Fleet age after renewal", value: "3.8 yrs", detail: "From 6.1 years", detailTone: "positive" },
         { label: "Customer retention", value: "92%", detail: "Top 20 accounts" },
       ],
-      findings: [{ id: "fleet-renewal", title: "Fleet renewal capacity", description: "Replacement savings offset most of the new debt service in the downside case.", detail: "Lower maintenance expense and improved fuel efficiency contribute $1.4M annually. Coverage remains above policy with freight volume 10% below plan.", risk: "Low", status: "Analysis ready", tone: "neutral", sourceId: "fleet-plan", policy: "Downside debt-service coverage ≥ 1.20x", nextStep: "Confirm maintenance savings are treated consistently in the final credit memo." }],
+      findings: [{ id: "fleet-renewal", title: "Fleet renewal capacity", description: "Replacement savings offset most of the new debt service in the downside case.", detail: "Lower maintenance expense and improved fuel efficiency contribute $1.4M annually. Coverage remains above policy with freight volume 10% below plan.", risk: "Low", status: "Complete", tone: "success", sourceId: "fleet-plan", policy: "Downside debt-service coverage ≥ 1.20x", nextStep: "Carry the reviewed maintenance assumptions into the recommendation." }],
       sources: sources(["fleet-plan", "Fleet replacement schedule", "XLSX · Reviewed Jul 25, 2026", "Unit-level purchase timing, retirement proceeds, maintenance history, and fuel assumptions."], ["customer-retention", "Customer retention report", "PDF · Reviewed Jul 24, 2026", "Contract renewal and revenue retention for Atlas's largest freight accounts." ]),
-      activity: activity("Atlas Logistics", "Fleet-renewal analysis completed", "Unit replacement schedule reconciled to vendor quotes"),
-      recommendation: { title: "Proceed with standard protections", rationale: "Downside coverage and fleet economics support the request without relying on aggressive volume growth.", conditions: ["Minimum DSCR of 1.20x", "Annual fleet and maintenance report", "No distributions while a covenant default exists"], nextStep: "Analyst review is required before the recommendation can move to decision.", tone: "neutral" },
+      activity: [
+        { id: "analyst-review", title: "Fleet-renewal finding reviewed", meta: "Today · 10:18 AM", description: "Alex Kim confirmed the maintenance-savings treatment and the proposed monitoring protections.", tone: "human", details: "The analyst review completed the final open checkpoint and made the case ready for recommendation authoring." },
+        ...activity("Atlas Logistics", "Fleet-renewal analysis completed", "Unit replacement schedule reconciled to vendor quotes"),
+      ],
+      recommendation: { title: "Proceed with standard protections", rationale: "Downside coverage and fleet economics support the request without relying on aggressive volume growth.", conditions: ["Minimum DSCR of 1.20x", "Annual fleet and maintenance report", "No distributions while a covenant default exists"], nextStep: "Prepare and submit the analyst recommendation.", tone: "neutral" },
     },
   },
   {
     company: "Harbor Retail", slug: "harbor-retail", request: "$12M asset-based line", facilityType: "Revolving line",
-    aiReviewState: "analysis-updated", owner: "Alex Kim", due: "Jul 30", dueGroup: "this-week", status: "in-review",
+    aiReviewState: "analysis-updated", caseStatus: "analyst-review", hasUpdates: true, owner: "Alex Kim", due: "Jul 30", dueGroup: "this-week", status: "in-review",
     details: {
       decisionQuestion: "Does the updated borrowing base provide reliable availability through Harbor's seasonal inventory build?",
       assessment: "Updated eligibility removed slow-moving inventory and lowered peak availability, but the revised base still supports the seasonal need.",
@@ -258,7 +254,7 @@ export const reviews: CreditReview[] = [
   },
   {
     company: "Pioneer Components", slug: "pioneer-components", request: "$10M term loan", facilityType: "Term loan",
-    aiReviewState: "analysis-ready", owner: "Alex Kim", due: "Jul 31", dueGroup: "this-week", status: "in-review",
+    aiReviewState: "analysis-ready", caseStatus: "analyst-review", owner: "Alex Kim", due: "Jul 31", dueGroup: "this-week", status: "in-review",
     details: {
       decisionQuestion: "Can program backlog offset Pioneer's customer concentration over the proposed loan term?",
       assessment: "Signed program awards support capacity, although two automotive platforms account for a large share of projected EBITDA.",
@@ -276,7 +272,7 @@ export const reviews: CreditReview[] = [
   },
   {
     company: "Westfield Produce", slug: "westfield-produce", request: "$6.5M revolving line", facilityType: "Revolving line",
-    aiReviewState: "needs-verification", aiReviewDetail: "2 items", owner: "Alex Kim", due: "Aug 1", dueGroup: "this-week", status: "in-review",
+    aiReviewState: "needs-verification", aiReviewDetail: "2 items", caseStatus: "needs-verification", owner: "Alex Kim", due: "Aug 1", dueGroup: "this-week", status: "in-review",
     details: {
       decisionQuestion: "Is Westfield's perishable inventory and receivables base reliable enough to support seasonal borrowing?",
       assessment: "The requested line fits normalized seasonality, but two collateral schedules do not reconcile to the June general ledger.",
@@ -297,25 +293,51 @@ export const reviews: CreditReview[] = [
   },
   {
     company: "Apex Manufacturing", slug: "apex-manufacturing", request: "$20M term loan", facilityType: "Term loan",
-    aiReviewState: "review-complete", owner: "Alex Kim", due: "Jul 30", dueGroup: "this-week", status: "ready-for-decision",
+    aiReviewState: "review-complete", caseStatus: "awaiting-decision", owner: "Alex Kim", due: "Jul 30", dueGroup: "this-week", status: "ready-for-decision",
     details: {
       decisionQuestion: "Should Apex receive $20M for capacity expansion under the proposed leverage and covenant package?",
       assessment: "All evidence and findings are complete. Contracted demand and downside coverage support the expansion with standard leverage controls.",
       posture: "Ready for credit decision", term: "6 years", purpose: "Capacity expansion",
       metrics: [
-        { label: "Pro forma leverage", value: "3.1x", detail: "0.6x inside policy", detailTone: "positive" },
-        { label: "Downside DSCR", value: "1.34x", detail: "+0.14x to policy", detailTone: "positive" },
-        { label: "Contracted backlog", value: "$68M", detail: "2.2 years revenue" },
+        {
+          label: "Pro forma leverage",
+          value: "3.1x",
+          detail: "0.6x inside policy",
+          detailTone: "positive",
+          policyComparison: {
+            actual: 3.1,
+            boundary: 3.7,
+            domain: [0, 4.25],
+            direction: "maximum",
+            boundaryLabel: "3.70x policy maximum",
+            varianceLabel: "0.6x below maximum",
+          },
+        },
+        {
+          label: "Downside DSCR",
+          value: "1.34x",
+          detail: "+0.14x to policy",
+          detailTone: "positive",
+          policyComparison: {
+            actual: 1.34,
+            boundary: 1.2,
+            domain: [0, 1.6],
+            direction: "minimum",
+            boundaryLabel: "1.20x policy minimum",
+            varianceLabel: "0.14x above minimum",
+          },
+        },
+        { label: "Contracted backlog", value: "$68M", detail: "2.2 years of revenue" },
       ],
       findings: [{ id: "expansion-capacity", title: "Expansion repayment capacity", description: "Contracted backlog and existing free cash flow support the capacity plan.", detail: "The downside case delays 30% of incremental volume and still maintains 1.34x coverage. All supporting contracts were verified.", risk: "Low", status: "Complete", tone: "success", sourceId: "backlog", policy: "Downside debt-service coverage ≥ 1.20x", nextStep: "Present the completed recommendation to the credit approver." }],
       sources: sources(["backlog", "Contracted backlog schedule", "XLSX · Verified Jul 25, 2026", "Customer orders, cancellation terms, delivery timing, and contribution margin."], ["expansion-budget", "Expansion budget and draw schedule", "PDF · Reviewed Jul 24, 2026", "Vendor bids, contingency, draw timing, and construction milestones." ]),
       activity: activity("Apex Manufacturing", "Review completed and recommendation prepared", "Contracted backlog fully verified"),
-      recommendation: { title: "Approve with conditions", rationale: "Contracted backlog, manageable leverage, and resilient downside coverage support the expansion request.", conditions: ["Maximum total leverage of 3.75x", "Minimum DSCR of 1.20x", "Construction draw controls and 10% contingency"], nextStep: "Credit approver owns the final decision.", tone: "success" },
+      recommendation: { title: "Approve with conditions", rationale: "Contracted backlog, manageable leverage, and resilient downside coverage support the expansion request.", conditions: ["Maximum total leverage of 3.70x", "Minimum DSCR of 1.20x", "Construction draw controls and 10% contingency"], nextStep: "Credit approver owns the final decision.", tone: "success" },
     },
   },
   {
     company: "Redwood Distribution", slug: "redwood-distribution", request: "$16M revolving line", facilityType: "Revolving line",
-    aiReviewState: "analysis-updated", owner: "Alex Kim", due: "Jul 31", dueGroup: "this-week", status: "ready-for-decision",
+    aiReviewState: "analysis-updated", caseStatus: "awaiting-decision", hasUpdates: true, owner: "Alex Kim", due: "Jul 31", dueGroup: "this-week", status: "ready-for-decision",
     details: {
       decisionQuestion: "Does Redwood's revised customer-diversification plan support a $16M distribution line?",
       assessment: "A new national account lowered concentration and improved the downside case; the updated recommendation is ready for human confirmation.",
@@ -333,7 +355,7 @@ export const reviews: CreditReview[] = [
   },
   {
     company: "Stonebridge Healthcare", slug: "stonebridge-healthcare", request: "$13M term loan", facilityType: "Term loan",
-    aiReviewState: "review-complete", owner: "Alex Kim", due: "Aug 1", dueGroup: "this-week", status: "ready-for-decision",
+    aiReviewState: "review-complete", caseStatus: "awaiting-decision", owner: "Alex Kim", due: "Aug 1", dueGroup: "this-week", status: "ready-for-decision",
     details: {
       decisionQuestion: "Should Stonebridge receive acquisition financing given stable referrals and reimbursement mix?",
       assessment: "The review is complete. Verified census, referral, and reimbursement evidence supports the acquisition at moderate leverage.",
@@ -351,7 +373,7 @@ export const reviews: CreditReview[] = [
   },
   {
     company: "Summit Industrial", slug: "summit-industrial", request: "$9M term loan", facilityType: "Term loan",
-    aiReviewState: "needs-verification", aiReviewDetail: "2 items", owner: "Jordan Lee", due: "Aug 1", dueGroup: "this-week", status: "needs-attention",
+    aiReviewState: "needs-verification", aiReviewDetail: "2 items", caseStatus: "needs-verification", owner: "Jordan Lee", due: "Aug 1", dueGroup: "this-week", status: "needs-attention",
     details: {
       decisionQuestion: "Can Summit's equipment request be assessed using the current backlog and debt records?",
       assessment: "Analysis is paused because the backlog detail conflicts with the forecast and one equipment obligation is absent from the debt schedule.",
@@ -372,7 +394,7 @@ export const reviews: CreditReview[] = [
   },
   {
     company: "Oakridge Services", slug: "oakridge-services", request: "$6M revolving line", facilityType: "Revolving line",
-    aiReviewState: "review-complete", owner: "Jordan Lee", due: "Jul 25", dueGroup: "this-week", status: "completed",
+    aiReviewState: "review-complete", caseStatus: "approved", owner: "Jordan Lee", due: "Jul 25", dueGroup: "this-week", status: "completed",
     details: {
       decisionQuestion: "Was the approved $6M line supported by recurring service revenue and adequate liquidity?",
       assessment: "The review and decision are complete. Recurring contracts, low leverage, and stable collections supported approval with standard reporting.",

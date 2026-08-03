@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type DragEvent, type ReactNode } from "re
 import { DesignToolsLauncher } from "../features/design-tools/DesignToolsLauncher";
 import { getDesignOption } from "../features/design-tools/designOptions";
 import { DesignRationalePanel } from "../features/design-rationale/DesignRationalePanel";
-import { getAIReviewLabel } from "../features/credit-reviews/reviewData";
+import { caseStatusPresentation } from "../shared/ui/CaseStatusPill/CaseStatusPill";
 import { useReviewBookmarks, type ReviewBookmarkSlug } from "../features/credit-reviews/bookmarks/ReviewBookmarks";
 import { companyLogoDomains } from "../features/credit-reviews/companyLogos";
 import { applyCreditReviewWorkflowState } from "../features/credit-reviews/creditReviewPresentation";
@@ -21,6 +21,14 @@ type AppShellProps = {
   children: ReactNode;
 };
 
+function isPrimaryNavigationActive(pathname: AppPath, itemPath: AppPath) {
+  if (itemPath === "/") return pathname === "/" || pathname === "/overview";
+  if (itemPath === "/credit-reviews" || itemPath === "/policy-rules") {
+    return pathname === itemPath || pathname.startsWith(`${itemPath}/`);
+  }
+  return pathname === itemPath;
+}
+
 export function AppShell({ children }: AppShellProps) {
   const { pathname, search } = useRouter();
   const { bookmarkedReviews, removeBookmark, reorderBookmark } = useReviewBookmarks();
@@ -30,20 +38,25 @@ export function AppShell({ children }: AppShellProps) {
   const [draggedBookmark, setDraggedBookmark] = useState<ReviewBookmarkSlug | null>(null);
   const [utilityActionsTarget, setUtilityActionsTarget] = useState<HTMLDivElement | null>(null);
   const workflowRevision = useReviewWorkflowRevision([MERIDIAN_STORAGE_KEY, NORTHSTAR_STORAGE_KEY, ...standardReviewSlugs.map(standardReviewStorageKey)]);
+  const northstarState = useMemo(
+    () => readPersistedReviewState(NORTHSTAR_STORAGE_KEY, createInitialNorthstarState()),
+    [workflowRevision],
+  );
   const focusedEvidenceReview = pathname === "/credit-reviews/meridian-foods/sources"
     && Boolean(new URLSearchParams(search).get("source"));
   const liveBookmarkedReviews = useMemo(() => {
     const meridianState = readPersistedReviewState(MERIDIAN_STORAGE_KEY, createInitialMeridianState());
-    const northstarState = readPersistedReviewState(NORTHSTAR_STORAGE_KEY, createInitialNorthstarState());
     const standardStates = Object.fromEntries(standardReviewSlugs.map((slug) => [slug, readPersistedStandardReviewState(slug)]));
     return bookmarkedReviews.map((review) => applyCreditReviewWorkflowState(review, meridianState, northstarState, standardStates));
-  }, [bookmarkedReviews, pathname, search, workflowRevision]);
-  const immersiveDecisionReview = pathname === "/credit-reviews/meridian-foods/recommendation/draft"
-    || pathname === "/credit-reviews/meridian-foods/senior-decision/review"
-    || pathname.includes("/senior-decision/review");
+  }, [bookmarkedReviews, northstarState, pathname, search, workflowRevision]);
+  const immersiveRecommendationDraft = pathname === "/credit-reviews/meridian-foods/recommendation/draft";
+  const immersiveSeniorDecisionReview = pathname.includes("/senior-decision/review");
+  const immersiveDecisionReview = immersiveRecommendationDraft || immersiveSeniorDecisionReview;
   const focusedWorkspace = focusedEvidenceReview || immersiveDecisionReview;
   const selectedDesign = getDesignOption(new URLSearchParams(search).get("design"));
   const persistentDocumentationLabel = selectedDesign?.renderKey === "utility-documentation-label";
+  const showNorthstarReceivedPreview = pathname.startsWith("/credit-reviews/northstar-health")
+    && northstarState.request.status === "sent";
 
   useEffect(() => {
     setBookmarkHelpOpen(false);
@@ -54,17 +67,24 @@ export function AppShell({ children }: AppShellProps) {
   return (
     <AppUtilityActionsProvider target={utilityActionsTarget}>
     <div className={`${styles.shell} ${focusedWorkspace ? styles.focusedShell : ""} ${immersiveDecisionReview ? styles.immersiveShell : ""}`}>
-      {!immersiveDecisionReview && <header className={styles.demoBanner}>
+      {!immersiveRecommendationDraft && <header className={styles.demoBanner}>
         <div className={styles.demoMessage}>
           <span className={styles.demoMark} aria-hidden="true">B</span>
-          <span>Explore the BCGX lending workspace.</span>
-          <AppLink to="/design-system">Built with the Salt design system</AppLink>
+          <span className={styles.demoWorkspaceCopy}>Explore the BCGX lending workspace.</span>
+          <AppLink className={styles.demoDesignLink} to="/design-system">Built with the Salt design system</AppLink>
+          {showNorthstarReceivedPreview && (
+            <AppLink className={styles.demoAdvance} to={pathname} search="?preset=northstar-document-received">
+              <span className={styles.demoAdvanceLong}>Preview received response</span>
+              <span className={styles.demoAdvanceShort}>Receive forecast</span>
+              <Icon name="arrowRight" size="xs" />
+            </AppLink>
+          )}
         </div>
         <span className={styles.internalPill}>Internal workspace</span>
       </header>}
 
       {focusedWorkspace ? (
-        <div className={`${styles.focusedWorkspace} ${immersiveDecisionReview ? styles.immersiveWorkspace : ""}`}>
+        <div className={`${styles.focusedWorkspace} ${immersiveRecommendationDraft ? styles.immersiveWorkspace : ""}`}>
           <main className={styles.focusedMain}>{children}</main>
         </div>
       ) : (
@@ -78,17 +98,23 @@ export function AppShell({ children }: AppShellProps) {
           </div>
 
           <nav className={styles.navigation} aria-label="Primary navigation">
-            {primaryNavigation.map((item) => (
-              <AppLink
-                key={item.to}
-                to={item.to}
-                className={`${styles.navigationItem} ${pathname === item.to || (item.to === "/" && pathname === "/overview") || (item.to === "/credit-reviews" && pathname.startsWith("/credit-reviews/")) ? styles.navigationItemActive : ""}`}
-              >
-                <Icon name={item.icon} size="sm" />
-                <span>{item.label}</span>
-                {item.badge && <span className={styles.navigationBadge}>{item.badge}</span>}
-              </AppLink>
-            ))}
+            {primaryNavigation.map((item) => {
+              const active = isPrimaryNavigationActive(pathname, item.to);
+              return (
+                <AppLink
+                  key={item.to}
+                  to={item.to}
+                  className={`${styles.navigationItem} ${active ? styles.navigationItemActive : ""}`}
+                  aria-current={active ? "page" : undefined}
+                  aria-label={item.label}
+                >
+                  <Icon name={item.icon} size="sm" />
+                  <span className={styles.navigationLabel}>{item.label}</span>
+                  <span className={styles.navigationMobileLabel} aria-hidden="true">{item.mobileLabel}</span>
+                  {item.badge && <span className={styles.navigationBadge}>{item.badge}</span>}
+                </AppLink>
+              );
+            })}
           </nav>
 
           <div className={styles.sidebarDivider} />
@@ -156,7 +182,7 @@ export function AppShell({ children }: AppShellProps) {
                         <CompanyLogo domain={companyLogoDomains[review.company]} name={review.company} />
                         <span className={styles.bookmarkCopy}>
                           <strong>{review.company}</strong>
-                          <small>{review.request.split(" ")[0]} · {getAIReviewLabel(review)}</small>
+                          <small>{review.request.split(" ")[0]} · {caseStatusPresentation[review.caseStatus].label}</small>
                         </span>
                       </AppLink>
                       <button
@@ -219,7 +245,7 @@ export function AppShell({ children }: AppShellProps) {
                   {liveBookmarkedReviews.length > 0 ? liveBookmarkedReviews.map((review) => (
                     <AppLink key={review.slug} to={`/credit-reviews/${review.slug}` as AppPath} className={styles.mobileBookmarkLink}>
                       <CompanyLogo domain={companyLogoDomains[review.company]} name={review.company} />
-                      <span><strong>{review.company}</strong><small>{review.request.split(" ")[0]} · {getAIReviewLabel(review)}</small></span>
+                      <span><strong>{review.company}</strong><small>{review.request.split(" ")[0]} · {caseStatusPresentation[review.caseStatus].label}</small></span>
                       <Icon name="chevronRight" size="sm" />
                     </AppLink>
                   )) : <p>Save a review from its case header.</p>}

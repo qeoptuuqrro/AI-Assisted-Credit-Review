@@ -5,6 +5,7 @@ export type IconName =
   | "layers"
   | "arrowRight"
   | "arrowLeft"
+  | "arrowDown"
   | "check"
   | "chevronDown"
   | "chevronRight"
@@ -63,6 +64,7 @@ const paths: Record<IconName, ReactNode> = {
   layers: <><path d="m12 3 9 5-9 5-9-5 9-5Z" /><path d="m3 12 9 5 9-5M3 16l9 5 9-5" /></>,
   arrowRight: <><path d="M5 12h14M14 7l5 5-5 5" /></>,
   arrowLeft: <><path d="M19 12H5M10 7l-5 5 5 5" /></>,
+  arrowDown: <><path d="M12 5v14M7 14l5 5 5-5" /></>,
   check: <path d="m5 12 4 4L19 6" />,
   chevronDown: <path d="m7 9 5 5 5-5" />,
   chevronRight: <path d="m9 7 5 5-5 5" />,

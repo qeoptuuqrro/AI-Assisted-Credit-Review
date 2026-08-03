@@ -9,7 +9,8 @@
 .selector legend {
   margin-bottom: var(--salt-space-2);
   color: var(--salt-color-text);
-  font-size: var(--salt-type-size-sm);
+  font-size: var(--salt-type-size-ui-secondary);
+  line-height: var(--salt-type-line-ui-secondary);
 }
 
 .selector label {
@@ -66,15 +67,16 @@
 
 .copy strong {
   color: var(--salt-color-text-strong);
-  font-size: var(--salt-type-size-ui-secondary);
+  font-size: var(--salt-borrower-contact-title-size);
   font-weight: var(--salt-type-weight-regular);
+  line-height: var(--salt-borrower-contact-title-line);
 }
 
 .copy small {
   overflow-wrap: anywhere;
   color: var(--salt-color-text-subtle);
-  font-size: var(--salt-type-size-xs);
-  line-height: var(--salt-type-line-ui-secondary);
+  font-size: var(--salt-borrower-contact-meta-size);
+  line-height: var(--salt-borrower-contact-meta-line);
 }
 
 @media (max-width: 600px) {

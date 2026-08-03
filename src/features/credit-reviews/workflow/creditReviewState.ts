@@ -74,7 +74,7 @@ export type AnalystRecommendationRecord = {
   createdAt: string;
 };
 
-export type RecommendationDraftSection = 1 | 2 | 3 | 4;
+export type RecommendationDraftSection = 1 | 2 | 3 | 4 | 5;
 
 export type AnalystRecommendationDraft = {
   decision: string;
@@ -126,9 +126,17 @@ export type ReassessmentRecord = {
   id: string;
   findingId: FindingId;
   evidenceRequirementId: EvidenceRequirementId;
+  analystContext?: string;
+  verification?: {
+    confirmedChecks: string[];
+    verifiedBy: string;
+    verifiedAt: string;
+  };
   createdAt: string;
   status: "current" | "potentially_stale";
 };
+
+export type ReassessmentInput = Pick<ReassessmentRecord, "analystContext" | "verification">;
 
 export type WorkflowActivity = {
   id: string;
@@ -404,12 +412,14 @@ export type NorthstarReviewState = {
 
 export type NorthstarReviewAction =
   | { type: "send_request"; at: string; recipient: string; dueDate: string; message: string }
+  | { type: "preview_received_response"; at: string }
   | { type: "receive_document"; fileName: string; provenance: "analyst-upload" | "borrower-upload"; suppliedBy: string; at: string }
   | { type: "start_processing" }
   | { type: "processing_succeeded" }
   | { type: "processing_failed"; message: string }
   | { type: "cancel_request" }
   | { type: "retry" }
+  | { type: "replace_document" }
   | { type: "verify_evidence" }
   | { type: "complete_analysis_review"; at: string }
   | { type: "submit_recommendation"; record: AnalystRecommendationRecord }
@@ -426,7 +436,7 @@ export function createInitialNorthstarState(): NorthstarReviewState {
       id: "northstar-forecast-2027",
       status: "draft",
       documentName: "2027 Operating Forecast",
-      recipient: "Sarah Lee · CFO",
+      recipient: "Marcus Reed · VP, Finance",
       dueDate: "Aug 2, 2026",
     },
     evidenceReviewState: "ready",
@@ -442,6 +452,25 @@ export function northstarReviewReducer(state: NorthstarReviewState, action: Nort
     case "send_request":
       if (state.request.status !== "draft") return state;
       return { ...state, request: { ...state.request, status: "sent", recipient: action.recipient, dueDate: action.dueDate, message: action.message, sentAt: action.at, error: undefined } };
+    case "preview_received_response":
+      if (state.request.status !== "sent") return state;
+      return {
+        ...state,
+        request: {
+          ...state.request,
+          status: "ready",
+          fileName: "2027 Operating Forecast.xlsx",
+          provenance: "borrower-upload",
+          suppliedBy: state.request.recipient,
+          receivedAt: action.at,
+          error: undefined,
+        },
+        evidenceReviewState: "needs_verification",
+        analysisUpdated: false,
+        analysisReviewState: "pending",
+        recommendation: undefined,
+        seniorDecision: undefined,
+      };
     case "receive_document":
       if (!["draft", "sent", "failed"].includes(state.request.status)) return state;
       return {
@@ -464,6 +493,25 @@ export function northstarReviewReducer(state: NorthstarReviewState, action: Nort
     case "retry":
       if (state.request.status !== "failed") return state;
       return { ...state, request: { ...state.request, status: state.request.fileName ? "received" : "sent", error: undefined } };
+    case "replace_document":
+      if (!["received", "processing", "ready", "failed"].includes(state.request.status)) return state;
+      return {
+        ...state,
+        request: {
+          ...state.request,
+          status: state.request.sentAt ? "sent" : "draft",
+          receivedAt: undefined,
+          suppliedBy: undefined,
+          fileName: undefined,
+          provenance: undefined,
+          error: undefined,
+        },
+        evidenceReviewState: "ready",
+        analysisUpdated: false,
+        analysisReviewState: "pending",
+        recommendation: undefined,
+        seniorDecision: undefined,
+      };
     case "verify_evidence":
       if (state.request.status !== "ready" || state.evidenceReviewState !== "needs_verification") return state;
       return { ...state, evidenceReviewState: "verified_by_analyst", analysisUpdated: true, analysisReviewState: "pending" };
@@ -501,7 +549,7 @@ export function northstarReviewReducer(state: NorthstarReviewState, action: Nort
   }
 }
 
-export type DemoPresetId = "meridian-start" | "meridian-reassessment-ready" | "meridian-margin-reassessment-ready" | "meridian-recommendation-ready" | "meridian-escalation-ready" | "northstar-request-sent" | "northstar-analysis-updated" | "northstar-senior-review" | "senior-review-ready";
+export type DemoPresetId = "meridian-start" | "meridian-reassessment-ready" | "meridian-margin-reassessment-ready" | "meridian-recommendation-ready" | "meridian-escalation-ready" | "northstar-request-sent" | "northstar-document-received" | "northstar-analysis-updated" | "northstar-senior-review" | "senior-review-ready";
 
 export function createMeridianPreset(id: DemoPresetId, activity: WorkflowActivity[] = []): MeridianReviewState {
   const state = createInitialMeridianState(activity);
@@ -549,6 +597,19 @@ export function createMeridianPreset(id: DemoPresetId, activity: WorkflowActivit
 export function createNorthstarPreset(id: DemoPresetId): NorthstarReviewState {
   const state = createInitialNorthstarState();
   if (id === "northstar-request-sent") state.request = { ...state.request, status: "sent", sentAt: "2026-07-26T14:30:00.000Z" };
+  if (id === "northstar-document-received") {
+    state.request = {
+      ...state.request,
+      status: "ready",
+      sentAt: "2026-07-31T14:30:00.000Z",
+      receivedAt: "2026-08-01T14:42:00.000Z",
+      suppliedBy: state.request.recipient,
+      fileName: "2027 Operating Forecast.xlsx",
+      provenance: "borrower-upload",
+    };
+    state.evidenceReviewState = "needs_verification";
+    return state;
+  }
   if (id === "northstar-analysis-updated" || id === "northstar-senior-review") {
     state.request = {
       ...state.request,

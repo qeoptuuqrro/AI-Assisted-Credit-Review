@@ -8,15 +8,15 @@ Mercury layout pattern: existing Salt/Mercury shell, vertically centered empty s
 
 Mercury KPI/card pattern -> IdeaGen use: no KPI strip. The only contained data surface is the decision-relevant fixed-charge coverage chart returned in response to a follow-up.
 
-Mercury table/list pattern -> IdeaGen use: Mercury's quiet work disclosure becomes a four-step, source-aware activity list while an answer is being prepared.
+Mercury table/list pattern -> IdeaGen use: Mercury's quiet work disclosure becomes a centered four-stage, source-aware progress track beneath the active question. Each stage remains readable within a 4.2-second sequence; one continuous activity mark plus finite connector, marker, and copy transitions communicate progress without decorative AI effects. The completed response reveals as four semantic groups over roughly 660ms so hierarchy arrives before supporting actions. Reduced-motion users receive the completed answer without the full animated wait.
 
 Mercury drawer/panel pattern -> IdeaGen use: source evidence expands inline beside the claim it supports; the feature routes the analyst into the existing credit-review workflow instead of introducing a second detail drawer.
 
-Mercury tabs/filter pattern -> IdeaGen use: no tabs. The `@` picker uses the shared Salt `Popover` and groups available context into Reviews, Findings, Sources, and Portfolio.
+Mercury tabs/filter pattern -> IdeaGen use: no tabs. The `@` picker uses the shared Salt `Popover` and groups available context into Reviews, Findings, Sources, and Portfolio. Review contexts use the canonical circular `CompanyLogo`; findings, sources, and portfolio views retain semantic Salt icons.
 
 Mercury components used: shell, sidebar navigation, conversation header, prompt chips, bounded composer, user-message surface, work disclosure, answer actions, chart framing, and sticky composer behavior.
 
-Canonical components to use/promote: `Button`, `Icon`, `StatusPill`, `Toast`, and the promoted `Popover` primitive.
+Canonical components to use/promote: `Button`, `CompanyLogo`, `Icon`, `StatusPill`, `Toast`, and the promoted `Popover` primitive.
 
 Allowed content changes: commercial-credit language, approved evidence, review/finding/source context, case synthesis, covenant analysis, human-decision guardrails, and links back into the owning review workflow.
 

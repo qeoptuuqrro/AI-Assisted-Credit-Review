@@ -724,12 +724,12 @@
 }
 
 .focusFooter {
-  min-height: calc(var(--salt-space-10) + var(--salt-space-1));
+  min-height: var(--salt-space-12);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--salt-space-3);
-  padding-inline: var(--salt-space-4);
+  padding-inline: var(--salt-space-5);
   color: var(--salt-color-text-subtle);
   font-size: var(--salt-type-size-xs);
 }
@@ -779,6 +779,10 @@
   gap: var(--salt-space-4);
   padding-inline: var(--salt-space-5);
   border-bottom: var(--salt-border-subtle);
+}
+
+.commandGrid .cardHeader {
+  min-height: calc(var(--salt-space-16) + var(--salt-space-2));
 }
 
 .cardHeader > div {

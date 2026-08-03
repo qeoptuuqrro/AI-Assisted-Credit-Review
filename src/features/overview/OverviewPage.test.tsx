@@ -19,7 +19,7 @@ describe("OverviewPage design directions", () => {
 
     const summary = screen.getByRole("region", { name: "Lending operating summary" });
     expect(within(summary).getByText("Active review mix · 6 weeks")).toBeTruthy();
-    expect(within(summary).getByRole("button", { name: "Meridian Foods, Needs judgment, due Today" })).toBeTruthy();
+    expect(within(summary).getByRole("button", { name: "Meridian Foods, Analyst review, due Today" })).toBeTruthy();
     expect(screen.queryByText("Analyst decisions are holding the review.")).toBeNull();
 
     fireEvent.click(within(summary).getByRole("button", { name: /^Jun 22:/ }));
@@ -32,7 +32,7 @@ describe("OverviewPage design directions", () => {
     renderOverview("/?design=workspace-overview-v1-balanced-modules");
 
     expect(screen.getByLabelText("Previewing Workspace overview V1 · Balanced status dashboard")).toBeTruthy();
-    expect(screen.getByText("Analyst decisions are holding the review.")).toBeTruthy();
+    expect(screen.getByText("Usable analysis is ready for human interpretation.")).toBeTruthy();
     expect(screen.getByText("61")).toBeTruthy();
     expect(screen.queryByText("Active review mix · 6 weeks")).toBeNull();
   });

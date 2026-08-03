@@ -25,6 +25,12 @@ export type EvidenceIntakeState = {
   provenance?: EvidenceProvenance;
   error?: string;
   request?: EvidenceRequestRecord;
+  verificationProgress?: {
+    confirmedChecks: string[];
+    analystContext?: string;
+    updatedBy: string;
+    updatedAt: string;
+  };
 };
 
 export type EvidenceIntakeAction =
@@ -32,6 +38,7 @@ export type EvidenceIntakeAction =
   | { type: "request-sent"; request: EvidenceRequestRecord }
   | { type: "existing-source-selected"; fileName: string }
   | { type: "upload-ready" }
+  | { type: "verification-progress-updated"; confirmedChecks: string[]; analystContext?: string; updatedBy: string; updatedAt: string }
   | { type: "verification-complete" }
   | { type: "upload-failed"; message: string }
   | { type: "reset" };
@@ -81,6 +88,18 @@ export function evidenceIntakeReducer(state: EvidenceIntakeState, action: Eviden
       return { status: "ready-for-review", fileName: action.fileName, provenance: "existing-source" };
     case "upload-ready":
       return state.fileName ? { ...state, status: "ready-for-review", error: undefined } : state;
+    case "verification-progress-updated":
+      return state.fileName && ["ready-for-review", "verified"].includes(state.status)
+        ? {
+            ...state,
+            verificationProgress: {
+              confirmedChecks: action.confirmedChecks,
+              analystContext: action.analystContext,
+              updatedBy: action.updatedBy,
+              updatedAt: action.updatedAt,
+            },
+          }
+        : state;
     case "verification-complete":
       return state.fileName ? { ...state, status: "verified", error: undefined } : state;
     case "upload-failed":
@@ -120,7 +139,7 @@ export const evidenceRequirements: Record<EvidenceRequirementId, EvidenceRequire
     result: {
       title: "The near-term risk is lower",
       description: "The current contract changes the duration assumption without removing structural concentration.",
-      explanation: "The renewal runs through March 2030, so the analysis no longer assumes Customer A revenue falls away in the near term. Customer concentration is still 61%, so the finding still needs analyst judgment.",
+      explanation: "The renewal removes near-term Customer A loss from the downside case; 61% concentration still needs analyst judgment.",
       initialRisk: "Material",
       updatedRisk: "Moderate",
       changedTitle: "Contract term: Mar 2027 → Mar 2030",
@@ -150,7 +169,7 @@ export const evidenceRequirements: Record<EvidenceRequirementId, EvidenceRequire
     result: {
       title: "The margin concern remains material",
       description: "The latest actuals improve evidence quality but do not yet demonstrate a durable recovery.",
-      explanation: "July actuals replace part of the plan-only assumption with observed performance, but downside coverage remains below the 1.20x policy floor. The risk conclusion therefore stays Material.",
+      explanation: "July actuals improve evidence quality, but coverage remains below the 1.20x policy floor, so risk stays Material.",
       initialRisk: "Material",
       updatedRisk: "Material",
       changedTitle: "July actual performance added",
@@ -180,7 +199,7 @@ export const evidenceRequirements: Record<EvidenceRequirementId, EvidenceRequire
     result: {
       title: "The equipment obligation now counts as funded debt",
       description: "Verified terms resolve the open classification and update leverage without creating a covenant breach.",
-      explanation: "The agreement's purchase option meets the funded-debt policy test. Leverage moves from 3.7x to 3.9x, but 3.9x remains below the proposed 4.25x maximum, so the risk band stays Moderate. This updates the analysis; it does not approve or decline the facility.",
+      explanation: "The purchase option raises leverage to 3.9x—still below the 4.25x maximum—so risk remains Moderate.",
       initialRisk: "Moderate",
       updatedRisk: "Moderate",
       changedTitle: "Pro forma leverage: 3.7x → 3.9x",
@@ -209,7 +228,7 @@ export const evidenceRequirements: Record<EvidenceRequirementId, EvidenceRequire
     result: {
       title: "Downside repayment capacity is verified",
       description: "The approved forecast completes the missing period without changing historical actuals.",
-      explanation: "The forecast fills the missing 2027 period and shows 1.29x downside coverage, or 0.09x above the 1.20x policy floor. Historical performance and the final credit decision are unchanged.",
+      explanation: "The forecast fills 2027 and shows 1.29x downside coverage, 0.09x above the 1.20x policy floor.",
       changedTitle: "2027 downside coverage: unavailable → 1.29x",
       changedDescription: "The forecast adds the missing period and shows 0.09x of headroom above the 1.20x policy floor.",
       unchangedTitle: "Current coverage: 1.36x",

@@ -6,7 +6,7 @@ import styles from "./AssessmentChangeSummary.module.css";
 type AssessmentChangeSummaryProps = {
   result: EvidenceRequirement["result"];
   context?: "finding" | "flow";
-  presentation?: "ledger-v1" | "detail-v2";
+  presentation?: "ledger-v1" | "detail-v2" | "decision-led" | "verification-led";
 };
 
 export function AssessmentChangeSummary({
@@ -16,6 +16,7 @@ export function AssessmentChangeSummary({
 }: AssessmentChangeSummaryProps) {
   const hasRiskComparison = Boolean(result.initialRisk && result.updatedRisk);
   const riskChanged = hasRiskComparison && result.initialRisk !== result.updatedRisk;
+  const verificationLed = presentation === "verification-led";
   const riskDescription = riskChanged
     ? "The verified evidence changed the risk band."
     : "The evidence changed; the risk band did not.";
@@ -33,7 +34,7 @@ export function AssessmentChangeSummary({
             <article className={styles.flowLedgerRow}>
               <IconTile size="sm" shape="circle"><Icon name="shield" size="sm" /></IconTile>
               <div className={styles.flowLedgerCopy}>
-                <span className={styles.flowLedgerLabel}>Risk assessment</span>
+                <span className={styles.flowLedgerLabel}>{verificationLed ? "Suggested risk" : "Risk assessment"}</span>
                 {riskChanged ? (
                   <strong className={styles.flowRiskValue}>
                     <span data-risk={result.initialRisk.toLowerCase()}>{result.initialRisk}</span>
@@ -54,7 +55,7 @@ export function AssessmentChangeSummary({
           <article className={styles.flowLedgerRow}>
             <IconTile size="sm" shape="circle" tone="info"><Icon name="refresh" size="sm" /></IconTile>
             <div className={styles.flowLedgerCopy}>
-              <span className={styles.flowLedgerLabel}>What changed</span>
+              <span className={styles.flowLedgerLabel}>{verificationLed ? "Changed" : "What changed"}</span>
               <strong>{result.changedTitle}</strong>
               <p>{result.changedDescription}</p>
             </div>
@@ -63,7 +64,7 @@ export function AssessmentChangeSummary({
           <article className={styles.flowLedgerRow}>
             <IconTile size="sm" shape="circle" tone="success"><Icon name="checkCircle" size="sm" /></IconTile>
             <div className={styles.flowLedgerCopy}>
-              <span className={styles.flowLedgerLabel}>What stayed the same</span>
+              <span className={styles.flowLedgerLabel}>{verificationLed ? "Unchanged" : "What stayed the same"}</span>
               <strong>{result.unchangedTitle}</strong>
               <p>{result.unchangedDescription}</p>
             </div>

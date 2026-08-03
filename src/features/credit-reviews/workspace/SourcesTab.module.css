@@ -138,19 +138,6 @@
   gap: var(--salt-space-3);
 }
 
-.productMark {
-  width: var(--salt-space-8);
-  height: var(--salt-space-8);
-  display: grid;
-  flex: 0 0 auto;
-  place-items: center;
-  border-radius: var(--salt-radius-full);
-  background: var(--salt-color-inverse-surface);
-  color: var(--salt-color-inverse-text);
-  font-family: var(--salt-type-family-display);
-  font-size: var(--salt-type-size-xs);
-}
-
 .productIdentity > span:last-child {
   min-width: 0;
   display: grid;
@@ -178,7 +165,7 @@
 }
 
 .closeAction,
-.navigatorPaging button,
+.sourceNavButton,
 .documentToolbar button {
   border: 0;
   background: transparent;
@@ -197,7 +184,7 @@
 }
 
 .closeAction:hover,
-.navigatorPaging button:hover,
+.sourceNavButton:hover,
 .documentToolbar button:hover:not(:disabled) {
   background: var(--salt-color-surface-hover);
   color: var(--salt-color-text-strong);
@@ -205,12 +192,18 @@
 
 .closeAction:focus-visible,
 .sourcePicker:focus-visible,
-.navigatorPaging button:focus-visible,
+.sourceNavButton:focus-visible,
 .relatedSource:focus-visible,
 .sourceRow:focus-visible,
 .documentToolbar button:focus-visible {
   outline: 2px solid var(--salt-color-focus);
   outline-offset: 2px;
+}
+
+.reviewWorkflow {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) var(--salt-focused-workflow-footer-height-comfortable);
 }
 
 .workflowScroll {
@@ -226,33 +219,19 @@
   display: flex;
   flex-direction: column;
   margin-inline: auto;
-  padding: var(--salt-space-8) var(--salt-focused-workflow-content-gutter) var(--salt-space-6);
+  padding: var(--salt-space-8) var(--salt-space-8) var(--salt-space-10);
 }
 
 .reviewIntro {
   display: grid;
-  gap: var(--salt-space-2);
-}
-
-.reviewEyebrow {
-  min-height: var(--salt-status-pill-height);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   gap: var(--salt-space-3);
 }
 
-.reviewEyebrow > span:first-child {
-  color: var(--salt-color-text-subtle);
-  font-size: var(--salt-type-size-xs);
-  line-height: var(--salt-type-line-ui-secondary);
-}
-
 .reviewIntro h1 {
-  margin: var(--salt-space-1) 0 0;
+  margin: 0;
   color: var(--salt-color-text-strong);
   font-family: var(--salt-type-family-display);
-  font-size: var(--salt-type-size-xl);
+  font-size: var(--salt-type-size-2xl);
   font-weight: var(--salt-type-weight-display);
   line-height: var(--salt-type-line-heading);
   letter-spacing: var(--salt-type-tracking-normal);
@@ -260,24 +239,81 @@
 
 .reviewIntro p {
   margin: 0;
+  max-width: var(--salt-focused-workflow-document-title-measure);
   color: var(--salt-color-text-muted);
-  font-size: var(--salt-type-size-sm);
+  font-size: var(--salt-focused-workflow-body-size);
+  line-height: var(--salt-focused-workflow-body-line);
+}
+
+.inspectionContext {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: var(--salt-space-2);
+  color: var(--salt-color-action);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.inspectionSource {
+  min-height: var(--salt-space-16);
+  display: grid;
+  grid-template-columns: var(--salt-icon-tile-size) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--salt-space-3);
+  margin-top: var(--salt-space-6);
+  padding: var(--salt-space-3) var(--salt-space-4);
+  border: var(--salt-border-subtle);
+  border-radius: var(--salt-radius-lg);
+  background: var(--salt-color-surface-subtle);
+}
+
+.inspectionSource > span:nth-child(2) {
+  min-width: 0;
+  display: grid;
+  gap: var(--salt-space-0-5);
+}
+
+.inspectionSource strong,
+.inspectionSource small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inspectionSource strong {
+  color: var(--salt-color-text-strong);
+  font-size: var(--salt-type-size-ui);
+  font-weight: var(--salt-type-weight-regular);
   line-height: var(--salt-type-line-ui);
+}
+
+.inspectionSource small {
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-size-sm);
+  line-height: var(--salt-type-line-ui-secondary);
 }
 
 .sourceNavigator {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: stretch;
-  gap: var(--salt-space-2);
-  margin-top: var(--salt-space-6);
+  grid-template-columns: var(--salt-control-height-lg) minmax(0, 1fr) var(--salt-control-height-lg);
+  align-items: center;
+  gap: var(--salt-space-3);
+  margin-top: var(--salt-space-8);
+}
+
+.sourceNavigatorLabel {
+  grid-column: 1 / -1;
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-size-sm);
+  line-height: var(--salt-type-line-ui-secondary);
 }
 
 .sourcePicker {
   min-width: 0;
   min-height: var(--salt-space-16);
   display: grid;
-  grid-template-columns: var(--salt-space-10) minmax(0, 1fr) var(--salt-icon-sm);
+  grid-template-columns: var(--salt-space-10) minmax(0, 1fr) auto var(--salt-icon-sm);
   align-items: center;
   gap: var(--salt-space-3);
   padding: var(--salt-space-2) var(--salt-space-3);
@@ -298,75 +334,62 @@
 .sourcePicker > span:nth-child(2) {
   min-width: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 0 var(--salt-space-3);
+  gap: var(--salt-space-0-5);
 }
 
 .sourcePicker small,
-.sourcePicker strong,
-.sourcePicker em {
+.sourcePicker strong {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .sourcePicker small {
-  grid-column: 1 / -1;
   color: var(--salt-color-text-subtle);
-  font-size: var(--salt-type-size-xs);
-  font-style: normal;
+  font-size: var(--salt-type-size-sm);
   line-height: var(--salt-type-line-ui-secondary);
 }
 
 .sourcePicker strong {
   color: var(--salt-color-text-strong);
-  font-size: var(--salt-type-size-sm);
+  font-size: var(--salt-type-size-ui);
   font-weight: var(--salt-type-weight-regular);
-  line-height: var(--salt-type-line-ui-secondary);
+  line-height: var(--salt-type-line-ui);
 }
 
-.sourcePicker em {
-  align-self: center;
-  color: var(--salt-color-text-subtle);
-  font-size: var(--salt-type-size-xs);
-  font-style: normal;
-  line-height: var(--salt-type-line-ui-secondary);
+.sourcePickerStatus {
+  display: inline-flex;
+  align-items: center;
 }
 
-.navigatorPaging {
+.sourceNavButton {
+  width: var(--salt-control-height-lg);
+  height: var(--salt-control-height-lg);
   display: grid;
-  grid-template-columns: repeat(2, var(--salt-control-height-md));
-  overflow: hidden;
-  border: var(--salt-border-subtle);
-  border-radius: var(--salt-radius-lg);
-}
-
-.navigatorPaging button {
-  width: var(--salt-control-height-md);
-  display: grid;
+  flex: 0 0 auto;
   place-items: center;
   padding: 0;
+  border: var(--salt-border-transparent);
+  border-radius: var(--salt-radius-full);
+  background: var(--salt-color-surface-subtle);
+  color: var(--salt-color-text-subtle);
+  transition: background-color var(--salt-motion-fast) var(--salt-ease-standard), color var(--salt-motion-fast) var(--salt-ease-standard), transform var(--salt-motion-fast) var(--salt-ease-standard);
 }
 
-.navigatorPaging button + button {
-  border-left: var(--salt-border-subtle);
+.sourceNavButton:active {
+  transform: translateY(var(--salt-motion-press-offset));
 }
 
 .verificationCard {
-  overflow: hidden;
-  margin-top: var(--salt-space-5);
-  border: var(--salt-border-subtle);
-  border-radius: var(--salt-radius-lg);
-  background: var(--salt-color-surface-subtle);
+  margin-top: var(--salt-space-8);
 }
 
 .verificationCard > header {
-  min-height: var(--salt-space-16);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--salt-space-4);
-  padding: var(--salt-space-3) var(--salt-space-4);
+  padding-bottom: var(--salt-space-3);
 }
 
 .verificationCard h2,
@@ -379,15 +402,15 @@
 
 .verificationCard h2,
 .relatedSection h2 {
-  font-size: var(--salt-type-size-sm);
-  line-height: var(--salt-type-line-ui-secondary);
+  font-size: var(--salt-type-size-ui);
+  line-height: var(--salt-type-line-ui);
 }
 
 .verificationCard header p,
 .relatedSection > div p {
   margin: 0;
   color: var(--salt-color-text-subtle);
-  font-size: var(--salt-type-size-xs);
+  font-size: var(--salt-type-size-sm);
   line-height: var(--salt-type-line-ui-secondary);
 }
 
@@ -398,29 +421,32 @@
 
 .verificationCard > header > span {
   color: var(--salt-color-text-subtle);
-  font-size: var(--salt-type-size-xs);
+  font-size: var(--salt-type-size-sm);
+  line-height: var(--salt-type-line-ui-secondary);
   white-space: nowrap;
 }
 
 .extractedValues {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--salt-space-3);
   margin: 0;
-  background: var(--salt-color-surface);
 }
 
 .extractedValues > div {
   position: relative;
-  min-height: var(--salt-focused-workflow-extraction-row-height);
+  min-height: var(--salt-focused-workflow-extraction-field-min-height);
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: var(--salt-space-4);
-  padding: var(--salt-space-2) var(--salt-space-4);
-  border-top: var(--salt-border-subtle);
+  align-content: space-between;
+  gap: var(--salt-space-3);
+  padding: var(--salt-space-4);
+  border: var(--salt-border-subtle);
+  border-radius: var(--salt-radius-md);
+  background: var(--salt-color-surface-subtle);
 }
 
 .extractedValues > div[data-attention="true"] {
-  grid-template-columns: minmax(0, 1fr) auto var(--salt-space-3);
   background: var(--salt-color-warning-surface);
 }
 
@@ -432,26 +458,31 @@
 .extractedValues dt {
   min-width: 0;
   display: grid;
+  grid-column: 1;
   color: var(--salt-color-text-muted);
-  font-size: var(--salt-type-size-sm);
-  line-height: var(--salt-type-line-ui-secondary);
+  font-size: var(--salt-type-size-ui);
+  line-height: var(--salt-type-line-ui);
 }
 
 .extractedValues dt small {
   color: var(--salt-color-text-subtle);
-  font-size: var(--salt-type-size-xs);
-  line-height: var(--salt-type-line-micro);
+  font-size: var(--salt-type-size-sm);
+  line-height: var(--salt-type-line-ui-secondary);
 }
 
 .extractedValues dd {
+  grid-column: 1 / -1;
   color: var(--salt-color-text-strong);
-  font-size: var(--salt-type-size-sm);
+  font-size: var(--salt-type-size-section);
   font-variant-numeric: tabular-nums;
-  line-height: var(--salt-type-line-ui-secondary);
-  text-align: right;
+  line-height: var(--salt-type-line-section);
+  text-align: left;
 }
 
 .extractedValues > div > span {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
   color: var(--salt-color-warning-text);
 }
 
@@ -459,8 +490,10 @@
   display: grid;
   grid-template-columns: var(--salt-icon-sm) minmax(0, 1fr);
   gap: var(--salt-space-3);
+  margin-top: var(--salt-space-3);
   padding: var(--salt-space-3) var(--salt-space-4);
-  border-top: var(--salt-border-subtle);
+  border: var(--salt-border-subtle);
+  border-radius: var(--salt-radius-md);
   background: var(--salt-color-warning-surface);
   color: var(--salt-color-warning-text);
 }
@@ -528,15 +561,15 @@
 
 .relatedSource strong {
   color: var(--salt-color-text-strong);
-  font-size: var(--salt-type-size-sm);
+  font-size: var(--salt-type-size-ui);
   font-weight: var(--salt-type-weight-regular);
-  line-height: var(--salt-type-line-ui-secondary);
+  line-height: var(--salt-type-line-ui);
 }
 
 .relatedSource small {
   color: var(--salt-color-text-subtle);
-  font-size: var(--salt-type-size-xs);
-  line-height: var(--salt-type-line-micro);
+  font-size: var(--salt-type-size-sm);
+  line-height: var(--salt-type-line-ui-secondary);
 }
 
 .supersessionRecord { display: grid; gap: var(--salt-space-4); margin-top: var(--salt-space-6); padding: var(--salt-space-4); border: var(--salt-border-subtle); border-radius: var(--salt-radius-lg); background: var(--salt-color-surface-subtle); }
@@ -551,6 +584,87 @@
 .supersessionRecord dt { color: var(--salt-color-text-subtle); }
 .supersessionRecord dd { color: var(--salt-color-text-strong); }
 .supersessionRecord > p { margin: 0; color: var(--salt-color-text-muted); font-size: var(--salt-type-size-xs); line-height: var(--salt-type-line-ui-secondary); }
+
+.inspectionImpact {
+  display: grid;
+  gap: var(--salt-space-4);
+  margin-top: var(--salt-space-6);
+  padding: var(--salt-space-4);
+  border: var(--salt-border-subtle);
+  border-radius: var(--salt-radius-lg);
+  background: var(--salt-color-surface-selected);
+}
+
+.inspectionImpact > header {
+  display: grid;
+  grid-template-columns: var(--salt-icon-tile-size) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--salt-space-3);
+}
+
+.inspectionImpact > header > span {
+  display: grid;
+  gap: var(--salt-space-0-5);
+}
+
+.inspectionImpact header small,
+.inspectionChangeTrack small {
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.inspectionImpact h2 {
+  margin: 0;
+  color: var(--salt-color-text-strong);
+  font-size: var(--salt-type-size-ui);
+  font-weight: var(--salt-type-weight-regular);
+  line-height: var(--salt-type-line-ui);
+}
+
+.inspectionChangeTrack {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--salt-icon-sm) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--salt-space-3);
+}
+
+.inspectionChangeTrack > span {
+  display: grid;
+  gap: var(--salt-space-1);
+  padding: var(--salt-space-3);
+  border-radius: var(--salt-radius-md);
+  background: var(--salt-color-surface);
+}
+
+.inspectionChangeTrack > svg {
+  color: var(--salt-color-action);
+}
+
+.inspectionChangeTrack strong {
+  color: var(--salt-color-text-strong);
+  font-size: var(--salt-type-size-section);
+  font-weight: var(--salt-type-weight-regular);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--salt-type-line-section);
+}
+
+.inspectionImpact > footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--salt-space-2) var(--salt-space-4);
+  padding-top: var(--salt-space-3);
+  border-top: var(--salt-border-subtle);
+}
+
+.inspectionImpact > footer span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--salt-space-1);
+  color: var(--salt-color-text-muted);
+  font-size: var(--salt-type-size-xs);
+  line-height: var(--salt-type-line-ui-secondary);
+}
 
 .sourceContext {
   margin-top: var(--salt-space-6);
@@ -579,15 +693,15 @@
 
 .sourceContext summary strong {
   color: var(--salt-color-text-strong);
-  font-size: var(--salt-type-size-sm);
+  font-size: var(--salt-type-size-ui);
   font-weight: var(--salt-type-weight-regular);
-  line-height: var(--salt-type-line-ui-secondary);
+  line-height: var(--salt-type-line-ui);
 }
 
 .sourceContext summary small {
   color: var(--salt-color-text-subtle);
-  font-size: var(--salt-type-size-xs);
-  line-height: var(--salt-type-line-micro);
+  font-size: var(--salt-type-size-sm);
+  line-height: var(--salt-type-line-ui-secondary);
 }
 
 .sourceContext summary > svg {
@@ -637,20 +751,29 @@
 }
 
 .reviewActions {
-  position: sticky;
-  bottom: 0;
-  z-index: 2;
+  position: relative;
+  z-index: var(--salt-z-base);
   display: grid;
-  gap: var(--salt-space-2);
+  min-height: var(--salt-focused-workflow-footer-height-comfortable);
+  align-items: center;
   margin-top: auto;
-  padding-top: var(--salt-space-6);
-  padding-bottom: var(--salt-space-2);
+  border-top: var(--salt-border-subtle);
   background: var(--salt-color-surface);
+  box-shadow: var(--salt-focused-workflow-footer-shadow);
 }
 
-.primaryReviewAction,
-.secondaryReviewAction {
-  width: 100%;
+.reviewActionsInner {
+  width: min(100%, var(--salt-focused-workflow-content-width));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--salt-focused-workflow-footer-action-gap);
+  margin-inline: auto;
+  padding-inline: var(--salt-space-8);
+}
+
+.primaryReviewAction {
+  min-width: 164px;
 }
 
 .sourceBrowser {
@@ -870,10 +993,12 @@
 
 .documentPaper {
   box-sizing: border-box;
-  width: min(var(--salt-focused-workflow-paper-width), 100%);
+  width: min(var(--salt-source-workspace-paper-width), 100%);
   min-height: var(--salt-focused-workflow-paper-min-height);
   flex: 0 0 auto;
   padding: var(--salt-focused-workflow-paper-padding);
+  border: var(--salt-border-subtle);
+  border-radius: var(--salt-radius-md);
   background: var(--salt-color-surface);
   box-shadow: var(--salt-focused-workflow-paper-shadow);
   color: var(--salt-color-text);
@@ -1251,6 +1376,7 @@
 
 @media (max-width: 1120px) {
   .reviewDetail,
+  .reviewActionsInner,
   .sourceBrowserHeader,
   .sourceSearchFrame,
   .sourceBrowserScroll {
@@ -1262,7 +1388,7 @@
   }
 
   .documentPaper {
-    width: min(var(--salt-focused-workflow-paper-width), calc(100% - var(--salt-space-4)));
+    width: min(var(--salt-source-workspace-paper-width), calc(100% - var(--salt-space-4)));
     padding: var(--salt-space-8);
   }
 
@@ -1326,6 +1452,14 @@
     overflow: visible;
   }
 
+  .reviewWorkflow {
+    display: block;
+  }
+
+  .reviewDetail {
+    min-height: 0;
+  }
+
   .sourceBrowser {
     min-height: calc(100dvh - var(--salt-shell-banner-height) - var(--salt-focused-workflow-header-height));
   }
@@ -1363,10 +1497,23 @@
   }
 
   .sourceNavigator {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: var(--salt-control-height-lg) minmax(0, 1fr) var(--salt-control-height-lg);
   }
 
-  .sourcePicker em {
+  .extractedValues {
+    grid-template-columns: 1fr;
+  }
+
+  .inspectionSource {
+    grid-template-columns: var(--salt-icon-tile-size) minmax(0, 1fr);
+  }
+
+  .inspectionSource > span:last-child {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .sourcePickerStatus {
     display: none;
   }
 
@@ -1383,7 +1530,11 @@
   }
 
   .reviewActions {
-    padding-bottom: max(var(--salt-space-3), env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .reviewActionsInner {
+    padding-inline: var(--salt-space-4);
   }
 
   .documentStage {
@@ -1433,16 +1584,34 @@
     display: none;
   }
 
-  .navigatorPaging {
-    grid-template-columns: repeat(2, var(--salt-control-height-sm));
+  .sourceNavigator {
+    grid-template-columns: var(--salt-control-height-sm) minmax(0, 1fr) var(--salt-control-height-sm);
+    gap: var(--salt-space-2);
   }
 
-  .navigatorPaging button {
+  .sourceNavButton {
     width: var(--salt-control-height-sm);
+    height: var(--salt-control-height-sm);
   }
 
   .verificationCard > header {
     align-items: flex-start;
+  }
+
+  .reviewActionsInner {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--salt-space-2);
+    padding-block: var(--salt-space-3);
+  }
+
+  .primaryReviewAction,
+  .secondaryReviewAction {
+    width: 100%;
+  }
+
+  .primaryReviewAction {
+    grid-row: 1;
   }
 
   .documentApproval,

@@ -33,7 +33,7 @@ Recommendation handoff is available when every finding is either resolved by the
 - PDF, XLSX, CSV, and DOCX files up to 25 MB are accepted.
 - An accepted prototype upload maps deterministically to the requirement fixture so the downstream experience remains testable.
 - Failed validation stays inside the same requirement and supports recovery or replacement.
-- Sending a borrower request does not simulate receipt. The borrower preview exposes the same real upload control, and received evidence still stops at `Ready for review`.
+- Sending a borrower request does not simulate receipt in the production workflow. The borrower preview exposes the same real upload control, and received evidence still stops at `Ready for review`. For presentations, the dark prototype banner may expose an explicitly labeled `Preview received response` jump; it preserves the actual sent request and advances only the demo state.
 
 ## Visual and versioning decision
 
@@ -46,5 +46,5 @@ The focused reassessment workspace remains the current design. The earlier inlin
 - Existing-source selection, valid and invalid analyst upload, replacement, explicit verification, and changed/unchanged result
 - Accept, revise, and escalate propagation through Overview, Findings, Recommendation, and senior review
 - New evidence reopening an accepted, revised, or escalated finding without deleting its prior judgment
-- Northstar direct and borrower-request branches, including confirmation that request state does not auto-advance
+- Northstar direct and borrower-request branches, including the explicitly labeled prototype receipt bridge and confirmation that the production request state does not auto-advance
 - Desktop and 390px mobile layout checks with no document-level horizontal overflow

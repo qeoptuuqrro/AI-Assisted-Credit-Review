@@ -509,17 +509,30 @@
   .optionButton:hover { transform: none; }
 }
 
-@media (max-width: 520px) {
+/* Keep launcher placement aligned with the app shell's mobile-navigation
+   breakpoint. A narrower breakpoint would reintroduce overlap from 521–720px. */
+@media (max-width: 720px) {
   .root {
-    right: var(--salt-space-4);
-    bottom: var(--salt-design-tools-mobile-bottom);
+    /* The control is visually docked into the reserved right-most mobile
+       navigation slot instead of floating over the reading surface. */
+    right: var(--salt-design-tools-mobile-nav-inset);
+    bottom: var(--salt-design-tools-mobile-nav-inset);
   }
+
+  .launcher,
+  .launcher:hover,
+  .launcher[aria-expanded="true"] {
+    width: var(--salt-design-tools-launcher-size);
+  }
+
+  .launcher:hover { transform: none; }
+  .launcher span { display: none; }
 
   .popover {
     position: fixed;
     top: calc(var(--salt-shell-banner-height) + var(--salt-space-2));
     right: var(--salt-space-4);
-    bottom: calc(var(--salt-design-tools-mobile-bottom) + var(--salt-design-tools-launcher-size) + var(--salt-design-tools-gap));
+    bottom: var(--salt-design-tools-mobile-panel-bottom);
     left: var(--salt-space-4);
     width: auto;
     max-height: none;

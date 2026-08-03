@@ -1,0 +1,134 @@
+.layer {
+  position: fixed;
+  z-index: var(--salt-dialog-z-index);
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--salt-dialog-layer-padding);
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: var(--salt-dialog-backdrop);
+  cursor: default;
+}
+
+.dialog {
+  position: relative;
+  width: min(var(--salt-dialog-width), 100%);
+  max-height: var(--salt-dialog-max-height);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  border: var(--salt-dialog-border);
+  border-radius: var(--salt-dialog-radius);
+  background: var(--salt-dialog-background);
+  box-shadow: var(--salt-dialog-shadow);
+  animation: salt-dialog-enter var(--salt-motion-fast) var(--salt-ease-standard);
+}
+
+.sm { --salt-dialog-width: var(--salt-dialog-width-sm); }
+.md { --salt-dialog-width: var(--salt-dialog-width-md); }
+.lg { --salt-dialog-width: var(--salt-dialog-width-lg); }
+
+.header {
+  min-height: var(--salt-dialog-header-min-height);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--salt-dialog-header-gap);
+  padding: var(--salt-dialog-header-padding);
+  border-bottom: var(--salt-dialog-divider);
+}
+
+.heading {
+  min-width: 0;
+  display: grid;
+  gap: var(--salt-dialog-heading-gap);
+}
+
+.eyebrow {
+  color: var(--salt-dialog-eyebrow-color);
+  font-size: var(--salt-dialog-eyebrow-size);
+  line-height: var(--salt-dialog-eyebrow-line);
+}
+
+.heading h2 {
+  margin: 0;
+  color: var(--salt-dialog-title-color);
+  font-family: var(--salt-dialog-title-family);
+  font-size: var(--salt-dialog-title-size);
+  font-weight: var(--salt-dialog-title-weight);
+  line-height: var(--salt-dialog-title-line);
+}
+
+.close {
+  width: var(--salt-dialog-close-size);
+  height: var(--salt-dialog-close-size);
+  flex: 0 0 var(--salt-dialog-close-size);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--salt-dialog-close-radius);
+  background: transparent;
+  color: var(--salt-dialog-close-color);
+  cursor: pointer;
+}
+
+.close:hover { background: var(--salt-dialog-close-background-hover); }
+
+.close:focus-visible,
+.dialog:focus-visible {
+  outline: var(--salt-focus-ring-width) solid var(--salt-color-focus);
+  outline-offset: var(--salt-focus-ring-offset);
+}
+
+.body {
+  min-height: 0;
+  display: grid;
+  align-content: start;
+  gap: var(--salt-dialog-body-gap);
+  padding: var(--salt-dialog-body-padding);
+  overflow-y: auto;
+}
+
+.footer {
+  min-height: var(--salt-dialog-footer-min-height);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--salt-dialog-footer-gap);
+  padding: var(--salt-dialog-footer-padding);
+  border-top: var(--salt-dialog-divider);
+}
+
+@keyframes salt-dialog-enter {
+  from { opacity: 0; transform: translateY(var(--salt-dialog-enter-offset)); }
+}
+
+@media (max-width: 600px) {
+  .layer {
+    align-items: end;
+    padding: var(--salt-dialog-layer-padding-mobile);
+  }
+
+  .dialog {
+    width: 100%;
+    max-height: var(--salt-dialog-max-height-mobile);
+    border-radius: var(--salt-dialog-radius-mobile) var(--salt-dialog-radius-mobile) 0 0;
+  }
+
+  .header { padding: var(--salt-dialog-header-padding-mobile); }
+  .body { padding: var(--salt-dialog-body-padding-mobile); }
+  .footer { padding: var(--salt-dialog-footer-padding-mobile); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dialog { animation: none; }
+}

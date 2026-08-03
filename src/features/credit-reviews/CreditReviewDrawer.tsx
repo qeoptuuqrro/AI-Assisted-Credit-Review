@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "../../shared/ui/Button/Button";
+import { CaseStatusPill, caseStatusPresentation } from "../../shared/ui/CaseStatusPill/CaseStatusPill";
 import { CompanyLogo } from "../../shared/ui/CompanyLogo/CompanyLogo";
 import { DocumentRow } from "../../shared/ui/DocumentRow/DocumentRow";
 import { DocumentViewer } from "../../shared/ui/DocumentViewer/DocumentViewer";
@@ -17,7 +18,6 @@ import styles from "./CreditReviewDrawer.module.css";
 
 type CreditReviewDrawerProps = {
   review: CreditReview;
-  status: { label: string; tone: StatusPillTone };
   open?: boolean;
   layout?: "overlay" | "responsive";
   presentation?: "legacy" | "outcome";
@@ -49,7 +49,7 @@ const primaryActionByState: Record<CreditReview["aiReviewState"], string> = {
   "needs-verification": "Verify information",
   "analysis-ready": "Review analysis",
   "analysis-updated": "Review changes",
-  "review-complete": "View recommendation",
+  "review-complete": "Open case overview",
 };
 
 type ReviewFocusVariant = "review" | "evidence" | "analysis" | "change" | "result";
@@ -189,7 +189,6 @@ function drawerFindingsForMeridian(state: MeridianReviewState): DrawerFinding[] 
 
 export function CreditReviewDrawer({
   review,
-  status,
   open = true,
   layout = "overlay",
   presentation = "outcome",
@@ -203,6 +202,7 @@ export function CreditReviewDrawer({
   const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
   const titleId = `credit-review-${review.company.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
   const request = splitRequest(review.request);
+  const caseStatus = caseStatusPresentation[review.caseStatus];
   const findings: DrawerFinding[] = review.company === "Meridian Foods"
     ? meridianState ? drawerFindingsForMeridian(meridianState) : meridianFindings
     : review.company === "Northstar Health"
@@ -254,7 +254,7 @@ export function CreditReviewDrawer({
               <span className={styles.eyebrow}>Credit review</span>
               <h2 id={titleId}>{review.company}</h2>
               <p>{review.facilityType}</p>
-              <StatusPill tone={status.tone}>{status.label}</StatusPill>
+              <CaseStatusPill status={review.caseStatus} />
             </>
           ) : (
             <div className={styles.outcomeHeader}>
@@ -266,7 +266,7 @@ export function CreditReviewDrawer({
                   <p>{review.facilityType}</p>
                 </span>
               </div>
-              <StatusPill tone={status.tone}>{status.label}</StatusPill>
+              <CaseStatusPill status={review.caseStatus} />
             </div>
           )}
         </DrawerHeader>
@@ -347,7 +347,7 @@ export function CreditReviewDrawer({
                   const findingTitleId = `${titleId}-${finding.id}-title`;
                   const findingDescriptionId = `${titleId}-${finding.id}-description`;
                   const findingStatusId = `${titleId}-${finding.id}-status`;
-                  const showFindingStatus = !isRedundantRowStatus(finding.status, review.aiReviewState, status.label);
+                  const showFindingStatus = !isRedundantRowStatus(finding.status, review.aiReviewState, caseStatus.label);
                   const findingIcon = review.company === "Northstar Health"
                     ? review.aiReviewState === "needs-verification" ? "document" : "calculator"
                     : getCreditFindingIcon(finding);
