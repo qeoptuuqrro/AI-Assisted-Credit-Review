@@ -2013,7 +2013,8 @@
 
 .recommendationTaskScroll {
   min-height: 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding-inline: 0;
 }
 
@@ -2163,11 +2164,12 @@
   grid-column: 2;
   min-width: 0;
   width: 100%;
-  height: calc(100dvh - var(--salt-recommendation-editor-taskbar-height));
-  min-height: 0;
+  height: auto;
+  min-height: calc(100dvh - var(--salt-recommendation-editor-taskbar-height));
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  align-content: start;
 }
 
 .editorialRecommendationStage {
@@ -2175,7 +2177,7 @@
   box-sizing: border-box;
   min-width: 0;
   min-height: 0;
-  overflow-y: auto;
+  overflow: visible;
   overscroll-behavior: contain;
   padding-right: var(--salt-space-3);
   scrollbar-gutter: stable;
@@ -2544,9 +2546,8 @@
 }
 
 .editorialRecommendationFooter {
-  position: sticky;
+  position: relative;
   z-index: var(--salt-z-base);
-  bottom: 0;
   width: 100%;
   box-sizing: border-box;
   min-height: var(--salt-recommendation-editor-footer-height);
@@ -2613,7 +2614,8 @@
   }
 
   .editorialRecommendationEditor {
-    height: calc(100dvh - var(--salt-recommendation-editor-taskbar-height) - var(--salt-control-height-lg) - var(--salt-space-8));
+    height: auto;
+    min-height: calc(100dvh - var(--salt-recommendation-editor-taskbar-height) - var(--salt-control-height-lg) - var(--salt-space-8));
   }
 
   .editorialRecommendationSection {
