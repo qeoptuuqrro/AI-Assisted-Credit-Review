@@ -2,6 +2,7 @@ import { StatusPill, type StatusPillTone } from "../StatusPill/StatusPill";
 
 export type CaseStatus =
   | "needs-verification"
+  | "needs-judgment"
   | "analyst-review"
   | "ready-to-recommend"
   | "awaiting-decision"
@@ -11,6 +12,7 @@ export type CaseStatus =
 
 export const caseStatusPresentation: Record<CaseStatus, { label: string; tone: StatusPillTone }> = {
   "needs-verification": { label: "Needs verification", tone: "danger" },
+  "needs-judgment": { label: "Needs judgment", tone: "warning" },
   "analyst-review": { label: "Analyst review", tone: "neutral" },
   "ready-to-recommend": { label: "Ready to recommend", tone: "info" },
   "awaiting-decision": { label: "Awaiting decision", tone: "info" },

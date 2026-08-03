@@ -171,9 +171,13 @@
   gap: var(--salt-company-logo-gap);
 }
 
-.companyIdentity > div {
+.companyCopy {
   min-width: 0;
   flex: 1;
+}
+
+.mobileReviewMeta {
+  display: none;
 }
 
 .myReviewRow:hover {
@@ -443,12 +447,12 @@
   padding-right: var(--salt-space-4);
 }
 
-.reviewTable tbody tr {
+.reviewTable tbody tr.interactiveReviewRow {
   cursor: pointer;
   transition: background-color var(--salt-motion-fast) var(--salt-ease-standard);
 }
 
-.reviewTable tbody tr:hover {
+.reviewTable tbody tr.interactiveReviewRow:hover {
   background: var(--salt-ledger-row-hover);
 }
 
@@ -474,12 +478,14 @@
 }
 
 .ownerCell {
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: var(--salt-space-2);
+  white-space: nowrap;
 }
 
-.ownerCell > span {
+.ownerCell > span:first-child {
   width: var(--salt-control-height-sm);
   height: var(--salt-control-height-sm);
   display: grid;
@@ -491,8 +497,108 @@
   font-size: var(--salt-type-size-xs);
 }
 
+.ownerName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .dueUrgent {
   color: var(--salt-color-warning-text) !important;
+}
+
+.loadingRow {
+  pointer-events: none;
+}
+
+.loadingLine,
+.loadingLogo,
+.loadingAvatar {
+  display: block;
+  background: var(--salt-color-surface-selected);
+  animation: review-loading-pulse var(--salt-motion-processing-spin) var(--salt-ease-standard) infinite alternate;
+}
+
+.loadingLine {
+  width: 72%;
+  height: var(--salt-space-3);
+  border-radius: var(--salt-radius-xs);
+}
+
+.loadingCompany,
+.loadingOwner {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--salt-space-3);
+}
+
+.loadingLogo {
+  width: var(--salt-company-logo-size-sm);
+  height: var(--salt-company-logo-size-sm);
+  flex: 0 0 auto;
+  border-radius: var(--salt-company-logo-radius);
+}
+
+.loadingAvatar {
+  width: var(--salt-control-height-sm);
+  height: var(--salt-control-height-sm);
+  flex: 0 0 auto;
+  border-radius: var(--salt-radius-full);
+}
+
+.loadingPill {
+  width: 56%;
+  height: var(--salt-status-pill-height);
+  border-radius: var(--salt-status-pill-radius);
+}
+
+.loadingDue {
+  width: 60%;
+  margin-left: auto;
+}
+
+.loadMoreRegion {
+  min-height: var(--salt-control-height-lg);
+  display: grid;
+  place-items: center;
+  padding-top: var(--salt-space-3);
+}
+
+.loadingStatus {
+  min-height: var(--salt-control-height-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--salt-space-2);
+  color: var(--salt-color-text-muted);
+  font-size: var(--salt-type-size-ui-secondary);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+.loadingStatus > span:first-child {
+  width: var(--salt-icon-sm);
+  height: var(--salt-icon-sm);
+  box-sizing: border-box;
+  border: var(--salt-space-0-5) solid var(--salt-color-border);
+  border-top-color: var(--salt-color-action);
+  border-radius: var(--salt-radius-full);
+  animation: review-loading-spin var(--salt-motion-processing-spin) linear infinite;
+}
+
+.endState {
+  color: var(--salt-color-text-subtle);
+  font-size: var(--salt-type-size-ui-secondary);
+  line-height: var(--salt-type-line-ui-secondary);
+}
+
+@keyframes review-loading-pulse {
+  from { opacity: var(--salt-opacity-disabled); }
+  to { opacity: 1; }
+}
+
+@keyframes review-loading-spin {
+  to { transform: rotate(360deg); }
 }
 
 .emptyState {
@@ -662,4 +768,24 @@
   .reviewTable td:first-child { width: 70%; }
 
   .reviewTable th:nth-child(5) { width: 30%; }
+
+  .mobileReviewMeta {
+    min-width: 0;
+    display: block;
+    overflow: hidden;
+    color: var(--salt-color-text-subtle);
+    font-size: var(--salt-type-size-xs);
+    line-height: var(--salt-type-line-ui-secondary);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loadingLine,
+  .loadingLogo,
+  .loadingAvatar,
+  .loadingStatus > span:first-child {
+    animation: none;
+  }
 }

@@ -110,8 +110,6 @@
 
 .option[aria-selected="true"] {
   font-weight: var(--salt-type-weight-medium);
-  text-decoration: underline;
-  text-underline-offset: var(--salt-space-1);
 }
 
 @keyframes select-menu-enter {

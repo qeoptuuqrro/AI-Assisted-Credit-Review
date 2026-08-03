@@ -28,26 +28,35 @@ import { createInitialMeridianState, createInitialNorthstarState } from "./workf
 import { MERIDIAN_STORAGE_KEY, NORTHSTAR_STORAGE_KEY, readPersistedReviewState, useReviewWorkflowRevision } from "./workflow/usePersistentReviewState";
 import { getLearningTargetProps, LearningModeSurface, useLearningMode } from "./learning/MeridianLearningMode";
 import { readPersistedStandardReviewState, standardReviewStorageKey } from "./standard/standardReviewState";
+import {
+  ALL_REVIEWS_BATCH_SIZE,
+  buildAllReviewQueue,
+  INITIAL_ALL_REVIEWS_COUNT,
+  queueReviewOwners,
+  type QueueReviewItem,
+} from "./queueReviewData";
+import { useIncrementalReviewRows } from "./useIncrementalReviewRows";
 
 type FilterSection = "owner" | "due" | "facility";
-type QueueFocus = "analyst-review" | "needs-verification" | "awaiting-decision";
+type QueueFocus = "analyst-review" | "needs-judgment" | "needs-verification" | "awaiting-decision";
 
 const queueFocusLabels: Record<QueueFocus, string> = {
   "analyst-review": "Analyst review",
+  "needs-judgment": "Needs judgment",
   "needs-verification": "Needs verification",
   "awaiting-decision": "Awaiting decision",
 };
 
-function matchesQueueFocus(review: CreditReview, focus: QueueFocus | null) {
+function matchesQueueFocus(review: Pick<QueueReviewItem, "caseStatus">, focus: QueueFocus | null) {
   if (focus) return review.caseStatus === focus;
   return true;
 }
 
-const statusFilters: Array<{ id: ReviewStatus; label: string; count: number }> = [
-  { id: "needs-attention", label: "Needs attention", count: 21 },
-  { id: "in-review", label: "In review", count: 29 },
-  { id: "ready-for-decision", label: "Ready for decision", count: 11 },
-  { id: "completed", label: "Completed", count: 7 },
+const statusFilters: Array<{ id: ReviewStatus; label: string }> = [
+  { id: "needs-attention", label: "Needs attention" },
+  { id: "in-review", label: "In review" },
+  { id: "ready-for-decision", label: "Ready for decision" },
+  { id: "completed", label: "Completed" },
 ];
 
 const myReviewGroups: Array<{ id: Exclude<ReviewStatus, "completed">; label: string; count: number }> = [
@@ -93,6 +102,14 @@ function CreditReviewsPageContent() {
     };
   }, [workflowRevision]);
   const liveReviews = workflowProjection.reviews;
+  const allReviewQueue = useMemo(() => buildAllReviewQueue(liveReviews), [liveReviews]);
+  const reviewStatusCounts = useMemo(() => allReviewQueue.reduce<Record<ReviewStatus, number>>((counts, review) => {
+    counts[review.status] += 1;
+    return counts;
+  }, { "needs-attention": 0, "in-review": 0, "ready-for-decision": 0, completed: 0 }), [allReviewQueue]);
+  const allReviewOwnerOptions = useMemo(() => queueReviewOwners
+    .filter((reviewOwner) => allReviewQueue.some((review) => review.owner === reviewOwner))
+    .map((reviewOwner) => ({ value: reviewOwner, label: reviewOwner })), [allReviewQueue]);
 
   useEffect(() => {
     if (!filtersOpen) return;
@@ -118,13 +135,13 @@ function CreditReviewsPageContent() {
     setSelectedReview(null);
   }, [legacyDrawerContent, responsiveDrawer]);
 
-  const filteredReviews = useMemo(() => liveReviews.filter((review) => {
+  const filteredReviews = useMemo(() => allReviewQueue.filter((review) => {
     return (!status || review.status === status)
       && matchesQueueFocus(review, queueFocus)
       && (owner === "all" || review.owner === owner)
       && (due === "all" || review.dueGroup === due)
       && (facilityType === "all" || review.facilityType === facilityType);
-  }), [due, facilityType, liveReviews, owner, queueFocus, status]);
+  }), [allReviewQueue, due, facilityType, owner, queueFocus, status]);
 
   const filteredMyReviews = useMemo(() => liveReviews.filter((review) => {
     const searchable = `${review.company} ${review.request} ${caseStatusPresentation[review.caseStatus].label}`.toLowerCase();
@@ -142,6 +159,24 @@ function CreditReviewsPageContent() {
     facilityType !== "all" ? facilityType : null,
   ].filter(Boolean).join(" · ");
   const myActiveFilterCount = [due, facilityType].filter((value) => value !== "all").length;
+  const incrementalResetKey = [scope, status ?? "all", owner, due, facilityType, queueFocus ?? "all"].join("|");
+  const {
+    visibleCount: visibleAllReviewCount,
+    hasMore: hasMoreAllReviews,
+    hasLoadedMore: hasLoadedMoreAllReviews,
+    isLoadingMore: isLoadingMoreReviews,
+    lastLoadedCount,
+    sentinelRef: loadMoreSentinelRef,
+    loadMore: loadMoreReviews,
+  } = useIncrementalReviewRows({
+    enabled: scope === "all",
+    total: filteredReviews.length,
+    initialCount: INITIAL_ALL_REVIEWS_COUNT,
+    batchSize: ALL_REVIEWS_BATCH_SIZE,
+    resetKey: incrementalResetKey,
+  });
+  const visibleAllReviews = filteredReviews.slice(0, visibleAllReviewCount);
+  const nextReviewBatchCount = Math.min(ALL_REVIEWS_BATCH_SIZE, filteredReviews.length - visibleAllReviewCount);
   const selectScope = (nextScope: ReviewScope) => {
     setScope(nextScope);
     setFiltersOpen(false);
@@ -212,7 +247,7 @@ function CreditReviewsPageContent() {
 
       <div className={styles.scopeTabs} role="tablist" aria-label="Review scope">
         <button type="button" role="tab" id="my-reviews-tab" aria-controls="my-reviews-panel" aria-selected={scope === "mine"} className={scope === "mine" ? styles.scopeActive : ""} onClick={() => selectScope("mine")}>My reviews <span>12</span></button>
-        <button type="button" role="tab" id="all-reviews-tab" aria-controls="all-reviews-panel" aria-selected={scope === "all"} className={scope === "all" ? styles.scopeActive : ""} onClick={() => selectScope("all")}>All reviews <span>68</span></button>
+        <button type="button" role="tab" id="all-reviews-tab" aria-controls="all-reviews-panel" aria-selected={scope === "all"} className={scope === "all" ? styles.scopeActive : ""} onClick={() => selectScope("all")}>All reviews <span>{allReviewQueue.length}</span></button>
       </div>
 
       <div className={`${styles.reviewLayout} ${responsiveDrawer && selectedReview ? styles.reviewLayoutOpen : ""}`}>
@@ -262,10 +297,10 @@ function CreditReviewsPageContent() {
                         onClick={() => openReview(review)}
                         onKeyDown={(event) => activateReviewWithKeyboard(event, review)}
                       >
-                        <ReviewCompanyIdentity review={review} />
+                        <ReviewCompanyIdentity company={review.company} logoDomain={companyLogoDomains[review.company]} />
                         <DataCell className={styles.requestCell} primary={review.request} />
                         <DataCell className={styles.statusCell}><CaseStatusPill status={review.caseStatus} /></DataCell>
-                        <DataCell className={styles.ownerReviewCell}><span className={styles.ownerCell}><span aria-hidden="true">{review.owner.split(" ").map((part) => part[0]).join("")}</span>{review.owner}</span></DataCell>
+                        <DataCell className={styles.ownerReviewCell}><span className={styles.ownerCell}><span aria-hidden="true">{review.owner.split(" ").map((part) => part[0]).join("")}</span><span className={styles.ownerName}>{review.owner}</span></span></DataCell>
                         <DataCell align="end" className={styles.dueCell}><span className={`${styles.dueContent} ${review.dueGroup === "urgent" ? styles.dueUrgent : ""}`}>{review.due}<Icon name="chevronRight" size="sm" /></span></DataCell>
                       </div>
                     </div>
@@ -279,9 +314,9 @@ function CreditReviewsPageContent() {
           <div className={styles.allReviewsPanel} role="tabpanel" id="all-reviews-panel" aria-labelledby="all-reviews-tab" {...getLearningTargetProps(enabled, "queue-filters")}>
           <div className={styles.statusBar} aria-label="Review status filters">
             {queueFocus && <FilterChip pressed onClick={() => navigate("/credit-reviews", { replace: true })}>{queueFocusLabels[queueFocus]} ×</FilterChip>}
-            <FilterChip count={68} pressed={status === null} onClick={() => setStatus(null)}>All</FilterChip>
+            <FilterChip count={allReviewQueue.length} pressed={status === null} onClick={() => setStatus(null)}>All</FilterChip>
             {statusFilters.map((filter) => (
-              <FilterChip key={filter.id} count={filter.count} pressed={status === filter.id} onClick={() => setStatus((current) => current === filter.id ? null : filter.id)}>{filter.label}</FilterChip>
+              <FilterChip key={filter.id} count={reviewStatusCounts[filter.id]} pressed={status === filter.id} onClick={() => setStatus((current) => current === filter.id ? null : filter.id)}>{filter.label}</FilterChip>
             ))}
           </div>
 
@@ -303,7 +338,7 @@ function CreditReviewsPageContent() {
                   <FilterSectionButton id="facility" label="Facility type" icon="building" active={filterSection === "facility"} onClick={setFilterSection} />
                 </div>
                 <div className={styles.filterPanel} role="tabpanel" aria-label={filterSection === "owner" ? "Owner" : filterSection === "due" ? "Due date" : "Facility type"}>
-                  {filterSection === "owner" && <FilterOptions title="Show reviews owned by" value={owner} onChange={setOwner} options={[{ value: "all", label: "All owners" }, { value: "Alex Kim", label: "Alex Kim" }, { value: "Jordan Lee", label: "Jordan Lee" }]} />}
+                  {filterSection === "owner" && <FilterOptions title="Show reviews owned by" value={owner} onChange={setOwner} options={[{ value: "all", label: "All owners" }, ...allReviewOwnerOptions]} />}
                   {filterSection === "due" && <FilterOptions title="Show reviews due" value={due} onChange={setDue} options={[{ value: "all", label: "Any time" }, { value: "urgent", label: "Today or tomorrow" }, { value: "this-week", label: "This week" }]} />}
                   {filterSection === "facility" && <FilterOptions title="Show facility type" value={facilityType} onChange={setFacilityType} options={[{ value: "all", label: "All facility types" }, { value: "Revolving line", label: "Revolving line" }, { value: "Term loan", label: "Term loan" }]} />}
                   <button type="button" className={styles.clearFilters} disabled={activeFilterCount === 0} onClick={() => { setOwner("all"); setDue("all"); setFacilityType("all"); }}>Clear all filters</button>
@@ -312,30 +347,49 @@ function CreditReviewsPageContent() {
             )}
           </div>
 
-          <div className={styles.tableScroller}>
+          <div className={styles.tableScroller} aria-busy={isLoadingMoreReviews}>
             <table className={styles.reviewTable}>
               <thead><tr><th>Company</th><th>Request</th><th>Review status</th><th>Owner</th><th>Due</th></tr></thead>
               <tbody>
-                {filteredReviews.map((review) => (
+                {visibleAllReviews.map((review) => (
                   <tr
-                    key={review.company}
-                    className={selectedReview?.company === review.company ? styles.reviewRowSelected : ""}
-                    tabIndex={0}
-                    aria-label={`Open ${review.company} credit review preview`}
-                    aria-selected={selectedReview?.company === review.company}
-                    onClick={() => openReview(review)}
-                    onKeyDown={(event) => activateReviewWithKeyboard(event, review)}
+                    key={review.id}
+                    className={`${review.kind === "case" ? styles.interactiveReviewRow : ""} ${review.kind === "case" && selectedReview?.slug === review.review.slug ? styles.reviewRowSelected : ""}`}
+                    tabIndex={review.kind === "case" ? 0 : undefined}
+                    aria-label={review.kind === "case" ? `Open ${review.company} credit review preview` : undefined}
+                    aria-selected={review.kind === "case" ? selectedReview?.slug === review.review.slug : undefined}
+                    onClick={review.kind === "case" ? () => openReview(review.review) : undefined}
+                    onKeyDown={review.kind === "case" ? (event) => activateReviewWithKeyboard(event, review.review) : undefined}
                   >
-                    <td><ReviewCompanyIdentity review={review} /></td>
+                    <td><ReviewCompanyIdentity company={review.company} logoDomain={review.logoDomain} mobileMeta={`${caseStatusPresentation[review.caseStatus].label} · ${review.owner}`} /></td>
                     <td><DataCell primary={review.request} /></td>
                     <td><DataCell><CaseStatusPill status={review.caseStatus} /></DataCell></td>
-                    <td><DataCell><span className={styles.ownerCell}><span aria-hidden="true">{review.owner.split(" ").map((part) => part[0]).join("")}</span>{review.owner}</span></DataCell></td>
+                    <td><DataCell><span className={styles.ownerCell}><span aria-hidden="true">{review.owner.split(" ").map((part) => part[0]).join("")}</span><span className={styles.ownerName}>{review.owner}</span></span></DataCell></td>
                     <td><DataCell align="end"><span className={review.dueGroup === "urgent" ? styles.dueUrgent : ""}>{review.due}</span></DataCell></td>
                   </tr>
                 ))}
+                {isLoadingMoreReviews && <LoadingReviewRows />}
               </tbody>
             </table>
             {filteredReviews.length === 0 && <div className={styles.emptyState}><span><Icon name="filter" /></span><strong>No reviews match these filters</strong><p>Adjust the status or filters to return to the review queue.</p></div>}
+            {filteredReviews.length > 0 && (hasMoreAllReviews || hasLoadedMoreAllReviews) && (
+              <div ref={loadMoreSentinelRef} className={styles.loadMoreRegion}>
+                {isLoadingMoreReviews ? (
+                  <div className={styles.loadingStatus} aria-hidden="true"><span /><span>Loading {nextReviewBatchCount} more reviews</span></div>
+                ) : hasMoreAllReviews ? (
+                  <Button size="sm" variant="quiet" onClick={loadMoreReviews}>Load {nextReviewBatchCount} more</Button>
+                ) : (
+                  <span className={styles.endState}>All {filteredReviews.length} reviews shown</span>
+                )}
+                <span className={styles.visuallyHidden} role="status" aria-live="polite" aria-atomic="true">
+                  {isLoadingMoreReviews
+                    ? `Loading ${nextReviewBatchCount} more reviews`
+                    : hasMoreAllReviews
+                      ? lastLoadedCount > 0 ? `${lastLoadedCount} more reviews loaded. Showing ${visibleAllReviewCount} of ${filteredReviews.length}` : `Showing ${visibleAllReviewCount} of ${filteredReviews.length} reviews`
+                      : `All ${filteredReviews.length} reviews loaded`}
+                </span>
+              </div>
+            )}
           </div>
             </div>
           )}
@@ -371,13 +425,28 @@ function CreditReviewsPageContent() {
   );
 }
 
-function ReviewCompanyIdentity({ review }: { review: Pick<CreditReview, "company"> }) {
+function ReviewCompanyIdentity({ company, logoDomain, mobileMeta }: { company: string; logoDomain?: string; mobileMeta?: string }) {
   return (
     <div className={styles.companyIdentity}>
-      <CompanyLogo domain={companyLogoDomains[review.company]} name={review.company} />
-      <DataCell primary={review.company} />
+      <CompanyLogo domain={logoDomain} name={company} size="sm" />
+      <div className={styles.companyCopy}>
+        <DataCell primary={company} />
+        {mobileMeta && <span className={styles.mobileReviewMeta}>{mobileMeta}</span>}
+      </div>
     </div>
   );
+}
+
+function LoadingReviewRows() {
+  return Array.from({ length: 3 }, (_, index) => (
+    <tr className={styles.loadingRow} aria-hidden="true" key={`loading-row-${index}`}>
+      <td><span className={styles.loadingCompany}><span className={styles.loadingLogo} /><span className={styles.loadingLine} /></span></td>
+      <td><span className={styles.loadingLine} /></td>
+      <td><span className={`${styles.loadingLine} ${styles.loadingPill}`} /></td>
+      <td><span className={styles.loadingOwner}><span className={styles.loadingAvatar} /><span className={styles.loadingLine} /></span></td>
+      <td><span className={`${styles.loadingLine} ${styles.loadingDue}`} /></td>
+    </tr>
+  ));
 }
 
 function FilterSectionButton({ id, label, icon, active, onClick }: { id: FilterSection; label: string; icon: "user" | "calendar" | "building"; active: boolean; onClick: (id: FilterSection) => void }) {

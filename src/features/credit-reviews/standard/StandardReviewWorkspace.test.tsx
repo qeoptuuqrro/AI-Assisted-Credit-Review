@@ -59,6 +59,20 @@ afterEach(() => {
 });
 
 describe("standard review Overview", () => {
+  it("projects a completed judgment finding into the case header and posture", () => {
+    window.sessionStorage.setItem(standardReviewStorageKey("brightline-energy"), JSON.stringify({
+      version: 1,
+      reviewedFindingIds: ["merchant-exposure"],
+      recommendationSubmitted: false,
+    } satisfies StandardReviewWorkflowState));
+
+    renderWorkspace("/credit-reviews/brightline-energy");
+
+    expect(screen.getAllByText("Ready to recommend")).toHaveLength(2);
+    expect(screen.queryByText("Needs judgment")).toBeNull();
+    expect(screen.getByRole("button", { name: "Prepare recommendation" })).toBeTruthy();
+  });
+
   it("turns Apex metrics into policy headroom and opens the focused decision", () => {
     renderWorkspace();
 

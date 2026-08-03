@@ -5,9 +5,9 @@
 
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(0, 0.75fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.56fr);
   gap: var(--space-12);
-  padding: var(--space-10) 0 var(--space-12);
+  padding: var(--space-8) 0 var(--space-12);
   border-bottom: var(--border-width) solid var(--color-border-subtle);
 }
 
@@ -15,7 +15,24 @@
   display: grid;
   align-content: start;
   justify-items: start;
-  gap: var(--space-4);
+  gap: var(--space-3);
+}
+
+.eyebrow,
+.heroAsideLabel,
+.sectionHeader > span,
+.storyDetailIntro > span,
+.storyExample > span,
+.storyEvidence span,
+.skillDetailRole,
+.skillDetailGrid > div > span,
+.closingStatement > span {
+  color: var(--color-text-subtle);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-ui);
+  letter-spacing: var(--tracking-label);
+  line-height: var(--line-height-ui-secondary);
+  text-transform: uppercase;
 }
 
 .eyebrow {
@@ -23,10 +40,6 @@
   align-items: center;
   gap: var(--space-2);
   color: var(--color-accent);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
 }
 
 .hero h2 {
@@ -39,11 +52,19 @@
   line-height: var(--line-height-heading);
 }
 
-.heroCopy > p {
+.heroStatement {
+  max-width: var(--content-measure-wide);
+  margin: 0;
+  color: var(--color-text-strong);
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-ui);
+}
+
+.heroBody {
   max-width: var(--content-measure-medium);
   margin: 0;
   color: var(--color-text-muted);
-  font-size: var(--font-size-ui);
+  font-size: var(--font-size-ui-secondary);
   line-height: var(--line-height-ui);
 }
 
@@ -51,6 +72,7 @@
   display: flex;
   align-items: flex-start;
   gap: var(--space-3);
+  max-width: var(--content-measure-medium);
   margin-top: var(--space-2);
   padding-top: var(--space-4);
   border-top: var(--border-width) solid var(--color-border-subtle);
@@ -69,45 +91,43 @@
   font-weight: var(--font-weight-medium);
 }
 
-.metrics {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.heroAside {
   align-self: stretch;
-  margin: 0;
-  border-top: var(--border-width) solid var(--color-border-subtle);
+  display: grid;
+  align-content: center;
+  padding: var(--space-4) 0 var(--space-4) var(--space-8);
   border-left: var(--border-width) solid var(--color-border-subtle);
 }
 
-.metrics > div {
-  min-width: 0;
-  min-height: var(--space-20);
-  display: flex;
-  flex-direction: column-reverse;
-  justify-content: space-between;
+.heroAsideLabel {
+  margin-bottom: var(--space-2);
+}
+
+.heroAsideRow {
+  display: grid;
+  grid-template-columns: var(--space-8) minmax(0, 1fr);
+  align-items: center;
   gap: var(--space-3);
-  padding: var(--space-5);
-  border-right: var(--border-width) solid var(--color-border-subtle);
-  border-bottom: var(--border-width) solid var(--color-border-subtle);
+  min-height: var(--space-10);
+  border-top: var(--border-width) solid var(--color-border-subtle);
 }
 
-.metrics dt {
+.heroAsideRow > span,
+.storyPhaseTopline > span,
+.skillNumber {
   color: var(--color-text-subtle);
+  font-family: var(--salt-type-family-mono);
   font-size: var(--font-size-xs);
-  line-height: var(--line-height-ui-secondary);
 }
 
-.metrics dd {
-  margin: 0;
+.heroAsideRow strong {
   color: var(--color-text-strong);
-  font-family: var(--font-display);
-  font-size: var(--font-size-xl);
-  line-height: var(--line-height-none);
+  font-size: var(--font-size-ui-secondary);
+  font-weight: var(--font-weight-medium);
 }
 
-.systemSection,
-.playbookSection,
-.feedbackSection,
-.efficiencySection {
+.storySection,
+.skillsSection {
   display: grid;
   gap: var(--space-8);
 }
@@ -116,20 +136,6 @@
   display: grid;
   grid-template-columns: var(--design-system-intro-label-width) minmax(0, 1fr);
   gap: var(--space-6);
-}
-
-.sectionHeader > span,
-.detailLead small,
-.detailColumn > span,
-.detailOutcome span,
-.playbookName small,
-.contextBefore > span,
-.contextAfter > span {
-  color: var(--color-text-subtle);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-ui);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
 }
 
 .sectionHeader h3 {
@@ -148,159 +154,166 @@
   line-height: var(--line-height-ui-secondary);
 }
 
-.layerMap {
-  position: relative;
+.storyRail {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--space-3);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: var(--border-width) solid var(--color-border-subtle);
+  border-bottom: var(--border-width) solid var(--color-border-subtle);
 }
 
-.layerMap button {
+.storyRail button {
+  position: relative;
   min-width: 0;
-  min-height: var(--space-20);
   display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-4);
-  border: var(--border-width) solid var(--color-border-subtle);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
+  align-content: start;
+  gap: var(--space-2);
+  min-height: var(--space-20);
+  padding: var(--space-5) var(--space-4);
+  border: 0;
+  border-right: var(--border-width) solid var(--color-border-subtle);
+  background: transparent;
   color: var(--color-text-muted);
   font: inherit;
   text-align: left;
   cursor: pointer;
-  transition: border-color var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard), transform var(--motion-fast) var(--ease-standard);
+  transition: background-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard);
 }
 
-.layerMap button:hover {
-  border-color: var(--color-border);
+.storyRail button:last-child {
+  border-right: 0;
+}
+
+.storyRail button::after {
+  position: absolute;
+  inset: auto 0 calc(var(--border-width) * -1);
+  height: var(--focus-ring-width);
+  background: transparent;
+  content: "";
+}
+
+.storyRail button:hover {
   background: var(--color-surface-subtle);
-  transform: translateY(calc(var(--space-0-5) * -1));
-}
-
-.layerMap button:focus-visible {
-  outline: var(--focus-ring-width) solid var(--color-focus);
-  outline-offset: var(--focus-ring-offset);
-}
-
-.layerMap .layerActive {
-  border-color: var(--color-accent);
-  background: var(--color-filter-selected);
-  color: var(--color-accent);
-}
-
-.layerIndex {
-  align-self: start;
-  color: var(--color-text-subtle);
-  font-family: var(--salt-type-family-mono);
-  font-size: var(--font-size-xs);
-}
-
-.layerIcon,
-.playbookIcon,
-.feedbackTopline > span,
-.closingStatement > span {
-  display: grid;
-  flex: 0 0 auto;
-  place-items: center;
-  border-radius: var(--radius-md);
-  background: var(--color-surface-selected);
   color: var(--color-text);
 }
 
-.layerIcon {
-  width: var(--size-control-lg);
-  height: var(--size-control-lg);
+.storyRail button:focus-visible,
+.skillList button:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: var(--focus-ring-offset);
+  z-index: var(--salt-z-base);
 }
 
-.layerActive .layerIcon {
-  background: var(--color-surface);
+.storyRail .storyPhaseActive {
+  background: var(--color-filter-selected);
+  color: var(--color-text-strong);
+}
+
+.storyRail .storyPhaseActive::after {
+  background: var(--color-accent);
+}
+
+.storyPhaseTopline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.storyPhaseTopline svg {
   color: var(--color-accent);
 }
 
-.layerCopy {
-  min-width: 0;
-  display: grid;
-  gap: var(--space-1);
-}
-
-.layerCopy strong {
-  overflow: hidden;
-  color: var(--color-text-strong);
-  font-size: var(--font-size-ui-secondary);
+.storyRail button strong {
+  color: inherit;
+  font-size: var(--font-size-md);
   font-weight: var(--font-weight-medium);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: var(--line-height-ui);
 }
 
-.layerCopy small {
-  overflow: hidden;
+.storyRail button small {
   color: var(--color-text-subtle);
-  font-size: var(--font-size-xs);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-ui-secondary);
 }
 
-.layerDetail {
+.storyDetail {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) repeat(2, minmax(0, 0.8fr));
-  border-top: var(--border-width) solid var(--color-border-subtle);
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.25fr);
   border-bottom: var(--border-width) solid var(--color-border-subtle);
-  animation: layer-enter var(--motion-fast) var(--ease-standard);
+  animation: detail-enter var(--motion-fast) var(--ease-standard);
 }
 
-.detailLead,
-.detailColumn {
+.storyDetailIntro,
+.storyExample {
   min-width: 0;
-  padding: var(--space-6);
+  padding: var(--space-6) var(--space-6) var(--space-6) 0;
+}
+
+.storyDetailIntro {
   border-right: var(--border-width) solid var(--color-border-subtle);
 }
 
-.detailLead {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-content: start;
-  gap: var(--space-4);
+.storyDetailIntro h4 {
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-strong);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-ui);
 }
 
-.detailLead > span {
-  color: var(--color-accent);
-  font-family: var(--salt-type-family-mono);
-  font-size: var(--font-size-sm);
+.storyExample {
+  padding-left: var(--space-6);
 }
 
-.detailLead h4 {
-  margin: var(--space-1) 0 0;
+.storyExample strong {
+  display: block;
+  margin-top: var(--space-2);
   color: var(--color-text-strong);
   font-size: var(--font-size-md);
   font-weight: var(--font-weight-medium);
   line-height: var(--line-height-ui);
 }
 
-.detailLead p,
-.detailOutcome p {
+.storyExample p,
+.storyEvidence p {
   margin: var(--space-2) 0 0;
   color: var(--color-text-muted);
   font-size: var(--font-size-ui-secondary);
   line-height: var(--line-height-ui-secondary);
 }
 
-.detailColumn {
+.storyEvidence {
+  grid-column: 1 / -1;
   display: grid;
-  align-content: start;
-  gap: var(--space-4);
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.25fr);
+  border-top: var(--border-width) solid var(--color-border-subtle);
+  background: var(--color-surface-subtle);
 }
 
-.detailColumn ul {
+.storyEvidence > div {
+  min-width: 0;
+  padding: var(--space-5) var(--space-6);
+}
+
+.storyEvidence > div:first-child {
+  padding-left: 0;
+}
+
+.storyEvidence > div + div {
+  border-left: var(--border-width) solid var(--color-border-subtle);
+}
+
+.storyEvidence ul,
+.skillOutcome ul {
   display: grid;
-  gap: var(--space-3);
-  margin: 0;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0;
   padding: 0;
   list-style: none;
 }
 
-.detailColumn li {
+.storyEvidence li,
+.skillOutcome li {
   display: flex;
   align-items: flex-start;
   gap: var(--space-2);
@@ -309,270 +322,196 @@
   line-height: var(--line-height-ui-secondary);
 }
 
-.detailColumn li svg {
+.storyEvidence li svg,
+.skillOutcome li svg {
   flex: 0 0 auto;
   margin-top: var(--space-1);
   color: var(--color-accent);
 }
 
-.detailOutcome {
-  grid-column: 1 / -1;
+.skillExplorer {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  background: var(--color-surface-subtle);
-}
-
-.detailOutcome > div {
-  min-width: 0;
-  padding: var(--space-5) var(--space-6);
-}
-
-.detailOutcome > div + div {
-  border-left: var(--border-width) solid var(--color-border-subtle);
-}
-
-.playbookLedger {
+  grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
   border-top: var(--border-width) solid var(--color-border-subtle);
-}
-
-.playbookRow {
-  min-width: 0;
-  min-height: var(--space-20);
-  display: grid;
-  grid-template-columns: auto auto minmax(0, 0.75fr) minmax(0, 1.25fr) minmax(0, 0.8fr);
-  align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-4) var(--space-3);
   border-bottom: var(--border-width) solid var(--color-border-subtle);
-  transition: background-color var(--motion-fast) var(--ease-standard);
 }
 
-.playbookRow:hover {
+.skillList {
+  display: grid;
+  grid-template-rows: repeat(5, minmax(var(--space-16), 1fr));
+  align-content: start;
+  border-right: var(--border-width) solid var(--color-border-subtle);
+}
+
+.skillList button {
+  min-width: 0;
+  min-height: var(--space-16);
+  display: grid;
+  grid-template-columns: var(--space-8) auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 0;
+  border-left: var(--focus-ring-width) solid transparent;
+  border-bottom: var(--border-width) solid var(--color-border-subtle);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard);
+}
+
+.skillList button:last-child {
+  border-bottom: 0;
+}
+
+.skillList button:hover {
   background: var(--color-surface-subtle);
 }
 
-.playbookNumber {
-  color: var(--color-text-subtle);
-  font-family: var(--salt-type-family-mono);
-  font-size: var(--font-size-xs);
+.skillList .skillActive {
+  border-left-color: var(--color-accent);
+  background: var(--color-filter-selected);
 }
 
-.playbookIcon {
+.skillIcon {
   width: var(--size-control-lg);
   height: var(--size-control-lg);
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-selected);
+  color: var(--color-text);
 }
 
-.playbookName {
+.skillActive .skillIcon {
+  background: var(--color-surface);
+  color: var(--color-accent);
+}
+
+.skillLabel {
   min-width: 0;
   display: grid;
   gap: var(--space-1);
 }
 
-.playbookName strong {
+.skillLabel strong {
   overflow: hidden;
   color: var(--color-text-strong);
   font-size: var(--font-size-ui-secondary);
   font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-ui-secondary);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.playbookRow p {
-  margin: 0;
-  color: var(--color-text-muted);
-  font-size: var(--font-size-ui-secondary);
-  line-height: var(--line-height-ui-secondary);
-}
-
-.playbookOutcome {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  color: var(--color-text);
-  font-size: var(--font-size-sm);
-  line-height: var(--line-height-ui-secondary);
-}
-
-.playbookOutcome svg {
-  flex: 0 0 auto;
-  color: var(--color-accent);
-}
-
-.feedbackFlow {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  margin: 0;
-  padding: 0;
-  border-top: var(--border-width) solid var(--color-border-subtle);
-  border-bottom: var(--border-width) solid var(--color-border-subtle);
-  list-style: none;
-}
-
-.feedbackFlow li {
-  position: relative;
-  min-width: 0;
-  min-height: calc(var(--space-20) * 2);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-6);
-  border-right: var(--border-width) solid var(--color-border-subtle);
-}
-
-.feedbackFlow li:last-child {
-  border-right: 0;
-}
-
-.feedbackTopline {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-
-.feedbackTopline > span {
-  width: var(--size-control-lg);
-  height: var(--size-control-lg);
-  color: var(--color-accent);
-}
-
-.feedbackTopline small {
+.skillLabel small {
+  overflow: hidden;
   color: var(--color-text-subtle);
   font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-ui);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
-}
-
-.feedbackFlow strong {
-  color: var(--color-text-strong);
-  font-size: var(--font-size-ui-secondary);
-  font-weight: var(--font-weight-medium);
   line-height: var(--line-height-ui-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.feedbackFlow p {
-  margin: 0;
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
-  line-height: var(--line-height-ui-secondary);
-}
-
-.feedbackConnector {
-  position: absolute;
-  z-index: 1;
-  top: var(--space-8);
-  right: calc(var(--space-3) * -1);
-  width: var(--space-6);
-  height: var(--space-6);
-  display: grid;
-  place-items: center;
-  border: var(--border-width) solid var(--color-border-subtle);
-  border-radius: var(--radius-full);
-  background: var(--color-surface);
-  color: var(--color-accent);
-}
-
-.efficiencyMap {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  align-items: stretch;
-  border-top: var(--border-width) solid var(--color-border-subtle);
-  border-bottom: var(--border-width) solid var(--color-border-subtle);
-}
-
-.contextBefore,
-.contextAfter {
+.skillDetail {
   min-width: 0;
   display: grid;
   align-content: start;
-  gap: var(--space-4);
-  padding: var(--space-8);
+  padding: var(--space-6);
+  animation: detail-enter var(--motion-fast) var(--ease-standard);
 }
 
-.contextBefore strong,
-.contextAfter strong {
+.skillDetail h4 {
+  margin: var(--space-2) 0 0;
   color: var(--color-text-strong);
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-lg);
   font-weight: var(--font-weight-medium);
   line-height: var(--line-height-ui);
 }
 
-.contextBefore ul {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.skillQuestion {
+  max-width: var(--content-measure-medium);
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-muted);
+  font-family: var(--font-display);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-ui);
 }
 
-.contextBefore li,
-.contextInputs span {
-  min-height: var(--size-control-sm);
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding-inline: var(--space-3);
+.skillDetailGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  gap: var(--space-6);
+  margin-top: var(--space-6);
+  padding-top: var(--space-5);
+  border-top: var(--border-width) solid var(--color-border-subtle);
+}
+
+.skillProofList {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-3);
+}
+
+.skillProofRow {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-3);
+}
+
+.skillProofIcon {
+  width: var(--size-control-md);
+  height: var(--size-control-md);
+  display: grid;
+  place-items: center;
   border-radius: var(--radius-md);
   background: var(--color-surface-selected);
+  color: var(--color-accent);
+}
+
+.skillProofRow strong {
+  color: var(--color-text-strong);
+  font-size: var(--font-size-ui-secondary);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-ui-secondary);
+}
+
+.skillProofRow p,
+.skillOutcome p {
+  margin: var(--space-1) 0 0;
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
   line-height: var(--line-height-ui-secondary);
 }
 
-.contextTransition {
-  min-width: var(--space-20);
+.skillOutcome {
+  min-width: 0;
   display: grid;
-  place-content: center;
-  justify-items: center;
+  align-content: start;
   gap: var(--space-2);
-  border-right: var(--border-width) solid var(--color-border-subtle);
+  padding-left: var(--space-6);
   border-left: var(--border-width) solid var(--color-border-subtle);
-  background: var(--color-surface-subtle);
-  color: var(--color-accent);
 }
 
-.contextTransition span {
-  color: var(--color-text-subtle);
-  font-size: var(--font-size-xs);
-  white-space: nowrap;
+.skillOutcomeLabel {
+  margin-top: var(--space-5);
 }
 
-.contextAfter {
-  background: var(--color-filter-selected);
-}
-
-.contextInputs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-
-.contextInputs span {
-  background: var(--color-surface);
+.skillOutcome p {
   color: var(--color-text);
-}
-
-.contextInputs svg {
-  color: var(--color-accent);
 }
 
 .closingStatement {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: var(--space-5);
+  grid-template-columns: var(--design-system-intro-label-width) minmax(0, 1fr);
+  gap: var(--space-6);
+  align-items: start;
   padding: var(--space-8) 0;
   border-top: var(--border-width) solid var(--color-border-subtle);
-  border-bottom: var(--border-width) solid var(--color-border-subtle);
-}
-
-.closingStatement > span {
-  width: var(--space-12);
-  height: var(--space-12);
-  background: var(--color-filter-selected);
-  color: var(--color-accent);
 }
 
 .closingStatement p {
@@ -589,7 +528,7 @@
   font-weight: var(--font-weight-medium);
 }
 
-@keyframes layer-enter {
+@keyframes detail-enter {
   from {
     opacity: 0;
     transform: translateY(var(--space-2));
@@ -601,61 +540,26 @@
   }
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 900px) {
   .hero {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .metrics {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .layerMap {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .layerDetail {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .detailLead {
-    grid-column: 1 / -1;
-    border-right: 0;
-    border-bottom: var(--border-width) solid var(--color-border-subtle);
-  }
-
-  .detailColumn:nth-of-type(3) {
-    border-right: 0;
-  }
-
-  .playbookRow {
-    grid-template-columns: auto auto minmax(0, 1fr) minmax(0, 1fr);
-  }
-
-  .playbookRow p {
-    grid-column: 3 / -1;
-  }
-
-  .playbookOutcome {
-    grid-column: 4;
-    grid-row: 1;
-    justify-self: end;
-  }
-
-  .feedbackFlow {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .feedbackFlow li:nth-child(2) {
-    border-right: 0;
-  }
-
-  .feedbackFlow li:nth-child(-n + 2) {
-    border-bottom: var(--border-width) solid var(--color-border-subtle);
-  }
-
-  .feedbackFlow li:nth-child(2) .feedbackConnector {
+  .heroAside {
     display: none;
+  }
+
+  .skillExplorer {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .skillList {
+    border-right: 0;
+    border-bottom: var(--border-width) solid var(--color-border-subtle);
+  }
+
+  .skillList button:last-child {
+    border-bottom: var(--border-width) solid var(--color-border-subtle);
   }
 }
 
@@ -674,8 +578,8 @@
     line-height: var(--line-height-ui);
   }
 
-  .metrics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .heroStatement {
+    font-size: var(--font-size-md);
   }
 
   .sectionHeader {
@@ -683,90 +587,70 @@
     gap: var(--space-2);
   }
 
-  .systemSection,
-  .playbookSection,
-  .feedbackSection,
-  .efficiencySection {
+  .storySection,
+  .skillsSection {
     gap: var(--space-6);
   }
 
-  .layerMap,
-  .layerDetail,
-  .detailOutcome,
-  .feedbackFlow {
+  .storyRail {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .layerMap button {
+  .storyRail button {
     min-height: var(--space-16);
-  }
-
-  .detailLead,
-  .detailColumn {
-    grid-column: auto;
-    padding: var(--space-5);
+    padding: var(--space-4);
     border-right: 0;
     border-bottom: var(--border-width) solid var(--color-border-subtle);
   }
 
-  .detailOutcome > div {
-    padding: var(--space-5);
+  .storyRail button:last-child {
+    border-bottom: 0;
   }
 
-  .detailOutcome > div + div {
+  .storyDetail,
+  .storyEvidence,
+  .skillDetailGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .storyDetailIntro,
+  .storyExample {
+    padding: var(--space-5) 0;
+    border-right: 0;
+  }
+
+  .storyExample {
+    border-top: var(--border-width) solid var(--color-border-subtle);
+  }
+
+  .storyEvidence > div {
+    padding: var(--space-5) 0;
+  }
+
+  .storyEvidence > div + div {
     border-top: var(--border-width) solid var(--color-border-subtle);
     border-left: 0;
   }
 
-  .playbookRow {
-    grid-template-columns: auto auto minmax(0, 1fr);
-    gap: var(--space-3);
+  .skillDetail {
+    padding: var(--space-6) 0;
   }
 
-  .playbookRow p,
-  .playbookOutcome {
-    grid-column: 3;
-    grid-row: auto;
-    justify-self: start;
+  .skillDetailGrid {
+    gap: var(--space-5);
+    margin-top: var(--space-6);
   }
 
-  .feedbackFlow li {
-    min-height: auto;
-    padding: var(--space-5);
-    border-right: 0;
-    border-bottom: var(--border-width) solid var(--color-border-subtle);
-  }
-
-  .feedbackFlow li:last-child {
-    border-bottom: 0;
-  }
-
-  .feedbackConnector {
-    display: none;
-  }
-
-  .efficiencyMap {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .contextBefore,
-  .contextAfter {
-    padding: var(--space-6);
-  }
-
-  .contextTransition {
-    min-height: var(--space-16);
-    border: 0;
+  .skillOutcome {
+    padding: var(--space-5) 0 0;
     border-top: var(--border-width) solid var(--color-border-subtle);
-    border-bottom: var(--border-width) solid var(--color-border-subtle);
-  }
-
-  .contextTransition svg {
-    transform: rotate(90deg);
+    border-left: 0;
   }
 
   .closingStatement {
-    align-items: start;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-2);
+    padding: var(--space-6) 0;
   }
 
   .closingStatement p {
@@ -775,13 +659,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .layerMap button,
-  .layerDetail {
+  .storyRail button,
+  .skillList button,
+  .storyDetail,
+  .skillDetail {
     animation: none;
     transition: none;
-  }
-
-  .layerMap button:hover {
-    transform: none;
   }
 }

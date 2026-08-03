@@ -13,6 +13,7 @@ import { Tabs, type TabItem } from "../../../shared/ui/Tabs/Tabs";
 import { Toast } from "../../../shared/ui/Toast/Toast";
 import { companyLogoDomains } from "../companyLogos";
 import { ReviewBookmarkButton } from "../bookmarks/ReviewBookmarkButton";
+import { getMeridianOpenReviewStatus } from "../creditReviewPresentation";
 import { getLearningTargetProps, MeridianLearningPanel, MeridianLearningToggle } from "../learning/MeridianLearningMode";
 import {
   firstLearningTopicForScope,
@@ -639,7 +640,7 @@ export function MeridianReviewWorkspace() {
       ? "revision-requested"
     : reviewComplete
       ? "ready-to-recommend"
-      : "analyst-review";
+      : getMeridianOpenReviewStatus(reviewState).caseStatus;
   const primaryLabel = recommendationSubmitted
     ? seniorDecisionDraft ? "Resume senior review" : "Senior review"
     : reviewComplete

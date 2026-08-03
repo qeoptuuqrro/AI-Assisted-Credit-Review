@@ -2,295 +2,291 @@ import { useState } from "react";
 import { Icon, type IconName } from "../../shared/ui/Icon/Icon";
 import styles from "./AINativeView.module.css";
 
-type AINativeLayerId = "skills" | "design-system" | "architecture" | "validation";
+type StoryPhaseId = "rules" | "consistency" | "proof";
 
-type AINativeLayer = {
-  id: AINativeLayerId;
+type StoryPhase = {
+  id: StoryPhaseId;
   index: string;
   title: string;
-  eyebrow: string;
+  kicker: string;
   icon: IconName;
   summary: string;
-  governs: readonly string[];
+  exampleTitle: string;
+  exampleCopy: string;
   artifacts: readonly string[];
-  proof: string;
-  effect: string;
+  compounding: string;
 };
 
-const layers: readonly AINativeLayer[] = [
+const storyPhases: readonly StoryPhase[] = [
   {
-    id: "skills",
+    id: "rules",
     index: "01",
-    title: "Skills",
-    eyebrow: "Persistent rules",
-    icon: "spark",
-    summary: "Codex starts with the product, architecture, and quality rules already in place.",
-    governs: ["Product reasoning", "Implementation boundaries", "Required validation"],
-    artifacts: ["Product workflow", "Frontend architecture", "Design-system craft"],
-    proof: "Each task loads a focused operating playbook instead of relying on a larger one-off prompt.",
-    effect: "Less repeated context and fewer inconsistent interpretations between tasks.",
+    title: "Set the rules",
+    kicker: "A clear operating brief",
+    icon: "clipboard",
+    summary: "I turned product judgment into durable instructions so every task started with the same context.",
+    exampleTitle: "A drawer critique became a shared contract",
+    exampleCopy: "Instead of patching one credit-review screen, the drawer’s spacing, footer, focus, and responsive behavior became a reusable rule for the platform.",
+    artifacts: ["Product workflow skill", "Design-system craft skill", "Drawer contract"],
+    compounding: "The next drawer task inherits the decision instead of reopening the same debate.",
   },
   {
-    id: "design-system",
+    id: "consistency",
     index: "02",
-    title: "Design system",
-    eyebrow: "Visual language",
+    title: "Build consistently",
+    kicker: "One visual language",
     icon: "layers",
-    summary: "Repeated visual decisions become reusable tokens, components, states, and interaction contracts.",
-    governs: ["Typography and spacing", "Semantic color", "Component behavior"],
-    artifacts: ["Salt tokens", "29 production components", "Responsive contracts"],
-    proof: "Generated pages consume established primitives rather than inventing styling screen by screen.",
-    effect: "Faster composition with less visual drift across the platform.",
+    summary: "I gave AI a stable product vocabulary: Salt tokens, shared components, and clear feature ownership.",
+    exampleTitle: "Credit review became a governed surface",
+    exampleCopy: "Workflow steps, notices, document viewers, drawers, and buttons now compose from the same tokens and contracts instead of drifting page by page.",
+    artifacts: ["Salt token system", "29 production components", "Feature-owned CSS"],
+    compounding: "A correction in a shared primitive improves every workflow that uses it.",
   },
   {
-    id: "architecture",
+    id: "proof",
     index: "03",
-    title: "Architecture",
-    eyebrow: "Clear ownership",
-    icon: "branch",
-    summary: "Every decision has one durable place to live, from a visual value to a workflow transition.",
-    governs: ["Feature ownership", "Shared behavior", "Workflow state"],
-    artifacts: ["Feature folders", "Shared UI", "Typed state models"],
-    proof: "Product rules stay out of visual components, while page-specific composition stays out of shared UI.",
-    effect: "AI can change the correct layer without creating hidden coupling or duplicate systems.",
-  },
-  {
-    id: "validation",
-    index: "04",
-    title: "Agents + validation",
-    eyebrow: "Governed execution",
+    title: "Prove the result",
+    kicker: "Evidence before confidence",
     icon: "checkCircle",
-    summary: "Specialized roles implement, challenge, inspect, and verify the work before it becomes product truth.",
-    governs: ["Implementation quality", "Product coherence", "Regression control"],
-    artifacts: ["Bounded agent roles", "Browser QA", "TypeScript and tests"],
-    proof: "Rendering is only the first check; states, semantics, responsive behavior, and reuse are inspected too.",
-    effect: "AI scales execution while human judgment retains ownership of the product.",
+    summary: "I made quality observable: implementation, behavior, and visual fit are checked before a change becomes product truth.",
+    exampleTitle: "The reassessment flow is verified end to end",
+    exampleCopy: "Specialized agents challenge product logic, design-system drift, and regressions before the evidence-to-updated-assessment path is verified in the browser.",
+    artifacts: ["Bounded audit agents", "Focused regression tests", "Browser and responsive QA"],
+    compounding: "Each check feeds the next task with a sharper contract and less guesswork.",
   },
 ];
 
-const playbooks: ReadonlyArray<{
+type Skill = {
+  id: string;
   name: string;
   role: string;
   icon: IconName;
   question: string;
-  outcome: string;
-}> = [
+  proof: readonly {
+    title: string;
+    detail: string;
+    icon: IconName;
+  }[];
+  artifacts: readonly string[];
+  output: string;
+};
+
+const skills: readonly Skill[] = [
   {
+    id: "product-workflow",
     name: "Product workflow",
-    role: "Product judgment",
+    role: "For product decisions",
     icon: "scale",
     question: "What decision is the user actually making?",
-    outcome: "Coherent end-to-end flows",
+    proof: [
+      { title: "Customer A renewal", detail: "Mar 2027 → Mar 2030; Material → Moderate; concentration stays 61%.", icon: "fileCheck" },
+      { title: "Verify before reassess", detail: "The state model blocks reassessment until source verification is complete.", icon: "shield" },
+      { title: "Judgment stays human", detail: "Updated analysis and durable analyst judgment remain separate steps.", icon: "scale" },
+    ],
+    artifacts: ["Evidence workflow model", "Verification gate", "Judgment record"],
+    output: "A shorter path from finding to judgment.",
   },
   {
+    id: "product-architecture",
     name: "Product architecture",
-    role: "Ownership",
+    role: "For ownership decisions",
     icon: "branch",
-    question: "Which feature should own this behavior?",
-    outcome: "One durable home",
+    question: "Where should this behavior live?",
+    proof: [
+      { title: "Typed review domain", detail: "Findings, evidence, reassessments, judgments, recommendations, and decisions have separate owners.", icon: "branch" },
+      { title: "Persistent review state", detail: "One persistence hook serves Meridian, Northstar, and standard reviews.", icon: "refresh" },
+      { title: "Versioned design choices", detail: "Current, candidate, and archived designs cannot leak into production imports.", icon: "layers" },
+    ],
+    artifacts: ["Typed state model", "Persistence hook", "Design version registry"],
+    output: "One clear home for each product rule.",
   },
   {
+    id: "frontend-architecture",
     name: "Frontend architecture",
-    role: "Implementation",
+    role: "For implementation",
     icon: "command",
-    question: "Which existing pattern should be reused?",
-    outcome: "Less duplication",
+    question: "What should be reused before we add new code?",
+    proof: [
+      { title: "Shared Drawer contract", detail: "Responsive height, scroll containment, Escape, animation, and focus return live in one place.", icon: "panel" },
+      { title: "Shared WorkflowSteps", detail: "Sequence and responsive navigation stay generic while reducers keep domain logic.", icon: "arrowRight" },
+      { title: "Shared CaseStatusPill", detail: "Queue, bookmarks, drawers, headers, and the gallery use one status vocabulary.", icon: "tag" },
+    ],
+    artifacts: ["29 shared components", "Typed React boundaries", "Feature CSS Modules"],
+    output: "Less duplication and safer changes.",
   },
   {
+    id: "design-system-craft",
     name: "Design-system craft",
-    role: "Visual governance",
+    role: "For visual quality",
     icon: "layers",
-    question: "Which token or contract controls this?",
-    outcome: "Consistent product language",
+    question: "Which token, component, or state owns this visual decision?",
+    proof: [
+      { title: "Primitives → semantic roles", detail: "Salt maps color, type, spacing, motion, and shell geometry into product roles.", icon: "calculator" },
+      { title: "Live Inspect mode", detail: "The gallery measures dimensions and exposes computed styles and mapped tokens.", icon: "eye" },
+      { title: "Drift is a failing check", detail: "Duplicate tokens, raw values, and invalid marks fail the design-system audit.", icon: "checkCircle" },
+    ],
+    artifacts: ["Canonical token layer", "Live component specimens", "Contract checker"],
+    output: "A product that feels related from screen to screen.",
   },
   {
+    id: "browser-validation",
     name: "Browser validation",
-    role: "Quality control",
+    role: "For shipped confidence",
     icon: "checkCircle",
-    question: "Does it hold across states and sizes?",
-    outcome: "Verified output",
+    question: "Does the result hold across real states and sizes?",
+    proof: [
+      { title: "Active-route matrix", detail: "The capture script records screenshots, fonts, overflow, failed images, dialogs, and console issues.", icon: "eye" },
+      { title: "Interaction coverage", detail: "Decision gates, stage focus, scroll reset, radio navigation, and durable records are tested.", icon: "cursor" },
+      { title: "Reassessment V9", detail: "The flow was checked across eight desktop, tablet, and mobile sizes.", icon: "checkCircle" },
+    ],
+    artifacts: ["Route capture script", "Interaction test suite", "Eight-size QA pass"],
+    output: "Confidence grounded in the rendered product.",
   },
 ];
 
-const feedbackSteps = [
-  {
-    label: "Signal",
-    title: "A drawer breaks while scrolling",
-    copy: "The problem appears in one workflow.",
-    icon: "alertCircle" as const,
-  },
-  {
-    label: "Trace",
-    title: "Find the missing contract",
-    copy: "The issue belongs to shared behavior, not page styling.",
-    icon: "search" as const,
-  },
-  {
-    label: "Strengthen",
-    title: "Improve the shared layer",
-    copy: "Update the Drawer contract and its validation rule.",
-    icon: "shield" as const,
-  },
-  {
-    label: "Propagate",
-    title: "Every workflow inherits the fix",
-    copy: "One correction improves the whole platform.",
-    icon: "refresh" as const,
-  },
-] as const;
-
 export function AINativeView() {
-  const [activeLayerId, setActiveLayerId] = useState<AINativeLayerId>("skills");
-  const activeLayer = layers.find((layer) => layer.id === activeLayerId) ?? layers[0];
+  const [activePhaseId, setActivePhaseId] = useState<StoryPhaseId>("rules");
+  const [activeSkillId, setActiveSkillId] = useState(skills[0].id);
+  const activePhase = storyPhases.find((phase) => phase.id === activePhaseId) ?? storyPhases[0];
+  const activeSkill = skills.find((skill) => skill.id === activeSkillId) ?? skills[0];
 
   return (
     <div className={styles.view}>
       <section className={styles.hero} aria-labelledby="ai-native-title">
         <div className={styles.heroCopy}>
           <span className={styles.eyebrow}><Icon name="spark" size="sm" /> AI-native product development</span>
-          <h2 id="ai-native-title">I built the system that governs how AI builds the product.</h2>
-          <p>Skills define the rules, the design system defines the language, architecture defines ownership, and specialized validation keeps the output honest.</p>
+          <h2 id="ai-native-title">How I worked with AI</h2>
+          <p className={styles.heroStatement}>I designed a system for AI-assisted product development.</p>
+          <p className={styles.heroBody}>The work was a repeatable loop: set the rules, build against them, then prove the result. That is what makes the output feel like one product instead of a collection of generated screens.</p>
           <div className={styles.principle}><Icon name="user" size="sm" /><span><strong>Human-owned.</strong> AI accelerated execution; I defined the rules, judged the output, and owned the product.</span></div>
         </div>
 
-        <dl className={styles.metrics} aria-label="AI-native system at a glance">
-          <div><dt>Governance layers</dt><dd>4</dd></div>
-          <div><dt>Focused playbooks</dt><dd>5</dd></div>
-          <div><dt>Production components</dt><dd>29</dd></div>
-          <div><dt>Compounding loop</dt><dd>1</dd></div>
-        </dl>
+        <div className={styles.heroAside} aria-label="AI-native system at a glance">
+          <span className={styles.heroAsideLabel}>The story in three moves</span>
+          {storyPhases.map((phase) => (
+            <div key={phase.id} className={styles.heroAsideRow}>
+              <span>{phase.index}</span>
+              <strong>{phase.title}</strong>
+            </div>
+          ))}
+        </div>
       </section>
 
-      <section className={styles.systemSection} aria-labelledby="operating-system-title">
+      <section className={styles.storySection} aria-labelledby="story-title">
         <header className={styles.sectionHeader}>
-          <span>01 · The operating system</span>
+          <span>01 · The story</span>
           <div>
-            <h3 id="operating-system-title">Four layers turn prompts into governed product work</h3>
-            <p>Select a layer to see what it controls, where it lives, and why it compounds.</p>
+            <h3 id="story-title">From a prompt to a product system</h3>
+            <p>Each move creates a more useful constraint for the next one. Follow the thread, then open the skills underneath it.</p>
           </div>
         </header>
 
-        <div className={styles.layerMap} role="group" aria-label="AI-native operating system layers">
-          {layers.map((layer) => (
+        <div className={styles.storyRail} role="group" aria-label="AI-native story phases">
+          {storyPhases.map((phase) => (
             <button
-              key={layer.id}
+              key={phase.id}
               type="button"
-              className={activeLayer.id === layer.id ? styles.layerActive : ""}
-              aria-label={`${layer.index} ${layer.title} ${layer.eyebrow}`}
-              aria-pressed={activeLayer.id === layer.id}
-              aria-controls="ai-native-layer-detail"
-              onClick={() => setActiveLayerId(layer.id)}
+              className={activePhase.id === phase.id ? styles.storyPhaseActive : ""}
+              aria-pressed={activePhase.id === phase.id}
+              aria-controls="ai-native-story-detail"
+              onClick={() => setActivePhaseId(phase.id)}
             >
-              <span className={styles.layerIndex}>{layer.index}</span>
-              <span className={styles.layerIcon}><Icon name={layer.icon} size="sm" /></span>
-              <span className={styles.layerCopy}><strong>{layer.title}</strong><small>{layer.eyebrow}</small></span>
-              <Icon name="chevronRight" size="xs" />
+              <span className={styles.storyPhaseTopline}>
+                <span>{phase.index}</span>
+                <Icon name={phase.icon} size="sm" />
+              </span>
+              <strong>{phase.title}</strong>
+              <small>{phase.kicker}</small>
             </button>
           ))}
         </div>
 
-        <article key={activeLayer.id} id="ai-native-layer-detail" className={styles.layerDetail} aria-live="polite">
-          <div className={styles.detailLead}>
-            <span>{activeLayer.index}</span>
-            <div><small>{activeLayer.eyebrow}</small><h4>{activeLayer.title}</h4><p>{activeLayer.summary}</p></div>
+        <article key={activePhase.id} id="ai-native-story-detail" className={styles.storyDetail} aria-live="polite">
+          <div className={styles.storyDetailIntro}>
+            <span>{activePhase.index} / {activePhase.kicker}</span>
+            <h4>{activePhase.summary}</h4>
           </div>
-          <div className={styles.detailColumn}>
-            <span>What it governs</span>
-            <ul>{activeLayer.governs.map((item) => <li key={item}><Icon name="check" size="xs" /> {item}</li>)}</ul>
+          <div className={styles.storyExample}>
+            <span>A real example</span>
+            <strong>{activePhase.exampleTitle}</strong>
+            <p>{activePhase.exampleCopy}</p>
           </div>
-          <div className={styles.detailColumn}>
-            <span>System artifacts</span>
-            <ul>{activeLayer.artifacts.map((item) => <li key={item}><Icon name="link" size="xs" /> {item}</li>)}</ul>
-          </div>
-          <div className={styles.detailOutcome}>
-            <div><span>Proof in the product</span><p>{activeLayer.proof}</p></div>
-            <div><span>Compounding effect</span><p>{activeLayer.effect}</p></div>
+          <div className={styles.storyEvidence}>
+            <div>
+              <span>Artifacts</span>
+              <ul>
+                {activePhase.artifacts.map((artifact) => <li key={artifact}><Icon name="check" size="xs" />{artifact}</li>)}
+              </ul>
+            </div>
+            <div>
+              <span>Why it compounds</span>
+              <p>{activePhase.compounding}</p>
+            </div>
           </div>
         </article>
       </section>
 
-      <section className={styles.playbookSection} aria-labelledby="playbooks-title">
+      <section className={styles.skillsSection} aria-labelledby="skills-title">
         <header className={styles.sectionHeader}>
-          <span>02 · The skill stack</span>
+          <span>02 · The skills</span>
           <div>
-            <h3 id="playbooks-title">Each playbook answers one hard question</h3>
-            <p>The skills are executable operating rules, not a library of generic prompts.</p>
+            <h3 id="skills-title">The playbooks behind the work</h3>
+            <p>Five focused skills keep product thinking, implementation, and quality connected across the 29 shared components.</p>
           </div>
         </header>
 
-        <div className={styles.playbookLedger}>
-          {playbooks.map((playbook, index) => (
-            <article key={playbook.name} className={styles.playbookRow}>
-              <span className={styles.playbookNumber}>{String(index + 1).padStart(2, "0")}</span>
-              <span className={styles.playbookIcon}><Icon name={playbook.icon} size="sm" /></span>
-              <div className={styles.playbookName}><small>{playbook.role}</small><strong>{playbook.name}</strong></div>
-              <p>“{playbook.question}”</p>
-              <span className={styles.playbookOutcome}><Icon name="arrowRight" size="xs" /> {playbook.outcome}</span>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className={styles.feedbackSection} aria-labelledby="feedback-title">
-        <header className={styles.sectionHeader}>
-          <span>03 · The compounding loop</span>
-          <div>
-            <h3 id="feedback-title">Critique becomes infrastructure</h3>
-            <p>A problem is not finished when one screen looks fixed. The system learns at the layer that caused it.</p>
+        <div className={styles.skillExplorer}>
+          <div className={styles.skillList} role="group" aria-label="AI-native skills">
+            {skills.map((skill, index) => (
+              <button
+                key={skill.id}
+                type="button"
+                className={activeSkill.id === skill.id ? styles.skillActive : ""}
+                aria-pressed={activeSkill.id === skill.id}
+                aria-controls="ai-native-skill-detail"
+                onClick={() => setActiveSkillId(skill.id)}
+              >
+                <span className={styles.skillNumber}>{String(index + 1).padStart(2, "0")}</span>
+                <span className={styles.skillIcon}><Icon name={skill.icon} size="sm" /></span>
+                <span className={styles.skillLabel}><strong>{skill.name}</strong><small>{skill.role}</small></span>
+                <Icon name="chevronRight" size="xs" />
+              </button>
+            ))}
           </div>
-        </header>
 
-        <ol className={styles.feedbackFlow}>
-          {feedbackSteps.map((step, index) => (
-            <li key={step.label}>
-              <div className={styles.feedbackTopline}><span><Icon name={step.icon} size="sm" /></span><small>{step.label}</small></div>
-              <strong>{step.title}</strong>
-              <p>{step.copy}</p>
-              {index < feedbackSteps.length - 1 && <span className={styles.feedbackConnector} aria-hidden="true"><Icon name="arrowRight" size="xs" /></span>}
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      <section className={styles.efficiencySection} aria-labelledby="efficiency-title">
-        <header className={styles.sectionHeader}>
-          <span>04 · Context efficiency</span>
-          <div>
-            <h3 id="efficiency-title">Reuse the system; spend attention on the decision</h3>
-            <p>Token efficiency comes from loading durable rules instead of re-explaining the product every time.</p>
-          </div>
-        </header>
-
-        <div className={styles.efficiencyMap}>
-          <article className={styles.contextBefore}>
-            <span>Ad hoc prompting</span>
-            <strong>Every task repeats the operating context</strong>
-            <ul>
-              <li>Product rules</li>
-              <li>Architecture boundaries</li>
-              <li>Component conventions</li>
-              <li>Validation checklist</li>
-            </ul>
-          </article>
-
-          <div className={styles.contextTransition} aria-hidden="true"><Icon name="arrowRight" size="sm" /><span>Codify once</span></div>
-
-          <article className={styles.contextAfter}>
-            <span>AI-native task</span>
-            <strong>Only task-specific judgment is new</strong>
-            <div className={styles.contextInputs}>
-              <span><Icon name="cursor" size="xs" /> Task intent</span>
-              <span><Icon name="spark" size="xs" /> Matched skill</span>
-              <span><Icon name="branch" size="xs" /> Repository context</span>
-              <span><Icon name="checkCircle" size="xs" /> Validation</span>
+          <article key={activeSkill.id} id="ai-native-skill-detail" className={styles.skillDetail} aria-live="polite">
+            <span className={styles.skillDetailRole}>{activeSkill.role}</span>
+            <h4>{activeSkill.name}</h4>
+            <p className={styles.skillQuestion}>{activeSkill.question}</p>
+            <div className={styles.skillDetailGrid}>
+              <div className={styles.skillProof}>
+                <span>Project proof</span>
+                <div className={styles.skillProofList}>
+                  {activeSkill.proof.map((item) => (
+                    <div key={item.title} className={styles.skillProofRow}>
+                      <span className={styles.skillProofIcon}><Icon name={item.icon} size="sm" /></span>
+                      <div>
+                        <strong>{item.title}</strong>
+                        <p>{item.detail}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className={styles.skillOutcome}>
+                <span>System artifacts</span>
+                <ul>{activeSkill.artifacts.map((artifact) => <li key={artifact}><Icon name="check" size="xs" />{artifact}</li>)}</ul>
+                <span className={styles.skillOutcomeLabel}>What it gives back</span>
+                <p>{activeSkill.output}</p>
+              </div>
             </div>
           </article>
         </div>
       </section>
 
       <footer className={styles.closingStatement}>
-        <span><Icon name="spark" size="sm" /></span>
-        <p>I did not just use AI to generate UI. <strong>I designed the system that governed how AI generated and maintained the product.</strong></p>
+        <span>03 · The outcome</span>
+        <p>AI scaled execution. <strong>I defined the rules, judged the output, and owned the product.</strong></p>
       </footer>
     </div>
   );

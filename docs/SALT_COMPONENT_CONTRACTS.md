@@ -197,7 +197,8 @@ Purpose: show the case-level lifecycle state based on the dominant next action.
 Statuses:
 
 - `Needs verification` → danger: required evidence is missing, conflicting, or untrusted and blocks the case.
-- `Analyst review` → neutral: evidence is usable and the analyst owns interpretation or judgment.
+- `Needs judgment` → warning: trusted evidence leaves an explicit material choice that can change risk, structure, or recommendation.
+- `Analyst review` → neutral: analysis is usable and needs routine analyst confirmation without an unresolved material choice.
 - `Ready to recommend` → info: required findings are addressed and the analyst can prepare or submit the recommendation.
 - `Awaiting decision` → info: the analyst submitted the recommendation and senior credit owns the next action.
 - `Revision requested` → warning: senior credit returned the case and the analyst must revise it.
@@ -211,6 +212,7 @@ Tokens: visual treatment delegates to the semantic `--salt-status-pill-*` tokens
 Rules:
 
 - Use one case status per row, header, preview, or bookmark. It answers “Who owns the next action?”
+- Use `Needs judgment` for an explicit material choice, not as a decorative way to add color to a queue.
 - Do not append finding counts to the case-level pill. Counts belong inside a case, drawer, tab, or aggregation heading.
 - Do not promote system events such as `Analysis ready` or `Analysis updated` into lifecycle states.
 - Explain changed evidence or analysis inside the preview, case workspace, or Activity record rather than appending `Updated` to the lifecycle pill.

@@ -3,6 +3,8 @@
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { RouterProvider } from "../../app/router";
+import { createInitialMeridianState } from "../credit-reviews/workflow/creditReviewState";
+import { MERIDIAN_STORAGE_KEY } from "../credit-reviews/workflow/usePersistentReviewState";
 import { OverviewPage } from "./OverviewPage";
 
 function renderOverview(path = "/") {
@@ -11,15 +13,21 @@ function renderOverview(path = "/") {
 }
 
 describe("OverviewPage design directions", () => {
-  beforeEach(() => window.history.replaceState({}, "", "/"));
-  afterEach(() => cleanup());
+  beforeEach(() => {
+    window.sessionStorage.clear();
+    window.history.replaceState({}, "", "/");
+  });
+  afterEach(() => {
+    cleanup();
+    window.sessionStorage.clear();
+  });
 
   it("uses the current portfolio command view and exposes an inspectable workflow chart", () => {
     renderOverview();
 
     const summary = screen.getByRole("region", { name: "Lending operating summary" });
     expect(within(summary).getByText("Active review mix · 6 weeks")).toBeTruthy();
-    expect(within(summary).getByRole("button", { name: "Meridian Foods, Analyst review, due Today" })).toBeTruthy();
+    expect(within(summary).getByRole("button", { name: "Meridian Foods, Needs judgment, due Today" })).toBeTruthy();
     expect(screen.queryByText("Analyst decisions are holding the review.")).toBeNull();
 
     fireEvent.click(within(summary).getByRole("button", { name: /^Jun 22:/ }));
@@ -28,11 +36,23 @@ describe("OverviewPage design directions", () => {
     expect(within(summary).getByText("Jun 22", { selector: "strong" })).toBeTruthy();
   });
 
+  it("projects persisted case workflow into overview rows", () => {
+    const meridianState = createInitialMeridianState();
+    meridianState.findingStates["customer-concentration"] = "review_complete";
+    meridianState.findingStates["declining-margins"] = "review_complete";
+    window.sessionStorage.setItem(MERIDIAN_STORAGE_KEY, JSON.stringify(meridianState));
+
+    renderOverview();
+
+    const summary = screen.getByRole("region", { name: "Lending operating summary" });
+    expect(within(summary).getByRole("button", { name: "Meridian Foods, Needs verification, due Today" })).toBeTruthy();
+  });
+
   it("keeps the balanced V1 dashboard available from Design Options", () => {
     renderOverview("/?design=workspace-overview-v1-balanced-modules");
 
     expect(screen.getByLabelText("Previewing Workspace overview V1 · Balanced status dashboard")).toBeTruthy();
-    expect(screen.getByText("Usable analysis is ready for human interpretation.")).toBeTruthy();
+    expect(screen.getByText("Material credit choices require analyst judgment.")).toBeTruthy();
     expect(screen.getByText("61")).toBeTruthy();
     expect(screen.queryByText("Active review mix · 6 weeks")).toBeNull();
   });

@@ -56,12 +56,40 @@ describe("credit review presentation semantics", () => {
       meridian,
       createInitialMeridianState(),
       createInitialNorthstarState(),
-    )).toMatchObject({ caseStatus: "analyst-review" });
+    )).toMatchObject({ caseStatus: "needs-judgment", aiReviewState: "needs-judgment" });
     expect(applyCreditReviewWorkflowState(
       northstar,
       createInitialMeridianState(),
       createInitialNorthstarState(),
     )).toMatchObject({ caseStatus: "needs-verification" });
+  });
+
+  it("keeps Meridian judgment-led through reassessment while isolating evidence-only blockers", () => {
+    const meridian = reviews.find((review) => review.slug === "meridian-foods")!;
+    const state = createInitialMeridianState();
+
+    state.findingStates["customer-concentration"] = "review_complete";
+    state.findingStates["declining-margins"] = "review_complete";
+    expect(applyCreditReviewWorkflowState(
+      meridian,
+      state,
+      createInitialNorthstarState(),
+    )).toMatchObject({ caseStatus: "needs-verification", aiReviewState: "needs-verification" });
+
+    state.findingStates["increasing-leverage"] = "analysis_ready";
+    expect(applyCreditReviewWorkflowState(
+      meridian,
+      state,
+      createInitialNorthstarState(),
+    )).toMatchObject({ caseStatus: "needs-judgment", aiReviewState: "analysis-ready" });
+  });
+
+  it("reserves the judgment status for fixtures with an explicit material choice", () => {
+    expect(reviews.filter((review) => review.caseStatus === "needs-judgment").map((review) => review.slug)).toEqual([
+      "meridian-foods",
+      "brightline-energy",
+      "cedar-ridge-packaging",
+    ]);
   });
 
   it("keeps the seeded ready-to-recommend case attributable to analyst review", () => {

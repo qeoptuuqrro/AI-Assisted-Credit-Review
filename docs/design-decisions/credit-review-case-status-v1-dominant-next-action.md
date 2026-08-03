@@ -11,7 +11,8 @@ Case status does not attempt to summarize every finding, evidence requirement, o
 | Status | Owner and meaning | Tone |
 | --- | --- | --- |
 | Needs verification | Required evidence is missing, conflicting, or untrusted and blocks meaningful analysis. | Danger |
-| Analyst review | Evidence is usable; the analyst owns interpretation or judgment. | Neutral |
+| Needs judgment | Trusted evidence leaves an explicit, material analyst choice that can change risk, structure, or recommendation. | Warning |
+| Analyst review | Analysis is usable and needs routine analyst confirmation, without an unresolved material choice. | Neutral |
 | Ready to recommend | Required findings are addressed; the analyst can author or submit the recommendation. | Info |
 | Awaiting decision | The recommendation is submitted; senior credit owns the next action. | Info |
 | Revision requested | Senior credit returned the case; the analyst must revise it. | Warning |
@@ -22,11 +23,14 @@ Case status does not attempt to summarize every finding, evidence requirement, o
 
 ## Dominance rule
 
-Use `Needs verification` only when the evidence issue blocks the case. Use `Analyst review` when the analyst can continue meaningful interpretation even if an individual finding still needs verification.
+Use `Needs verification` when evidence is the dominant blocker. Use `Needs judgment` when trusted evidence leaves a material analyst choice. Use `Analyst review` when the analysis needs routine confirmation without either condition.
 
-- Meridian Foods: `Analyst review`. The case contains mixed finding work, but Alex can continue reviewing it.
+- Meridian Foods: `Needs judgment`. Two findings require material analyst choices; one localized verification item does not block that work.
 - Northstar Health: `Needs verification`. The missing 2027 forecast blocks the downside analysis.
+- Lakeview Medical: `Analyst review`. Verified reimbursement evidence changed the analysis, which now needs confirmation.
 - Atlas Logistics: `Ready to recommend`. Alex completed the final finding review, so recommendation authoring is now the next accountable action.
+
+Meridian transitions dynamically: `Needs judgment` while a material choice is open, `Needs verification` when evidence is the only remainder, back to `Needs judgment` after reassessment makes that material choice actionable, and `Ready to recommend` after Alex records the final disposition.
 
 ## Information hierarchy
 
@@ -40,7 +44,7 @@ This keeps the portfolio scan calm while preserving detail where it becomes acti
 
 `CaseStatusPill` is a typed shared composition over `StatusPill`.
 
-- Variants: seven fixed lifecycle statuses.
+- Variants: eight fixed lifecycle statuses.
 - Secondary state: none; event context belongs to the owning detail surface.
 - Accessibility: every meaning is expressed in text; color is reinforcement only.
 - Forbidden: custom labels, appended finding counts, system-event labels used as case stages, page-owned tones.
@@ -50,4 +54,4 @@ This keeps the portfolio scan calm while preserving detail where it becomes acti
 
 The shared component is consumed by the Credit Reviews queue, Overview queue, bookmarks, preview drawer, Meridian header, Northstar header, standard-case header, and the Design System specimen.
 
-Learning Mode includes a case-status topic that defines all seven states and explains the Meridian/Northstar distinction.
+Learning Mode includes a case-status topic that defines all eight states and explains the Meridian/Northstar/Lakeview distinction.

@@ -93,7 +93,7 @@ const sections: Array<{ id: SystemSection; label: string; count: number }> = [
   { id: "components", label: "Components", count: 29 },
   { id: "patterns", label: "Patterns", count: 3 },
   { id: "templates", label: "Templates", count: 3 },
-  { id: "ai-native", label: "AI native", count: 4 },
+  { id: "ai-native", label: "AI native", count: 3 },
 ];
 
 const specimenIcons: IconName[] = [
@@ -921,7 +921,8 @@ function ComponentsView({ inspectMode, onSelect }: { inspectMode: boolean; onSel
         >
           <div className={styles.badgeCanvas}>
             <div><span>Blocked by evidence</span><Inspectable enabled={inspectMode} label="Case status / Needs verification" tokenMap={statusPillTokenMap("danger")} onSelect={onSelect}><CaseStatusPill status="needs-verification" /></Inspectable></div>
-            <div><span>Analyst owns interpretation</span><Inspectable enabled={inspectMode} label="Case status / Analyst review" tokenMap={statusPillTokenMap("neutral")} onSelect={onSelect}><CaseStatusPill status="analyst-review" /></Inspectable></div>
+            <div><span>Material choice is unresolved</span><Inspectable enabled={inspectMode} label="Case status / Needs judgment" tokenMap={statusPillTokenMap("warning")} onSelect={onSelect}><CaseStatusPill status="needs-judgment" /></Inspectable></div>
+            <div><span>Analysis needs confirmation</span><Inspectable enabled={inspectMode} label="Case status / Analyst review" tokenMap={statusPillTokenMap("neutral")} onSelect={onSelect}><CaseStatusPill status="analyst-review" /></Inspectable></div>
             <div><span>Analyst can author handoff</span><Inspectable enabled={inspectMode} label="Case status / Ready to recommend" tokenMap={statusPillTokenMap("info")} onSelect={onSelect}><CaseStatusPill status="ready-to-recommend" /></Inspectable></div>
             <div><span>Senior credit owns action</span><Inspectable enabled={inspectMode} label="Case status / Awaiting decision" tokenMap={statusPillTokenMap("info")} onSelect={onSelect}><CaseStatusPill status="awaiting-decision" /></Inspectable></div>
             <div><span>Analyst must revise</span><Inspectable enabled={inspectMode} label="Case status / Revision requested" tokenMap={statusPillTokenMap("warning")} onSelect={onSelect}><CaseStatusPill status="revision-requested" /></Inspectable></div>
@@ -1151,7 +1152,7 @@ function ComponentsView({ inspectMode, onSelect }: { inspectMode: boolean; onSel
               <span className={styles.drawerExampleEyebrow}>Credit review</span>
               <h2 id="drawer-specimen-title" className={styles.drawerExampleTitle}>Meridian Foods</h2>
               <p className={styles.drawerExampleMeta}>Revolving line</p>
-              <CaseStatusPill status="analyst-review" />
+              <CaseStatusPill status="needs-judgment" />
             </DrawerHeader>
             <DrawerBody>
               <DrawerSection className={styles.drawerExampleSection}>

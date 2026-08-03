@@ -416,7 +416,7 @@ Completed July 26, 2026 after auditing Referrals, Company Profile, every visible
 Completed July 26, 2026 after auditing the Overview, Findings inventory, focused finding route, and repayment comparison at desktop, intermediate, and mobile widths.
 
 - Case action hierarchy: the page header now contains one Meridian-specific next action, `Review customer concentration`, derived from the first unresolved finding. The assessment has no competing primary CTA and exposes only quiet history access.
-- Case state: the header uses the accountable workflow label `Analyst review · 3 open` rather than an ambiguous judgment prompt.
+- Case state: the header uses the count-free accountable workflow label `Needs judgment`; finding counts remain inside the Findings tab and review preview where they are actionable.
 - Overview facts: three current-state MetricCards were replaced by one semantic `dl` fact strip. Evidence readiness, relationship, and expected initial draw remain scannable without repeating the $18M request; the evidence value no longer carries an alignment-breaking pill.
 - Assessment density: rationale, protections, provenance, and history were compressed into a clearer hierarchy. The believable facility brief remains a supporting product object on desktop and tablet, and is omitted below 460px where it would dominate the task flow.
 - Findings states: workflow pills use intrinsic `max-content` width and cannot stretch with the ledger grid.

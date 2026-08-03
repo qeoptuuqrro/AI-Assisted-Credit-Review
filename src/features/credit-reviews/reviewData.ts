@@ -153,7 +153,7 @@ function activity(company: string, analysisEvent: string, evidenceEvent: string)
 export const reviews: CreditReview[] = [
   {
     company: "Meridian Foods", slug: "meridian-foods", request: "$18M working-capital line", facilityType: "Revolving line",
-    aiReviewState: "needs-judgment", aiReviewDetail: "3 open", caseStatus: "analyst-review", owner: "Alex Kim", due: "Today", dueGroup: "urgent", status: "needs-attention",
+    aiReviewState: "needs-judgment", aiReviewDetail: "3 open", caseStatus: "needs-judgment", owner: "Alex Kim", due: "Today", dueGroup: "urgent", status: "needs-attention",
   },
   {
     company: "Northstar Health", slug: "northstar-health", request: "$15M revolving line", facilityType: "Revolving line",
@@ -161,7 +161,7 @@ export const reviews: CreditReview[] = [
   },
   {
     company: "Brightline Energy", slug: "brightline-energy", request: "$11M revolving line", facilityType: "Revolving line",
-    aiReviewState: "needs-judgment", aiReviewDetail: "1 finding", caseStatus: "analyst-review", owner: "Alex Kim", due: "Jul 29", dueGroup: "this-week", status: "needs-attention",
+    aiReviewState: "needs-judgment", aiReviewDetail: "1 finding", caseStatus: "needs-judgment", owner: "Alex Kim", due: "Jul 29", dueGroup: "this-week", status: "needs-attention",
     details: {
       decisionQuestion: "Does contracted cash flow sufficiently protect an $11M liquidity line from merchant-power volatility?",
       assessment: "Contracted revenue supports the request, but the unhedged merchant tail creates a judgment point around advance availability and covenant headroom.",
@@ -197,7 +197,7 @@ export const reviews: CreditReview[] = [
   },
   {
     company: "Cedar Ridge Packaging", slug: "cedar-ridge-packaging", request: "$14M term loan", facilityType: "Term loan",
-    aiReviewState: "needs-judgment", aiReviewDetail: "1 finding", caseStatus: "analyst-review", owner: "Alex Kim", due: "Jul 30", dueGroup: "this-week", status: "needs-attention",
+    aiReviewState: "needs-judgment", aiReviewDetail: "1 finding", caseStatus: "needs-judgment", owner: "Alex Kim", due: "Jul 30", dueGroup: "this-week", status: "needs-attention",
     details: {
       decisionQuestion: "Can Cedar Ridge fund acquisition integration without weakening debt-service capacity below policy?",
       assessment: "The combined company supports the loan in the base case, but management's integration savings and near-term capex overlap require structural judgment.",

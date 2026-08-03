@@ -21,6 +21,7 @@ import type { StatusPillTone } from "../../../shared/ui/StatusPill/StatusPill";
 import { Tabs } from "../../../shared/ui/Tabs/Tabs";
 import { Toast } from "../../../shared/ui/Toast/Toast";
 import { companyLogoDomains } from "../companyLogos";
+import { areStandardReviewFindingsComplete } from "../creditReviewPresentation";
 import { ReviewBookmarkButton } from "../bookmarks/ReviewBookmarkButton";
 import { getLearningTargetProps, LearningModeSurface, LearningTarget, useLearningMode } from "../learning/MeridianLearningMode";
 import type { PlatformLearningScope } from "../learning/meridianLearningContent";
@@ -257,6 +258,8 @@ function StandardWorkspaceContent({ review, slug, activeTab, pathname, search, n
         ? workflowState.seniorDecision.decision === "decline" ? "declined" : "approved"
         : isRecommendationSubmitted
           ? "awaiting-decision"
+          : areStandardReviewFindingsComplete(review, workflowState)
+            ? "ready-to-recommend"
           : review.caseStatus;
 
   function openHeaderAction() {
@@ -311,7 +314,7 @@ function StandardWorkspaceContent({ review, slug, activeTab, pathname, search, n
             <Panel className={styles.posturePanel}>
               <div className={styles.postureHeader}>
                 <span>Initial view</span>
-                <CaseStatusPill status={review.caseStatus} />
+                <CaseStatusPill status={headerCaseStatus} />
               </div>
               <strong>{review.details.posture}</strong>
               <p>{review.details.recommendation.rationale}</p>

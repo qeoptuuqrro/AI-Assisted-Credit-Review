@@ -2,13 +2,14 @@
 import { act, cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ReviewBookmarksProvider } from "../features/credit-reviews/bookmarks/ReviewBookmarks";
-import { createNorthstarPreset } from "../features/credit-reviews/workflow/creditReviewState";
-import { NORTHSTAR_STORAGE_KEY, REVIEW_WORKFLOW_STATE_EVENT } from "../features/credit-reviews/workflow/usePersistentReviewState";
+import { createInitialMeridianState, createNorthstarPreset } from "../features/credit-reviews/workflow/creditReviewState";
+import { MERIDIAN_STORAGE_KEY, NORTHSTAR_STORAGE_KEY, REVIEW_WORKFLOW_STATE_EVENT } from "../features/credit-reviews/workflow/usePersistentReviewState";
 import { AppShell } from "./AppShell";
 import { RouterProvider } from "./router";
 
 beforeEach(() => {
   window.sessionStorage.clear();
+  window.localStorage.clear();
   window.scrollTo = vi.fn();
   window.matchMedia = vi.fn().mockImplementation((query: string) => ({
     matches: false,
@@ -22,7 +23,43 @@ beforeEach(() => {
   }));
 });
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  window.localStorage.clear();
+});
+
+describe("credit-review bookmark status", () => {
+  it("uses the shared judgment status and follows persisted workflow changes", async () => {
+    window.history.replaceState({}, "", "/credit-reviews");
+    const { rerender } = render(
+      <RouterProvider>
+        <ReviewBookmarksProvider>
+          <AppShell><div>Credit reviews</div></AppShell>
+        </ReviewBookmarksProvider>
+      </RouterProvider>,
+    );
+
+    const bookmarks = screen.getByRole("region", { name: "Bookmarks" });
+    expect(within(bookmarks).getByRole("link", { name: "Meridian Foods$18M · Needs judgment" })).toBeTruthy();
+
+    const meridianState = createInitialMeridianState();
+    meridianState.findingStates["customer-concentration"] = "review_complete";
+    meridianState.findingStates["declining-margins"] = "review_complete";
+    window.sessionStorage.setItem(MERIDIAN_STORAGE_KEY, JSON.stringify(meridianState));
+    act(() => {
+      window.dispatchEvent(new CustomEvent(REVIEW_WORKFLOW_STATE_EVENT, { detail: { storageKey: MERIDIAN_STORAGE_KEY } }));
+    });
+    rerender(
+      <RouterProvider>
+        <ReviewBookmarksProvider>
+          <AppShell><div>Credit reviews</div></AppShell>
+        </ReviewBookmarksProvider>
+      </RouterProvider>,
+    );
+
+    await waitFor(() => expect(within(bookmarks).getByRole("link", { name: "Meridian Foods$18M · Needs verification" })).toBeTruthy());
+  });
+});
 
 describe("Northstar prototype bridge", () => {
   it("shows the received-response control only while the borrower request is sent", async () => {

@@ -179,7 +179,7 @@ export function AppShell({ children }: AppShellProps) {
                         <Icon name="grip" size="sm" />
                       </button>
                       <AppLink className={styles.bookmarkLink} to={reviewPath}>
-                        <CompanyLogo domain={companyLogoDomains[review.company]} name={review.company} />
+                        <CompanyLogo domain={companyLogoDomains[review.company]} name={review.company} size="sm" />
                         <span className={styles.bookmarkCopy}>
                           <strong>{review.company}</strong>
                           <small>{review.request.split(" ")[0]} · {caseStatusPresentation[review.caseStatus].label}</small>
@@ -244,7 +244,7 @@ export function AppShell({ children }: AppShellProps) {
                   <header><strong>Bookmarks</strong><button type="button" aria-label="Close bookmarks" onClick={() => setMobileBookmarksOpen(false)}><Icon name="close" size="sm" /></button></header>
                   {liveBookmarkedReviews.length > 0 ? liveBookmarkedReviews.map((review) => (
                     <AppLink key={review.slug} to={`/credit-reviews/${review.slug}` as AppPath} className={styles.mobileBookmarkLink}>
-                      <CompanyLogo domain={companyLogoDomains[review.company]} name={review.company} />
+                      <CompanyLogo domain={companyLogoDomains[review.company]} name={review.company} size="sm" />
                       <span><strong>{review.company}</strong><small>{review.request.split(" ")[0]} · {caseStatusPresentation[review.caseStatus].label}</small></span>
                       <Icon name="chevronRight" size="sm" />
                     </AppLink>

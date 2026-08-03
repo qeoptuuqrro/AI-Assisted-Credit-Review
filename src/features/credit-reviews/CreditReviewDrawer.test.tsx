@@ -42,9 +42,8 @@ describe("CreditReviewDrawer outcome preview", () => {
     expect(screen.getByRole("button", { name: "Customer concentration" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Declining margins" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Increasing leverage" })).toBeTruthy();
-    expect(screen.getByText("Analyst review")).toBeTruthy();
+    expect(screen.getByText("Needs judgment")).toBeTruthy();
     expect(screen.getByText("Needs verification")).toBeTruthy();
-    expect(screen.queryByText("Needs judgment")).toBeNull();
     expect(screen.queryByText("AI review brief")).toBeNull();
     expect(screen.queryByText("Next step")).toBeNull();
     expect(screen.queryByText("Initial assessment")).toBeNull();
@@ -56,8 +55,7 @@ describe("CreditReviewDrawer outcome preview", () => {
 
     expect(screen.getByRole("heading", { name: "Review focus" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Merchant-price exposure" })).toBeTruthy();
-    expect(screen.getByText("Analyst review")).toBeTruthy();
-    expect(screen.queryByText("Needs judgment")).toBeNull();
+    expect(screen.getByText("Needs judgment")).toBeTruthy();
   });
 
   it("projects persisted analyst completion into the queue preview", () => {

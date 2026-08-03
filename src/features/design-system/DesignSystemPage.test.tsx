@@ -73,21 +73,35 @@ afterEach(() => {
 });
 
 describe("DesignSystemPage component gallery", () => {
-  it("presents the AI-native operating system as an interactive design-system section", () => {
+  it("presents the AI-native workflow as a high-level story with focused drill-downs", () => {
     renderDesignSystem();
 
-    fireEvent.click(screen.getByRole("tab", { name: /^AI native\s*4$/ }));
+    fireEvent.click(screen.getByRole("tab", { name: /^AI native\s*3$/ }));
 
-    expect(screen.getByRole("heading", { level: 2, name: "I built the system that governs how AI builds the product." })).toBeInTheDocument();
-    expect(screen.getByText("29", { selector: "dd" })).toBeInTheDocument();
-    expect(screen.getAllByRole("article")).toHaveLength(8);
+    expect(screen.getByRole("heading", { level: 2, name: "How I worked with AI" })).toBeInTheDocument();
+    expect(screen.getByText("I designed a system for AI-assisted product development.")).toBeInTheDocument();
 
-    const designSystemLayer = screen.getByRole("button", { name: /02\s*Design system\s*Visual language/i });
-    fireEvent.click(designSystemLayer);
+    const story = screen.getByRole("group", { name: "AI-native story phases" });
+    ["Set the rules", "Build consistently", "Prove the result"].forEach((phase) => {
+      expect(within(story).getByRole("button", { name: new RegExp(phase, "i") })).toBeInTheDocument();
+    });
 
-    expect(designSystemLayer).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("heading", { level: 4, name: "Design system" })).toBeInTheDocument();
+    const consistencyPhase = within(story).getByRole("button", { name: /Build consistently/i });
+    fireEvent.click(consistencyPhase);
+
+    expect(consistencyPhase).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("heading", { level: 4, name: /I gave AI a stable product vocabulary/i })).toBeInTheDocument();
     expect(screen.getByText("29 production components", { selector: "li" })).toBeInTheDocument();
+
+    const skillList = screen.getByRole("group", { name: "AI-native skills" });
+    const designSystemSkill = within(skillList).getByRole("button", { name: /Design-system craft/i });
+    fireEvent.click(designSystemSkill);
+
+    expect(designSystemSkill).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("heading", { level: 4, name: "Design-system craft" })).toBeInTheDocument();
+    expect(screen.getByText("Primitives → semantic roles")).toBeInTheDocument();
+    expect(screen.getByText("Live Inspect mode")).toBeInTheDocument();
+    expect(screen.getByText("Contract checker", { selector: "li" })).toBeInTheDocument();
   });
 
   it("documents the complete 29-component production inventory", () => {
@@ -136,7 +150,7 @@ describe("DesignSystemPage component gallery", () => {
     expect(screen.getByText("Try a broader search or another component family.")).toBeInTheDocument();
   });
 
-  it("shows the CompanyLogo and StatusPill variants and opens the DocumentViewer specimen", () => {
+  it("shows the company, status, and case-lifecycle variants and opens the DocumentViewer specimen", () => {
     renderDesignSystem();
 
     const companyLogo = getSpecimenBoard("Company logo");
@@ -153,6 +167,12 @@ describe("DesignSystemPage component gallery", () => {
     ["Draft", "Verified", "Needs review", "Blocked"].forEach((example) => {
       expect(within(statusPill).getByText(example)).toBeInTheDocument();
     });
+
+    const caseStatus = getSpecimenBoard("Case status");
+    ["Needs verification", "Needs judgment", "Analyst review", "Ready to recommend", "Awaiting decision", "Revision requested", "Approved", "Declined"].forEach((label) => {
+      expect(within(caseStatus).getByText(label)).toBeInTheDocument();
+    });
+    expect(within(caseStatus).getByText("Material choice is unresolved")).toBeInTheDocument();
 
     const documentViewer = getSpecimenBoard("Document viewer");
     const openViewer = within(documentViewer).getByRole("button", { name: "Open document viewer" });

@@ -73,6 +73,20 @@ export function applyCreditReviewWorkflowState(
   return review;
 }
 
+export function getMeridianOpenReviewStatus(state: MeridianReviewState): Pick<CreditReview, "aiReviewState" | "caseStatus"> {
+  const findingStates = Object.values(state.findingStates);
+  if (findingStates.some((findingState) => findingState === "needs_judgment")) {
+    return { aiReviewState: "needs-judgment", caseStatus: "needs-judgment" };
+  }
+  if (findingStates.some((findingState) => findingState === "analysis_ready")) {
+    return { aiReviewState: "analysis-ready", caseStatus: "needs-judgment" };
+  }
+  if (findingStates.some((findingState) => findingState === "needs_verification")) {
+    return { aiReviewState: "needs-verification", caseStatus: "needs-verification" };
+  }
+  return { aiReviewState: "analysis-ready", caseStatus: "analyst-review" };
+}
+
 function applyStandardState(review: CreditReview, state: StandardReviewWorkflowState): CreditReview {
   if (state.seniorDecision?.decision === "return_to_analyst") {
     return { ...review, aiReviewState: "review-complete", caseStatus: "revision-requested", hasUpdates: false, status: "needs-attention" };
@@ -86,10 +100,17 @@ function applyStandardState(review: CreditReview, state: StandardReviewWorkflowS
   if (state.recommendationSubmitted || state.recommendation) {
     return { ...review, aiReviewState: "review-complete", caseStatus: "awaiting-decision", hasUpdates: false, status: "ready-for-decision" };
   }
-  if (review.details && state.reviewedFindingIds.length >= review.details.findings.length && review.details.findings.length > 0) {
+  if (areStandardReviewFindingsComplete(review, state)) {
     return { ...review, aiReviewState: "review-complete", caseStatus: "ready-to-recommend", hasUpdates: false, status: "in-review" };
   }
   return review;
+}
+
+export function areStandardReviewFindingsComplete(review: CreditReview, state: StandardReviewWorkflowState) {
+  if (!review.details) return false;
+  const openFixtureFindings = review.details.findings.filter((finding) => finding.status !== "Complete");
+  return openFixtureFindings.length > 0
+    && openFixtureFindings.every((finding) => state.reviewedFindingIds.includes(finding.id));
 }
 
 function applyMeridianState(review: CreditReview, state: MeridianReviewState): CreditReview {
@@ -111,14 +132,12 @@ function applyMeridianState(review: CreditReview, state: MeridianReviewState): C
     return { ...review, aiReviewState: "review-complete", aiReviewDetail: undefined, caseStatus: "ready-to-recommend", hasUpdates: false, status: "in-review" };
   }
 
-  const verificationCount = findingStates.filter((findingState) => findingState === "needs_verification").length;
-  const judgmentCount = findingStates.filter((findingState) => findingState === "needs_judgment" || findingState === "analysis_ready").length;
-  const openCount = verificationCount + judgmentCount;
+  const openCount = findingStates.filter((findingState) => !isFindingAddressed(findingState)).length;
+  const openStatus = getMeridianOpenReviewStatus(state);
   return {
     ...review,
-    aiReviewState: "needs-judgment",
+    ...openStatus,
     aiReviewDetail: openCount > 0 ? `${openCount} open` : undefined,
-    caseStatus: "analyst-review",
     hasUpdates: state.reassessments.some((record) => record.status === "current"),
     status: "needs-attention",
   };

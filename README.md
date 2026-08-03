@@ -4,7 +4,7 @@ This repository contains the new BCGX product application and a preserved Mercur
 
 ## Live demo
 
-[Open the AI-assisted credit review workspace](https://qeoptuuqrro.github.io/AI-Assisted-Credit-Review/)
+[Open the AI-assisted credit review workspace](https://qeoptuuqrro.github.io/KCDESIGN/)
 
 The public site is deployed automatically through GitHub Pages whenever `main` is updated.
 

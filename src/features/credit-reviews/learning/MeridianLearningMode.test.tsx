@@ -40,6 +40,16 @@ describe("Meridian Learning Mode", () => {
     });
   });
 
+  it("documents the complete case-status vocabulary and judgment rule", () => {
+    const topic = meridianLearningTopicById["queue-statuses"];
+
+    ["Needs verification", "Needs judgment", "Analyst review", "Ready to recommend", "Awaiting decision", "Revision requested", "Approved", "Declined"].forEach((label) => {
+      expect(`${topic.simple} ${topic.professional}`).toContain(label);
+    });
+    expect(topic.simple).toContain("trusted evidence leaves a material choice");
+    expect(topic.example).toContain("Meridian is Needs judgment");
+  });
+
   it("supports Plain English and Credit view inside a route-scoped panel", () => {
     render(
       <MeridianLearningPanel

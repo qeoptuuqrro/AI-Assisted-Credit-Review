@@ -1,7 +1,11 @@
 import { useMemo, useState } from "react";
 import { AppLink, useRouter, type AppPath } from "../../app/router";
-import { reviews, type CreditReview } from "../credit-reviews/reviewData";
+import { reviews, standardReviewSlugs, type CreditReview } from "../credit-reviews/reviewData";
 import { companyLogoDomains } from "../credit-reviews/companyLogos";
+import { applyCreditReviewWorkflowState } from "../credit-reviews/creditReviewPresentation";
+import { createInitialMeridianState, createInitialNorthstarState } from "../credit-reviews/workflow/creditReviewState";
+import { MERIDIAN_STORAGE_KEY, NORTHSTAR_STORAGE_KEY, readPersistedReviewState, useReviewWorkflowRevision } from "../credit-reviews/workflow/usePersistentReviewState";
+import { readPersistedStandardReviewState, standardReviewStorageKey } from "../credit-reviews/standard/standardReviewState";
 import { getDesignOption } from "../design-tools/designOptions";
 import { CompanyLogo } from "../../shared/ui/CompanyLogo/CompanyLogo";
 import { CaseStatusPill, caseStatusPresentation } from "../../shared/ui/CaseStatusPill/CaseStatusPill";
@@ -102,8 +106,15 @@ function OverviewPageContent() {
   const showBalancedV1 = selectedDesign?.renderKey === "workspace-balanced-dashboard";
   const showTrendFlowV3 = selectedDesign?.renderKey === "workspace-trend-flow-dashboard";
   const showRefinedMomentumV4 = selectedDesign?.renderKey === "workspace-refined-momentum-dashboard";
-  const myReviews = useMemo(() => reviews.filter((review) => review.owner === "Alex Kim"), []);
-  const analystReview = myReviews.filter((review) => review.caseStatus === "analyst-review");
+  const workflowRevision = useReviewWorkflowRevision([MERIDIAN_STORAGE_KEY, NORTHSTAR_STORAGE_KEY, ...standardReviewSlugs.map(standardReviewStorageKey)]);
+  const liveReviews = useMemo(() => {
+    const meridianState = readPersistedReviewState(MERIDIAN_STORAGE_KEY, createInitialMeridianState());
+    const northstarState = readPersistedReviewState(NORTHSTAR_STORAGE_KEY, createInitialNorthstarState());
+    const standardStates = Object.fromEntries(standardReviewSlugs.map((slug) => [slug, readPersistedStandardReviewState(slug)]));
+    return reviews.map((review) => applyCreditReviewWorkflowState(review, meridianState, northstarState, standardStates));
+  }, [workflowRevision]);
+  const myReviews = useMemo(() => liveReviews.filter((review) => review.owner === "Alex Kim"), [liveReviews]);
+  const needsJudgment = myReviews.filter((review) => review.caseStatus === "needs-judgment");
   const needsVerification = myReviews.filter((review) => review.caseStatus === "needs-verification");
   const awaitingDecision = myReviews.filter((review) => review.caseStatus === "awaiting-decision");
 
@@ -126,7 +137,7 @@ function OverviewPageContent() {
   }, [myReviews, queueView]);
 
   const operationalCards: Array<{ label: string; value: number; description: string; icon: IconName; tone: string; search: string }> = [
-    { label: "Analyst review", value: analystReview.length, description: "Usable analysis is ready for human interpretation.", icon: "scale", tone: "judgment", search: "?focus=analyst-review" },
+    { label: "Needs judgment", value: needsJudgment.length, description: "Material credit choices require analyst judgment.", icon: "scale", tone: "judgment", search: "?focus=needs-judgment" },
     { label: "Evidence outstanding", value: needsVerification.length, description: "Source verification or new evidence is required.", icon: "fileCheck", tone: "evidence", search: "?focus=needs-verification" },
     { label: "Awaiting decision", value: awaitingDecision.length, description: "Recommendations are ready for approver review.", icon: "checkCircle", tone: "decision", search: "?focus=awaiting-decision" },
   ];
