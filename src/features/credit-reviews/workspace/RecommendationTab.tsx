@@ -497,6 +497,7 @@ type DraftRecommendationProps = {
   escalatedCount: number;
   learningMode: boolean;
   learningControl?: ReactNode;
+  onCancel?: () => void;
 };
 
 function RecommendationIdentity({ status, tone }: { status: string; tone: "success" | "warning" | "info" }) {
@@ -621,18 +622,12 @@ function FullScreenRecommendationLifecycle(props: DraftRecommendationProps & { d
           <div className={styles.recommendationTaskLead}>
             <div className={styles.recommendationTaskIdentity}>
               <CompanyLogo domain={companyLogoDomains["Meridian Foods"]} name="Meridian Foods" size="sm" />
-              <span><strong>Meridian Foods</strong><small>$18M revolver</small></span>
-            </div>
-            <span className={styles.recommendationTaskDivider} aria-hidden="true" />
-            <div className={styles.recommendationTaskTitle}>
-              <strong>Analyst recommendation</strong>
-              <small>Step {activeSection} of 5</small>
+              <span className={styles.recommendationTaskDivider} aria-hidden="true" />
+              <span><strong>Meridian Foods</strong></span>
             </div>
           </div>
           <div className={styles.recommendationTaskActions}>
-            <span className={styles.recommendationSaveState}><Icon name="checkCircle" size="xs" /> {formatDraftTimestamp(draft?.updatedAt)}</span>
             {learningControl}
-            <Button variant="secondary" size="sm" aria-expanded={contextOpen} onClick={() => setContextOpen((current) => !current)}>{contextOpen ? "Close context" : "Case context"}</Button>
             <Button className={styles.recommendationExitButton} variant="quiet" size="sm" aria-label="Exit and save" title="Exit and save" icon={<Icon name="close" size="sm" />} onClick={onExit}><span className={styles.visuallyHidden}>Exit and save</span></Button>
           </div>
         </div>
@@ -640,7 +635,7 @@ function FullScreenRecommendationLifecycle(props: DraftRecommendationProps & { d
 
       <div className={styles.recommendationTaskScroll}>
         <main className={styles.recommendationFullScreenCanvas} aria-label={`Recommendation section ${activeSection} of 5`}>
-          <EditorialRecommendationCanvas {...props} />
+          <EditorialRecommendationCanvas {...props} onCancel={onExit} />
         </main>
       </div>
 
@@ -677,6 +672,7 @@ function EditorialRecommendationCanvas({
   activeSection,
   setActiveSection,
   learningMode,
+  onCancel,
 }: DraftRecommendationProps) {
   const sections: Array<{ id: RecommendationDraftSection; label: string }> = [
     { id: 1, label: "Recommendation" },
@@ -703,9 +699,6 @@ function EditorialRecommendationCanvas({
             />
           </div>
 
-          <button className={styles.editorialCaseSummary} type="button" onClick={() => onNavigate("findings")} {...getLearningTargetProps(learningMode, "recommendation-readiness")}>
-            <span><strong><Icon name="checkCircle" size="sm" /> Review complete</strong><small>{outcomes.length} findings · 12 sources</small></span>
-          </button>
         </aside>
 
         <div className={styles.editorialRecommendationEditor} {...getLearningTargetProps(learningMode, "recommendation-authoring")}>
@@ -834,9 +827,10 @@ function EditorialRecommendationCanvas({
           </div>
 
           <footer className={styles.editorialRecommendationFooter}>
-            <span className={styles.editorialRecommendationOwner}><Icon name="lock" size="sm" /><span><strong>Alex Kim</strong><small>Recommendation owner</small></span></span>
             <div>
-              {activeSection > 1 && <Button type="button" size="lg" variant="secondary" onClick={() => setActiveSection((activeSection - 1) as RecommendationDraftSection)}>Back</Button>}
+              {activeSection > 1 ? <Button type="button" size="lg" variant="secondary" onClick={() => setActiveSection((activeSection - 1) as RecommendationDraftSection)}>Back</Button> : <Button type="button" size="lg" variant="secondary" onClick={onCancel}>Cancel</Button>}
+            </div>
+            <div>
               {activeSection < 5
                 ? <Button type="button" size="lg" variant="primary" disabled={activeSection === 4 && !readyToReview} onClick={() => setActiveSection((activeSection + 1) as RecommendationDraftSection)}>{activeSection === 4 ? "Review recommendation" : "Continue"}</Button>
                 : <Button type="submit" size="lg" variant="primary" disabled={!readyToReview}>Submit for senior review</Button>}
